@@ -9,7 +9,7 @@ use serenity::framework::standard::{StandardFramework, CommandResult};
 
 use tracing::{debug, error, info, instrument};
 #[group]
-#[commands(ping, hook, gethook)]
+#[commands(ping,pong, hook, gethook, setwebhook, getwebhook)]
 struct General;
 
 struct Handler;
@@ -63,7 +63,7 @@ async fn main() {
     // Login with a bot token from the environment
     let token = env::var("DISCORD_TOKEN").expect("token");
     // let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
-    let intents = GatewayIntents::all();
+    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
     let mut client = Client::builder(token, intents)
         .event_handler(Handler)
         .framework(framework)
@@ -92,7 +92,7 @@ async fn pong(ctx: &Context, msg: &Message) -> CommandResult {
     // println!("ctx: {:?}", ctx.http);
     println!("channneId: {:?}", msg.channel_id);
 
-    msg.reply(ctx, "Pong!").await?;
+    msg.reply(ctx, &msg.content).await?;
 
     Ok(())
 }
@@ -126,5 +126,45 @@ async fn gethook(ctx: &Context, msg: &Message) -> CommandResult {
     let hooks = msg.channel_id.webhooks(&ctx.http).await?;
 
     msg.reply(ctx, format!("hooks: {:?}", hooks)).await?;
+    Ok(())
+}
+
+struct SomeType {
+    a: Vec<i32>
+}
+// キーバリューストアにwebhook URLを格納する
+#[command]
+async fn setwebhook(ctx: &Context, msg: &Message) -> CommandResult {
+    let key = kv::Raw::from("my_key");
+    let value = kv::Raw::from("my_values");
+
+    let v = vec![1, 2, 3, 4];
+
+    println!("{:?}", std::env::current_dir());
+    let mut cfg = kv::Config::new("./db");
+    let db = kv::Store::new(cfg).unwrap();
+
+    let test = db.bucket::<kv::Raw, Vec<i32>>(Some("test")).unwrap();
+
+    test.set(&key, &v).unwrap();
+
+    Ok(())
+}
+
+#[command]
+async fn getwebhook(ctx: &Context, msg: &Message) -> CommandResult {
+    let mut cfg = kv::Config::new("./db");
+    let db = kv::Store::new(cfg).unwrap();
+
+    let test = db.bucket::<kv::Raw, kv::Raw>(Some("test")).unwrap();
+    let key = kv::Raw::from("my_key");
+
+    let result = test.get(&key).unwrap();
+    let ivec = result.unwrap();
+    let string_value = String::from_utf8(ivec.to_vec())?;
+
+
+    println!("{}", string_value);
+
     Ok(())
 }
