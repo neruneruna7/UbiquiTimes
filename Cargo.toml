@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "sandbox"
+]
+
+# cargo new sandbox --name sandbox --vcs none
+# cargo shuttle init api/shuttle  --name api-shuttle
