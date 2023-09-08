@@ -1,21 +1,32 @@
 use std::env;
+use std::sync::Arc;
 
 use serenity::async_trait;
 use serenity::framework::standard::macros::{command, group, hook};
 use serenity::framework::standard::{CommandResult, StandardFramework};
 use serenity::http::Http;
-use serenity::model::channel::{Message, self};
+use serenity::model::channel::{self, Message};
 use serenity::model::prelude::{Ready, ResumedEvent};
 use serenity::model::webhook::Webhook;
 use serenity::prelude::*;
 
-use sled::Db;
+use sled::{Db, IVec};
 
 use tracing::{debug, error, info, instrument};
 
 #[group]
-#[commands(ping, pong, hook,exehook ,get2hook, setwebhook, getwebhook, savemsg, getmsg, watch)]
+#[commands(
+    ping, pong, hook, exehook, get2hook, setwebhook, getwebhook, savemsg, getmsg, watch
+)]
 struct General;
+
+// Dbのラッパー
+struct UtDb;
+
+// TypemapKeyを実装することで、Contextに格納できるようになる
+impl TypeMapKey for UtDb {
+    type Value = Arc<sled::Db>;
+}
 
 struct Handler;
 
@@ -82,6 +93,13 @@ async fn main() {
         .framework(framework)
         .await
         .expect("Error creating client");
+
+
+    {
+        let mut data = client.data.write().await;
+        let db = sled::open("./db").unwrap();
+        data.insert::<UtDb>(Arc::new(db));
+    }
 
     // start listening for events by starting a single shard
     if let Err(why) = client.start().await {
@@ -168,8 +186,8 @@ async fn get2hook(ctx: &Context, msg: &Message) -> CommandResult {
 async fn watch(ctx: &Context, msg: &Message) -> CommandResult {
     let channel_id = msg.channel_id;
     let mut stream = channel_id
-    .messages(ctx, |retriever| retriever.limit(10))
-    .await?;
+        .messages(ctx, |retriever| retriever.limit(10))
+        .await?;
 
     for message in stream.iter() {
         println!("message: {:?}", message.content);
@@ -231,7 +249,7 @@ impl<T: serde::Serialize + for<'a> serde::Deserialize<'a>> EzKvs<T> for Db {
 
 // キーバリューストアにwebhook URLを格納する
 #[command]
-async fn setwebhook(_ctx: &Context, _msg: &Message) -> CommandResult {
+async fn setwebhook(ctx: &Context, _msg: &Message) -> CommandResult {
     let v = vec!["a", "we", "we", "afgr"]
         .iter()
         .map(|s| s.to_string())
@@ -239,16 +257,23 @@ async fn setwebhook(_ctx: &Context, _msg: &Message) -> CommandResult {
 
     let key = "webhook_url";
 
-    let db = sled::open("./db").unwrap();
-
+    let data_read = ctx.data.read().await;
+    let db = data_read.get::<UtDb>()
+        .expect("Expect UtDb in typemap")
+        .clone();
+    
     db.my_set(key, &v)?;
+
     Ok(())
 }
 
 #[command]
 async fn getwebhook(ctx: &Context, msg: &Message) -> CommandResult {
-    let db = sled::open("./db").unwrap();
-
+    let data_read = ctx.data.read().await;
+    let db = data_read.get::<UtDb>()
+        .expect("Expect UtDb in typemap")
+        .clone();
+    
     let key = "webhook_url";
 
     // let result = db.get(&key).unwrap();
@@ -257,7 +282,7 @@ async fn getwebhook(ctx: &Context, msg: &Message) -> CommandResult {
 
     // println!("{}", string_value);
 
-    let webhook_urls = EzKvs::<Vec<String>>::my_get(&db, key)?;
+    let webhook_urls = EzKvs::<Vec<String>>::my_get(db.as_ref(), key)?;
 
     msg.reply(ctx, format!("webhook_urls: {:?}", webhook_urls))
         .await?;
@@ -267,8 +292,11 @@ async fn getwebhook(ctx: &Context, msg: &Message) -> CommandResult {
 // msg contentの内容をkvsに保存する
 #[command]
 async fn savemsg(ctx: &Context, msg: &Message) -> CommandResult {
-    let db = sled::open("./db").unwrap();
-
+    let data_read = ctx.data.read().await;
+    let db = data_read.get::<UtDb>()
+        .expect("Expect UtDb in typemap")
+        .clone();
+    
     let key = "msg";
 
     db.my_set(key, &msg.content)?;
@@ -282,11 +310,14 @@ async fn savemsg(ctx: &Context, msg: &Message) -> CommandResult {
 // kvsに保存したmsg contentを取得する
 #[command]
 async fn getmsg(ctx: &Context, msg: &Message) -> CommandResult {
-    let db = sled::open("./db").unwrap();
-
+    let data_read = ctx.data.read().await;
+    let db = data_read.get::<UtDb>()
+        .expect("Expect UtDb in typemap")
+        .clone();
+    
     let key = "msg";
 
-    let mut msg_content = EzKvs::<String>::my_get(&db, key)?.unwrap_or("msg not found".to_string());
+    let mut msg_content = EzKvs::<String>::my_get(db.as_ref(), key)?.unwrap_or("msg not found".to_string());
 
     // \nを\r\nに置換する
     // msg_content = msg_content.replace("\n", r#"\r\n"#);
@@ -297,17 +328,47 @@ async fn getmsg(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+fn add_webhook(db: &Db, webhook_url: &str){
+    // let db = sled::open("./db").unwrap();
+
+    let key = "test2";
+
+    let mut webhooks  = EzKvs::<Vec<String>>::my_get(db, key).unwrap().unwrap();
+    webhooks.push(webhook_url.to_string());
+    
+    EzKvs::<Vec<String>>::my_set(db, key, &webhooks).unwrap();
+
+    info!("execute add webhook: {}", webhook_url);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn it_works() {
-        let db = sled::open("./db").unwrap();
+        let db = sled::open("../../db").unwrap();
         let a = vec![1, 2];
         db.my_set("test", &a).unwrap();
         let b = EzKvs::<Vec<i32>>::my_get(&db, "test").unwrap();
         let _ = db.drop_tree("test");
         assert_eq!(a, b.unwrap());
     }
+
+    // #[test]
+    // fn test_add_webhook() {
+    //     let db = sled::open("./db").unwrap();
+    //     let a = Iterator::collect::<Vec<String>>(vec!["1", "2"]
+    //         .iter()
+    //         .map(|x| x.to_string()));
+
+    //     db.my_set("test2", &a).unwrap();
+    //     add_webhook(&db, "3");
+    //     let b = EzKvs::<Vec<String>>::my_get(&db, "test2").unwrap();
+
+    //     let c = vec!["1", "2", "3"];
+    //     let c = c.iter().map(|x| x.to_string()).collect::<Vec<String>>();
+    //     let _ = db.drop_tree("test2");
+    //     assert_eq!(c, b.unwrap());
+    // }
 }
