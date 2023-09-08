@@ -20,4 +20,6 @@ dotenvy = "0.15.7"
 tracing = "*"
 tracing-subscriber = "*"
 
-kv = "*"
+sled = "*"
+zerocopy = "*"
+byteorder = "*"
