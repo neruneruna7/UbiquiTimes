@@ -4,12 +4,12 @@ use sled::Db;
 // sled::Dbを拡張する
 // 命名は悩みどころ
 
-pub(crate)trait EzKvs<T: serde::Serialize + for<'a> serde::Deserialize<'a>> {
+pub(crate) trait EzKvs<T: serde::Serialize + for<'a> serde::Deserialize<'a>> {
     fn ez_set(&self, key: &str, value: &T) -> anyhow::Result<()>;
     fn ez_get(&self, key: &str) -> anyhow::Result<Option<T>>;
 }
 
-impl<T: serde::Serialize + for<'a> serde::Deserialize<'a>>  EzKvs<T> for Db {
+impl<T: serde::Serialize + for<'a> serde::Deserialize<'a>> EzKvs<T> for Db {
     fn ez_set(&self, key: &str, value: &T) -> anyhow::Result<()> {
         let json = serde_json::to_string(&value).unwrap();
         // let key = key.as_bytes();

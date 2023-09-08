@@ -7,7 +7,6 @@ pub(crate) mod kvs;
 
 #[command]
 pub async fn rg_webhook(_ctx: &Context, _msg: &Message) -> CommandResult {
-
     Ok(())
 }
 
