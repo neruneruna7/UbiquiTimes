@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "sandbox",
-    "commands"
+    "commands",
+    "sb/commands",
 ]
 
 # cargo new sandbox --name sandbox --vcs none
