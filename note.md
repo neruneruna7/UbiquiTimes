@@ -14,10 +14,10 @@
 - UTunregserver 指定したサーバを，拡散可能なサーバから削除する
 
 # KVSに格納するためのキー名とバリューのデータ型
-- "webhooks": Vec<String>
-- 
+- "webhook_urls": Vec<String>
+- "master_webhook_urls": Vec<HashMap<>>
 
-# 課題
+# bot間通信
 bot間の通信が必要になるので，どのように実装するか．  
 特定のチャンネルを，bot間の通信用，ログ用チャンネルとして設定するのが良さそう．
 `{src: "server", cmd_kind: "ログなのかbot間通信なのか", cmd: "通信コマンド"}`
@@ -29,6 +29,19 @@ bot間の通信が必要になるので，どのように実装するか．
 どのようにして指定のチャンネルを監視するか
 イベントハンドラに`message`を登録して，`message.channel.id`で判定する．でいけそう
 
+いけた
+
+# bot間通信のデータ構造
+jsonをメッセージに投げ，それをパースする．  
+
+{
+    "src": "server",
+    "cmd_kind": "log",
+    "cmd": "log message"
+    "ttl": 4
+}
+
+チャンネルへの書き込みを監視する都合，無限ループの発生を防ぐために，ttlを設定する．
 # グローバルデータ
 `client.data`にRwLockでアクセスするといけそう  
 そもそも変数に書き込みしないから，`Arc<>`だけで十分だ
@@ -41,19 +54,10 @@ bot間の通信が必要になるので，どのように実装するか．
 一気に双方向で登録したいな  
 チャンネル登録時，両サーバが拡散可能サーバとして登録してあれば，メンバーが片方のサーバから拡散Timesを設定したときに，双方向の拡散設定をする．
 
-KVSで, Vecへのデータ追加は`marge`メソッドで行けそう  
-削除処理は少々手間かも
+~~ KVSで, Vecへのデータ追加は`marge`メソッドで行けそう  
+削除処理は少々手間かも ~~
+追加も削除も自前の関数を使う
 
-        let db = sled::open("./db").unwrap();
-        let a = Iterator::collect::<Vec<String>>(vec!["1", "2"]
-            .iter()
-            .map(|x| x.to_string()));
 
-        db.my_set("test", &a).unwrap();
-        add_webhook("3");
-        let b = EzKvs::<Vec<String>>::my_get(&db, "test").unwrap();
-
-        let c = vec!["1", "2", "3"];
-        let c = c.iter().map(|x| x.to_string()).collect::<Vec<String>>();
-        let _ = db.drop_tree("test");
-        assert_eq!(c, b.unwrap());
+- botのユーザid 1147398117717704714
+- webhookを介したbotのユーザid 1148062413812404244

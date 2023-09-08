@@ -37,6 +37,16 @@ impl EventHandler for Handler {
         info!("{} is connected!", ready.user.name);
     }
 
+    // 特定のチャンネルへの投稿を監視する
+    async fn message(&self, _ctx: Context, new_msg: Message) {
+        if new_msg.channel_id.0 != 1002902939716812873 || new_msg.author.id == 1147398117717704714 {
+            return;
+        }
+
+        info!("new Message Comming!: {}", new_msg.content);
+        new_msg.reply(&_ctx, "hello!").await.unwrap();
+    }
+
     // For instrument to work, all parameters must implement Debug.
     //
     // Handler doesn't implement Debug here, so we specify to skip that argument.
@@ -93,7 +103,6 @@ async fn main() {
         .framework(framework)
         .await
         .expect("Error creating client");
-
 
     {
         let mut data = client.data.write().await;
@@ -258,10 +267,11 @@ async fn setwebhook(ctx: &Context, _msg: &Message) -> CommandResult {
     let key = "webhook_url";
 
     let data_read = ctx.data.read().await;
-    let db = data_read.get::<UtDb>()
+    let db = data_read
+        .get::<UtDb>()
         .expect("Expect UtDb in typemap")
         .clone();
-    
+
     db.my_set(key, &v)?;
 
     Ok(())
@@ -270,10 +280,11 @@ async fn setwebhook(ctx: &Context, _msg: &Message) -> CommandResult {
 #[command]
 async fn getwebhook(ctx: &Context, msg: &Message) -> CommandResult {
     let data_read = ctx.data.read().await;
-    let db = data_read.get::<UtDb>()
+    let db = data_read
+        .get::<UtDb>()
         .expect("Expect UtDb in typemap")
         .clone();
-    
+
     let key = "webhook_url";
 
     // let result = db.get(&key).unwrap();
@@ -293,10 +304,11 @@ async fn getwebhook(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn savemsg(ctx: &Context, msg: &Message) -> CommandResult {
     let data_read = ctx.data.read().await;
-    let db = data_read.get::<UtDb>()
+    let db = data_read
+        .get::<UtDb>()
         .expect("Expect UtDb in typemap")
         .clone();
-    
+
     let key = "msg";
 
     db.my_set(key, &msg.content)?;
@@ -311,13 +323,15 @@ async fn savemsg(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn getmsg(ctx: &Context, msg: &Message) -> CommandResult {
     let data_read = ctx.data.read().await;
-    let db = data_read.get::<UtDb>()
+    let db = data_read
+        .get::<UtDb>()
         .expect("Expect UtDb in typemap")
         .clone();
-    
+
     let key = "msg";
 
-    let mut msg_content = EzKvs::<String>::my_get(db.as_ref(), key)?.unwrap_or("msg not found".to_string());
+    let mut msg_content =
+        EzKvs::<String>::my_get(db.as_ref(), key)?.unwrap_or("msg not found".to_string());
 
     // \nを\r\nに置換する
     // msg_content = msg_content.replace("\n", r#"\r\n"#);
@@ -328,14 +342,14 @@ async fn getmsg(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-fn add_webhook(db: &Db, webhook_url: &str){
+fn add_webhook(db: &Db, webhook_url: &str) {
     // let db = sled::open("./db").unwrap();
 
     let key = "test2";
 
-    let mut webhooks  = EzKvs::<Vec<String>>::my_get(db, key).unwrap().unwrap();
+    let mut webhooks = EzKvs::<Vec<String>>::my_get(db, key).unwrap().unwrap();
     webhooks.push(webhook_url.to_string());
-    
+
     EzKvs::<Vec<String>>::my_set(db, key, &webhooks).unwrap();
 
     info!("execute add webhook: {}", webhook_url);
