@@ -173,6 +173,16 @@ dependencies = [
 [[package]]
 name = "commands"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "kv",
+ "serde",
+ "serde_json",
+ "serenity",
+ "sled",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "core-foundation-sys"
@@ -1020,14 +1030,16 @@ name = "sandbox"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "byteorder",
  "dotenvy",
- "kv",
  "serde",
  "serde_json",
  "serenity",
+ "sled",
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "zerocopy",
 ]
 
 [[package]]
@@ -1805,4 +1817,25 @@ checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
  "windows-sys",
+]
+
+[[package]]
+name = "zerocopy"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a7af71d8643341260a65f89fa60c0eeaa907f34544d8f6d9b0df72f069b5e74"
+dependencies = [
+ "byteorder",
+ "zerocopy-derive",
+]
+
+[[package]]
+name = "zerocopy-derive"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9731702e2f0617ad526794ae28fbc6f6ca8849b5ba729666c2a5bc4b6ddee2cd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.31",
 ]
