@@ -4,7 +4,7 @@ use serenity::async_trait;
 use serenity::framework::standard::macros::{command, group, hook};
 use serenity::framework::standard::{CommandResult, StandardFramework};
 use serenity::http::Http;
-use serenity::model::channel::Message;
+use serenity::model::channel::{Message, self};
 use serenity::model::prelude::{Ready, ResumedEvent};
 use serenity::model::webhook::Webhook;
 use serenity::prelude::*;
@@ -14,7 +14,7 @@ use sled::Db;
 use tracing::{debug, error, info, instrument};
 
 #[group]
-#[commands(ping, pong, hook,exehook ,get2hook, setwebhook, getwebhook, savemsg, getmsg)]
+#[commands(ping, pong, hook,exehook ,get2hook, setwebhook, getwebhook, savemsg, getmsg, watch)]
 struct General;
 
 struct Handler;
@@ -61,6 +61,9 @@ async fn before(_: &Context, msg: &Message, command_name: &str) -> bool {
 #[instrument]
 async fn main() {
     tracing_subscriber::fmt::init();
+    // tracing_subscriber::fmt()
+    //     .with_max_level(tracing::Level::DEBUG)
+    //     .init();
 
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
@@ -143,7 +146,8 @@ async fn exehook(ctx: &Context, msg: &Message) -> CommandResult {
 
     webhook
         .execute(&http, false, |w| {
-            w.content("hello there").username("Webhook test")
+            w.content("@di-bot-rust test webhook")
+                .username("Webhook test")
         })
         .await
         .expect("Could not execute webhook.");
@@ -156,6 +160,21 @@ async fn get2hook(ctx: &Context, msg: &Message) -> CommandResult {
     let hooks = msg.channel_id.webhooks(&ctx.http).await?;
 
     msg.reply(ctx, format!("hooks: {:?}", hooks)).await?;
+    Ok(())
+}
+
+// 特定のチャンネルの投稿を監視する.
+#[command]
+async fn watch(ctx: &Context, msg: &Message) -> CommandResult {
+    let channel_id = msg.channel_id;
+    let mut stream = channel_id
+    .messages(ctx, |retriever| retriever.limit(10))
+    .await?;
+
+    for message in stream.iter() {
+        println!("message: {:?}", message.content);
+    }
+
     Ok(())
 }
 
