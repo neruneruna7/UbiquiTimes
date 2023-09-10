@@ -362,27 +362,33 @@ mod tests {
     #[test]
     fn it_works() {
         let db = sled::open("../../db").unwrap();
+        test_ezkvs(&db);
+        test_add_webhook(&db);
+
+    }
+
+    fn test_ezkvs(db: &Db){
         let a = vec![1, 2];
         db.my_set("test", &a).unwrap();
-        let b = EzKvs::<Vec<i32>>::my_get(&db, "test").unwrap();
+        let b = EzKvs::<Vec<i32>>::my_get(db, "test").unwrap();
         let _ = db.drop_tree("test");
         assert_eq!(a, b.unwrap());
     }
 
     // #[test]
-    // fn test_add_webhook() {
-    //     let db = sled::open("./db").unwrap();
-    //     let a = Iterator::collect::<Vec<String>>(vec!["1", "2"]
-    //         .iter()
-    //         .map(|x| x.to_string()));
+    fn test_add_webhook(db: &Db) {
+        // let db = sled::open("./db").unwrap();
+        let a = Iterator::collect::<Vec<String>>(vec!["1", "2"]
+            .iter()
+            .map(|x| x.to_string()));
 
-    //     db.my_set("test2", &a).unwrap();
-    //     add_webhook(&db, "3");
-    //     let b = EzKvs::<Vec<String>>::my_get(&db, "test2").unwrap();
+        db.my_set("test2", &a).unwrap();
+        add_webhook(&db, "3");
+        let b = EzKvs::<Vec<String>>::my_get(db, "test2").unwrap();
 
-    //     let c = vec!["1", "2", "3"];
-    //     let c = c.iter().map(|x| x.to_string()).collect::<Vec<String>>();
-    //     let _ = db.drop_tree("test2");
-    //     assert_eq!(c, b.unwrap());
-    // }
+        let c = vec!["1", "2", "3"];
+        let c = c.iter().map(|x| x.to_string()).collect::<Vec<String>>();
+        let _ = db.drop_tree("test2");
+        assert_eq!(c, b.unwrap());
+    }
 }
