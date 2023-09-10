@@ -1,39 +1,104 @@
+use tracing::{info, error};
+
 use crate::*;
 
+async fn master_webhook_insert(
+    connection: &SqlitePool,
+    server_webhook: MasterWebhook,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        INSERT INTO serverwebhooks (servername, webhookurl)
+        VALUES(?, ?);
+        "#,
+        server_webhook.server_name,
+        server_webhook.webhook_url
+    )
+    .execute(connection)
+    .await?;
 
-use std::collections::HashMap;
+    Ok(())
+}
 
-const WEBHOOKS_KEY: &str = "webhook_urls";
+async fn master_webhook_select(
+    connection: &SqlitePool,
+    server_name: &str,
+) -> anyhow::Result<MasterWebhook> {
+    let row = sqlx::query!(
+        r#"
+        SELECT * FROM serverwebhooks WHERE servername = ?;
+        "#,
+        server_name
+    )
+    .fetch_one(connection)
+    .await?;
 
-// 関数名はset_master_webhookから変更する必要がある
-#[command]
-async fn set_master_webhook(ctx: &Context, msg: &Message) -> CommandResult {
-    let args = msg.content.split_whitespace().collect::<Vec<&str>>();
-    if args.len() != 3 {
-        msg.reply(
-            ctx,
-            "引数が足りません. サーバ識別名, webhookURLを入力してください",
-        )
-        .await?;
-        return Ok(());
-    }
-
-    let server_name = args[1].to_string();
-    let webhook_url = args[2].to_string();
-
-    let server = {
-        let mut server = HashMap::new();
-        server.insert(server_name, webhook_url);
-        server
+    let master_webhook = MasterWebhook {
+        id: Some(row.id),
+        server_name: row.servername,
+        webhook_url: row.webhookurl,
     };
 
-    // let data_read = ctx.data.read().await;
-    // let db = data_read
-    //     .get::<UtDb>()
-    //     .expect("Expect UtDb in typemap")
-    //     .clone();
+    Ok(master_webhook)
+}
 
-    // db.ez_set(WEBHOOKS_KEY, &server)?;
+#[allow(non_snake_case)]
+#[command]
+async fn setMasterHook(ctx: &Context, msg: &Message) -> CommandResult {
+    // msg.contentを分割して、server_nameとwebhook_urlを取得する
+    let mut iter = msg.content.split_whitespace();
+    let _ = iter.next().unwrap();
+    let server_name = iter.next().unwrap();
+    let webhook_url = iter.next().unwrap();
+
+    // log
+    info!("server_name: {}, webhook_url: {}", server_name, webhook_url);
+
+    // DBに登録する
+    let data_read = ctx.data.read().await;
+    let db = data_read
+        .get::<UtDb>();
+
+    match db {
+        Some(db) => {
+            let db = db.clone();
+            master_webhook_insert(db.as_ref(), MasterWebhook {
+                id: None,
+                server_name: server_name.to_string(),
+                webhook_url: webhook_url.to_string(),
+            }).await?;
+        }
+        None => {
+            error!("db is None");
+            msg.reply(ctx, "[error] db is None").await?;
+        }
+    }
+    
+    Ok(())
+}
+
+#[allow(non_snake_case)]
+#[command]
+async fn getMasterHook(ctx: &Context, msg: &Message) -> CommandResult {
+    // msg.contentを分割して、server_nameを取得する
+    let mut iter = msg.content.split_whitespace();
+    let _ = iter.next().unwrap();
+    let server_name = iter.next().unwrap();
+
+    // log
+    info!("server_name: {}", server_name);
+
+    // DBから取得する
+    let data_read = ctx.data.read().await;
+    let db = data_read
+        .get::<UtDb>()
+        .expect("Expect UtDb in typemap")
+        .clone();
+
+    let master_webhook = master_webhook_select(db.as_ref(), server_name).await?;
+
+    msg.reply(ctx, format!("master_webhook: {:?}", master_webhook))
+        .await?;
 
     Ok(())
 }
