@@ -61,3 +61,21 @@ jsonをメッセージに投げ，それをパースする．
 
 - botのユーザid 1147398117717704714
 - webhookを介したbotのユーザid 1148062413812404244
+
+
+CREATE TABLE IF NOT EXISTS serverwebhooks
+(
+    id      INTEGER PRIMARY KEY NOT NULL,
+    servername    TEXT    UNIQUE      NOT NULL,
+    guildid    TEXT          NOT NULL,
+    webhookurl     TEXT                NOT NULL,
+)
+
+
+CREATE TABLE IF NOT EXISTS privatewebhooks
+(
+    id      INTEGER PRIMARY KEY NOT NULL,
+    servername    TEXT          NOT NULL,
+    userid    TEXT          NOT NULL,
+    webhookurl     TEXT                NOT NULL
+)
