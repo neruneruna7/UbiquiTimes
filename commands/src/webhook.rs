@@ -1,6 +1,5 @@
 use crate::*;
 
-use crate::kvs::EzKvs;
 
 use std::collections::HashMap;
 
@@ -28,13 +27,13 @@ async fn set_master_webhook(ctx: &Context, msg: &Message) -> CommandResult {
         server
     };
 
-    let data_read = ctx.data.read().await;
-    let db = data_read
-        .get::<UtDb>()
-        .expect("Expect UtDb in typemap")
-        .clone();
+    // let data_read = ctx.data.read().await;
+    // let db = data_read
+    //     .get::<UtDb>()
+    //     .expect("Expect UtDb in typemap")
+    //     .clone();
 
-    db.ez_set(WEBHOOKS_KEY, &server)?;
+    // db.ez_set(WEBHOOKS_KEY, &server)?;
 
     Ok(())
 }
