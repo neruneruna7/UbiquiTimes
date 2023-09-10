@@ -20,6 +20,4 @@ dotenvy = "0.15.7"
 tracing = "*"
 tracing-subscriber = "*"
 
-sled = "*"
-zerocopy = "*"
-byteorder = "*"
+sqlx = { version = "0.7.1", features = ["sqlite", "migrate"] }
