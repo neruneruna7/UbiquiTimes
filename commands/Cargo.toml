@@ -15,6 +15,4 @@ anyhow = "1.0"
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
 
-kv = "0.24.0"
-
-sled = "*"
+sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }

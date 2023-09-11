@@ -1,20 +1,20 @@
 use std::env;
+use std::sync::Arc;
 
 use serenity::async_trait;
 use serenity::framework::standard::macros::{command, group, hook};
-use serenity::framework::standard::{CommandResult, StandardFramework};
+use serenity::framework::standard::{CommandError, CommandResult, StandardFramework};
 use serenity::http::Http;
-use serenity::model::channel::{Message, self};
+use serenity::model::channel::{Message};
 use serenity::model::prelude::{Ready, ResumedEvent};
 use serenity::model::webhook::Webhook;
 use serenity::prelude::*;
 
-use sled::Db;
-
+use sqlx::SqlitePool;
 use tracing::{debug, error, info, instrument};
 
 #[group]
-#[commands(ping, pong, hook,exehook ,get2hook, setwebhook, getwebhook, savemsg, getmsg, watch)]
+#[commands(ping, pong, hook, exehook, get2hook, sqlxtest)]
 struct General;
 
 struct Handler;
@@ -25,6 +25,16 @@ impl EventHandler for Handler {
         // Log at the INFO level. This is a macro from the `tracing` crate.
         info!("{} is connected!", ready.user.name);
     }
+
+    // // 特定のチャンネルへの投稿を監視する
+    // async fn message(&self, _ctx: Context, new_msg: Message) {
+    //     if new_msg.channel_id.0 != 1002902939716812873 || new_msg.author.id == 1147398117717704714 {
+    //         return;
+    //     }
+
+    //     info!("new Message Comming!: {}", new_msg.content);
+    //     new_msg.reply(&_ctx, "hello!").await.unwrap();
+    // }
 
     // For instrument to work, all parameters must implement Debug.
     //
@@ -40,6 +50,11 @@ impl EventHandler for Handler {
     }
 }
 
+// このbeforの使い方がわからない
+//
+// この関数はコマンドが実行される前に実行される
+// この関数の戻り値がtrueの場合、コマンドが実行される
+
 #[hook]
 // instrument will show additional information on all the logs that happen inside
 // the function.
@@ -47,8 +62,8 @@ impl EventHandler for Handler {
 // This additional information includes the function name, along with all it's arguments
 // formatted with the Debug impl.
 // This additional information will also only be shown if the LOG level is set to `debug`
-#[instrument]
-async fn before(_: &Context, msg: &Message, command_name: &str) -> bool {
+// #[instrument]
+async fn before_hook(_: &Context, msg: &Message, command_name: &str) -> bool {
     info!(
         "Got command '{}' by user '{}'",
         command_name, msg.author.name
@@ -57,8 +72,24 @@ async fn before(_: &Context, msg: &Message, command_name: &str) -> bool {
     true
 }
 
+#[hook]
+async fn after_hook(_: &Context, _: &Message, cmd_name: &str, error: Result<(), CommandError>) {
+    //  Print out an error if it happened
+    if let Err(why) = error {
+        println!("Error in {}: {:?}", cmd_name, why);
+    }
+}
+
+// Dbのラッパー
+struct UtDb;
+
+// TypemapKeyを実装することで、Contextに格納できるようになる
+impl TypeMapKey for UtDb {
+    type Value = Arc<SqlitePool>;
+}
+
 #[tokio::main]
-#[instrument]
+// #[instrument]
 async fn main() {
     tracing_subscriber::fmt::init();
     // tracing_subscriber::fmt()
@@ -67,6 +98,8 @@ async fn main() {
 
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
+        .before(before_hook)
+        .after(after_hook)
         .group(&GENERAL_GROUP);
 
     dotenvy::dotenv().ok();
@@ -83,6 +116,14 @@ async fn main() {
         .await
         .expect("Error creating client");
 
+    {
+        let pool = SqlitePool::connect(&env::var("DATABASE_URL").unwrap())
+            .await
+            .unwrap();
+        let mut data = client.data.write().await;
+        data.insert::<UtDb>(Arc::new(pool));
+    }
+
     // start listening for events by starting a single shard
     if let Err(why) = client.start().await {
         println!("An error occurred while running the client: {:?}", why);
@@ -92,7 +133,7 @@ async fn main() {
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     // println!("ctx: {:?}", ctx.http);
-    println!("msg: {:?}", msg);
+    // println!("msg: {:?}", msg);
 
     msg.reply(ctx, "Pong!").await?;
 
@@ -102,7 +143,7 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn pong(ctx: &Context, msg: &Message) -> CommandResult {
     // println!("ctx: {:?}", ctx.http);
-    println!("channneId: {:?}", msg.channel_id);
+    // println!("channneId: {:?}", msg.channel_id);
 
     msg.reply(ctx, &msg.content).await?;
 
@@ -132,7 +173,7 @@ async fn hook(ctx: &Context, msg: &Message) -> CommandResult {
 
 // webhookを実行
 #[command]
-async fn exehook(ctx: &Context, msg: &Message) -> CommandResult {
+async fn exehook(_ctx: &Context, _msg: &Message) -> CommandResult {
     // let webhook_url = "https://discord.com/api/webhooks";
 
     // You don't need a token when you are only dealing with webhooks.
@@ -163,151 +204,127 @@ async fn get2hook(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-// 特定のチャンネルの投稿を監視する.
-#[command]
-async fn watch(ctx: &Context, msg: &Message) -> CommandResult {
-    let channel_id = msg.channel_id;
-    let mut stream = channel_id
-    .messages(ctx, |retriever| retriever.limit(10))
-    .await?;
+// ContextからDbを取得する
+async fn get_db(ctx: &Context) -> Option<Arc<SqlitePool>> {
+    let data_read = ctx.data.read().await;
+    let db = data_read.get::<UtDb>();
 
-    for message in stream.iter() {
-        println!("message: {:?}", message.content);
-    }
-
-    Ok(())
-}
-
-trait EzKvs<T: serde::Serialize + for<'a> serde::Deserialize<'a>> {
-    fn my_set(&self, key: &str, value: &T) -> anyhow::Result<()>;
-    fn my_get(&self, key: &str) -> anyhow::Result<Option<T>>;
-}
-
-impl<T: serde::Serialize + for<'a> serde::Deserialize<'a>> EzKvs<T> for Db {
-    fn my_set(&self, key: &str, value: &T) -> anyhow::Result<()> {
-        let json = serde_json::to_string(&value).unwrap();
-        // let key = key.as_bytes();
-        let value = json.as_bytes();
-
-        self.insert(key, value)?;
-
-        Ok(())
-    }
-
-    fn my_get(&self, key: &str) -> anyhow::Result<Option<T>> {
-        // let key = key.as_bytes();
-        let result = self.get(key)?;
-        if let Some(ivec) = result {
-            let string_value = String::from_utf8(ivec.to_vec())?;
-            let json = serde_json::from_str(string_value.as_str())?;
-            Ok(Some(json))
-        } else {
-            Ok(None)
+    match db {
+        Some(db) => {
+            let db = db.clone();
+            Some(db)
+        }
+        None => {
+            error!("db is None");
+            None
         }
     }
 }
 
-// fn my_get<T: for<'a> serde::Deserialize<'a>>(db: &Db, key: &str) -> anyhow::Result<Option<T>> {
-//     // let key = key.as_bytes();
-//     let result = db.get(key)?;
-//     if let Some(ivec) = result {
-//         let string_value = String::from_utf8(ivec.to_vec())?;
-//         let json = serde_json::from_str(string_value.as_str())?;
-//         Ok(Some(json))
-//     } else {
-//         Ok(None)
-//     }
-// }
+async fn master_webhook_insert(
+    connection: &SqlitePool,
+    server_webhook: MasterWebhook,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        INSERT INTO master_webhooks (server_name, webhook_url)
+        VALUES(?, ?);
+        "#,
+        server_webhook.server_name,
+        server_webhook.webhook_url
+    )
+    .execute(connection)
+    .await?;
 
-// fn my_set(db: &Db, key: &str, value: &impl serde::Serialize) -> anyhow::Result<()> {
-//     let json = serde_json::to_string(&value)?;
-//     // let key = key.as_bytes();
-//     let value = json.as_bytes();
-
-//     db.insert(key, value)?;
-
-//     Ok(())
-// }
-
-// キーバリューストアにwebhook URLを格納する
-#[command]
-async fn setwebhook(_ctx: &Context, _msg: &Message) -> CommandResult {
-    let v = vec!["a", "we", "we", "afgr"]
-        .iter()
-        .map(|s| s.to_string())
-        .collect::<Vec<String>>();
-
-    let key = "webhook_url";
-
-    let db = sled::open("./db").unwrap();
-
-    db.my_set(key, &v)?;
     Ok(())
 }
 
 #[command]
-async fn getwebhook(ctx: &Context, msg: &Message) -> CommandResult {
-    let db = sled::open("./db").unwrap();
+async fn sqlxtest(ctx: &Context, _msg: &Message) -> CommandResult {
+    println!("hey");
+    // DBから取得する
+    let db = get_db(ctx).await.ok_or(anyhow::anyhow!("db is None"))?;
 
-    let key = "webhook_url";
+    let _masterwebhook1 = MasterWebhook {
+        id: None,
+        server_name: "test1".to_string(),
+        webhook_url: "https://discord.com/api/webhooks/1148062413812404244/W2xVsl1Jt055ovjr8KRzV9zoDW3UPJcGhoTMGzLk6dPZJKNhLRDAodh3TOYyYnjSwFjc".to_string(),
+    };
 
-    // let result = db.get(&key).unwrap();
-    // let ivec = result.unwrap();
-    // let string_value = String::from_utf8(ivec.to_vec())?;
+    let _masterwebhook2 = MasterWebhook {
+        id: None,
+        server_name: "test2".to_string(),
+        webhook_url: "https://discord.com/api/webhooks/1148062413812404244/W2xVsl1Jt055ovjr8KRzV9zoDW3UPJcGhoTMGzLk6dPZJKNhLRDAodh3TOYyYnjSwFjc".to_string(),
+    };
 
-    // println!("{}", string_value);
+    // master_webhook_insert(db.as_ref(), masterwebhook1).await?;
+    // println!("hey");
 
-    let webhook_urls = EzKvs::<Vec<String>>::my_get(&db, key)?;
+    // master_webhook_insert(db.as_ref(), masterwebhook2).await?;
+    // println!("hey");
 
-    msg.reply(ctx, format!("webhook_urls: {:?}", webhook_urls))
-        .await?;
-    Ok(())
+    let row = sqlx::query!(
+        r#"
+        SELECT * FROM master_webhooks;
+        "#
+    )
+    .fetch_all(db.as_ref())
+    .await?;
+
+    let mut reply = String::new();
+    for row in row {
+        reply.push_str(&format!("{}\n", row.server_name));
+    }
+
+    println!("row: {}", reply);
+    // let mut reply = String::new();
+    // for master_webhook in master_webhook_list {
+    //     reply.push_str(&format!("{}\n", master_webhook.server_name));
+    // }
+
+    // Ok(())
+    Err("hey".into())
 }
 
-// msg contentの内容をkvsに保存する
-#[command]
-async fn savemsg(ctx: &Context, msg: &Message) -> CommandResult {
-    let db = sled::open("./db").unwrap();
-
-    let key = "msg";
-
-    db.my_set(key, &msg.content)?;
-
-    println!("msg: {:?}", &msg.content);
-
-    msg.reply(ctx, format!("msg: {}", msg.content)).await?;
-    Ok(())
+// 相手サーバーに対して１つだけ存在するwebhook
+#[derive(Debug)]
+struct MasterWebhook {
+    id: Option<i64>,
+    server_name: String,
+    // guild_id: i64,
+    webhook_url: String,
 }
 
-// kvsに保存したmsg contentを取得する
-#[command]
-async fn getmsg(ctx: &Context, msg: &Message) -> CommandResult {
-    let db = sled::open("./db").unwrap();
-
-    let key = "msg";
-
-    let mut msg_content = EzKvs::<String>::my_get(&db, key)?.unwrap_or("msg not found".to_string());
-
-    // \nを\r\nに置換する
-    // msg_content = msg_content.replace("\n", r#"\r\n"#);
-
-    println!("msg_content: {:?}", &msg_content);
-
-    msg.reply(ctx, format!("msg: {:?}", msg_content)).await?;
-    Ok(())
+#[derive(Debug)]
+// 個々人が持つwebhook
+struct PrivateWebhook {
+    id: Option<i64>,
+    server_name: String,
+    user_id: i64,
+    webhook_url: String,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
 
-    #[test]
-    fn it_works() {
-        let db = sled::open("./db").unwrap();
-        let a = vec![1, 2];
-        db.my_set("test", &a).unwrap();
-        let b = EzKvs::<Vec<i32>>::my_get(&db, "test").unwrap();
-        let _ = db.drop_tree("test");
-        assert_eq!(a, b.unwrap());
+    
+
+    use sqlx::{
+        ConnectOptions, Connection, SqlitePool,
+    };
+
+    #[tokio::test]
+    async fn sqlite_te() {
+        let database_url = "sqlite:db/ubiquitimes.db";
+        let pool = SqlitePool::connect(database_url).await.unwrap();
+
+        let mut conn = pool.acquire().await.unwrap();
+
+        let _a = conn
+            .transaction(|txn| {
+                Box::pin(async move { sqlx::query("select * from ..").fetch_all(&mut **txn).await })
+            })
+            .await;
     }
 }
