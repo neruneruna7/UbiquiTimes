@@ -99,6 +99,32 @@ async fn master_webhook_select(
     Ok(master_webhook)
 }
 
+// すべてのマスターwebhookを取得する
+// 複数の行がとれるので、Vecに格納して返す
+async fn master_webhook_select_all(
+    connection: &SqlitePool,
+    server_name: &str,
+) -> anyhow::Result<()> {
+    let row = sqlx::query!(
+        r#"
+        SELECT * FROM master_webhooks;
+        "#,
+    )
+    .fetch_one(connection)
+    .await?;
+
+
+    // let master_webhook = MasterWebhook {
+    //     id: Some(row.id),
+    //     server_name: row.server_name,
+    //     webhook_url: row.webhook_url,
+    // };
+
+    // Ok(master_webhook)
+
+    Ok(())
+}
+
 // メンバーwebhookの登録
 async fn member_webhook_insert(
     connection: &SqlitePool,
