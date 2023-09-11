@@ -27,7 +27,7 @@ struct MasterWebhook {
 
 #[derive(Debug)]
 // 個々人が持つwebhook
-struct PrivateWebhook {
+struct MemberWebhook {
     id: Option<i64>,
     server_name: String,
     user_id: i64,

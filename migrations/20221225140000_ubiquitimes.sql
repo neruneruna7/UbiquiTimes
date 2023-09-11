@@ -1,16 +1,16 @@
-CREATE TABLE IF NOT EXISTS serverwebhooks
+CREATE TABLE IF NOT EXISTS master_webhooks
 (
     id      INTEGER PRIMARY KEY NOT NULL,
-    servername    TEXT    UNIQUE      NOT NULL,
+    server_name    TEXT    UNIQUE      NOT NULL,
     -- guildid    INTEGER          NOT NULL,
-    webhookurl     TEXT                NOT NULL
+    webhook_url     TEXT                NOT NULL
 );
 
 
-CREATE TABLE IF NOT EXISTS privatewebhooks
+CREATE TABLE IF NOT EXISTS member_webhooks
 (
     id      INTEGER PRIMARY KEY NOT NULL,
-    servername    TEXT          NOT NULL,
-    userid    INTEGER          NOT NULL,
-    webhookurl     TEXT                NOT NULL
+    server_name    TEXT          NOT NULL,
+    user_id    INTEGER          NOT NULL,
+    webhook_url     TEXT                NOT NULL
 );

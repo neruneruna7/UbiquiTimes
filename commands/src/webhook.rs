@@ -1,3 +1,4 @@
+use serenity::model::webhook::Webhook;
 use tracing::{info, error};
 
 use crate::*;
@@ -8,7 +9,7 @@ async fn master_webhook_insert(
 ) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO serverwebhooks (servername, webhookurl)
+        INSERT INTO master_webhooks (server_name, webhook_url)
         VALUES(?, ?);
         "#,
         server_webhook.server_name,
@@ -26,7 +27,7 @@ async fn master_webhook_select(
 ) -> anyhow::Result<MasterWebhook> {
     let row = sqlx::query!(
         r#"
-        SELECT * FROM serverwebhooks WHERE servername = ?;
+        SELECT * FROM master_webhooks WHERE server_name = ?;
         "#,
         server_name
     )
@@ -35,11 +36,57 @@ async fn master_webhook_select(
 
     let master_webhook = MasterWebhook {
         id: Some(row.id),
-        server_name: row.servername,
-        webhook_url: row.webhookurl,
+        server_name: row.server_name,
+        webhook_url: row.webhook_url,
     };
 
     Ok(master_webhook)
+}
+
+// メンバーwebhookの登録
+async fn member_webhook_insert(
+    connection: &SqlitePool,
+    member_webhook: MemberWebhook,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        INSERT INTO member_webhooks (server_name, user_id, webhook_url)
+        VALUES(?, ?, ?);
+        "#,
+        member_webhook.server_name,
+        member_webhook.user_id,
+        member_webhook.webhook_url
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
+}
+
+// メンバーwebhookの取得
+async fn member_webhook_select(
+    connection: &SqlitePool,
+    server_name: &str,
+    user_id: i64,
+) -> anyhow::Result<MemberWebhook> {
+    let row = sqlx::query!(
+        r#"
+        SELECT * FROM member_webhooks WHERE server_name = ? AND user_id = ?;
+        "#,
+        server_name,
+        user_id
+    )
+    .fetch_one(connection)
+    .await?;
+
+    let member_webhook = MemberWebhook {
+        id: Some(row.id),
+        server_name: row.server_name,
+        user_id: row.user_id,
+        webhook_url: row.webhook_url,
+    };
+
+    Ok(member_webhook)
 }
 
 #[allow(non_snake_case)]
@@ -101,4 +148,13 @@ async fn getMasterHook(ctx: &Context, msg: &Message) -> CommandResult {
         .await?;
 
     Ok(())
+}
+
+async fn create_webhook_from_channel(
+    ctx: &Context,
+    msg: &Message,
+    name: &str,
+) -> anyhow::Result<Webhook> {
+    let webhook = msg.channel_id.create_webhook(ctx, name).await?;
+    Ok(webhook)
 }
