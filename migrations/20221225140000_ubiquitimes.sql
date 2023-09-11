@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS master_webhooks
 (
     id      INTEGER PRIMARY KEY NOT NULL,
-    server_name    TEXT    UNIQUE      NOT NULL,
-    -- guildid    INTEGER          NOT NULL,
+    server_name    TEXT          NOT NULL,
+    guildid    INTEGER     UNIQUE     NOT NULL,
     webhook_url     TEXT                NOT NULL
 );
 

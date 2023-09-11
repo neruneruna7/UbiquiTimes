@@ -13,6 +13,8 @@ use serenity::prelude::*;
 use sqlx::SqlitePool;
 use tracing::{debug, error, info, instrument};
 
+mod bot_communicate;
+
 #[group]
 #[commands(ping, pong, hook, exehook, get2hook, sqlxtest)]
 struct General;
@@ -248,12 +250,14 @@ async fn sqlxtest(ctx: &Context, _msg: &Message) -> CommandResult {
     let _masterwebhook1 = MasterWebhook {
         id: None,
         server_name: "test1".to_string(),
+        guild_id: 1,
         webhook_url: "https://discord.com/api/webhooks/1148062413812404244/W2xVsl1Jt055ovjr8KRzV9zoDW3UPJcGhoTMGzLk6dPZJKNhLRDAodh3TOYyYnjSwFjc".to_string(),
     };
 
     let _masterwebhook2 = MasterWebhook {
         id: None,
         server_name: "test2".to_string(),
+        guild_id: 2,
         webhook_url: "https://discord.com/api/webhooks/1148062413812404244/W2xVsl1Jt055ovjr8KRzV9zoDW3UPJcGhoTMGzLk6dPZJKNhLRDAodh3TOYyYnjSwFjc".to_string(),
     };
 
@@ -291,7 +295,7 @@ async fn sqlxtest(ctx: &Context, _msg: &Message) -> CommandResult {
 struct MasterWebhook {
     id: Option<i64>,
     server_name: String,
-    // guild_id: i64,
+    guild_id: i64,
     webhook_url: String,
 }
 

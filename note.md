@@ -37,6 +37,7 @@ jsonをメッセージに投げ，それをパースする．
 
 {
     "src": "server",
+    "dst": "server",
     "cmd_kind": "log",
     "cmd": "log message"
     "ttl": 4
@@ -80,3 +81,16 @@ CREATE TABLE IF NOT EXISTS privatewebhooks
     userid    TEXT          NOT NULL,
     webhookurl     TEXT                NOT NULL
 )
+
+# bot間通信の流れ
+## マスターwebhookの登録
+サーバA，サーバB
+- AがBのマスターwebhookの登録を行う
+- AはBにマスターwebhookの登録通知を行う
+- Bはそれを受け取り，サーバー名とGUILD_IDを返送する
+- Aはそれを受け取り，サーバー名とGUILD_IDを登録する
+
+おなじ名前のサーバがあるとめんどいな
+やめよう 手動で登録することにする
+
+
