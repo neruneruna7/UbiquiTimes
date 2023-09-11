@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
+use serenity::http::Http;
 use serenity::model::channel::Message;
 use serenity::model::webhook::Webhook;
 use serenity::prelude::*;
@@ -12,6 +13,24 @@ use tracing::error;
 
 mod list;
 mod webhook;
+
+
+async fn execute_ubiquitus(username: &str, content: &str, webhooks: Vec<String>) -> anyhow::Result<()> {
+    // webhookを実行する
+    let http = Http::new("");
+
+    for webhook_url in webhooks.iter() {
+        let webhook = Webhook::from_url(&http, webhook_url).await?;
+        webhook
+        .execute(&http, false, |w| {
+            w.content(content)
+                .username(username)
+        })
+        .await?;
+
+    }
+    Ok(())
+}
 
 // Dbのラッパー
 struct UtDb;
