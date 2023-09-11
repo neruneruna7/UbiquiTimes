@@ -4,14 +4,14 @@ use std::sync::Arc;
 use serenity::async_trait;
 use serenity::framework::standard::macros::{command, group, hook};
 use serenity::framework::standard::{CommandError, CommandResult, StandardFramework};
-use serenity::http::Http;
-use serenity::model::channel::{Message};
+
+use serenity::model::channel::Message;
 use serenity::model::prelude::{Ready, ResumedEvent};
-use serenity::model::webhook::Webhook;
+
 use serenity::prelude::*;
 
 use sqlx::SqlitePool;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, info, instrument};
 
 #[group]
 #[commands(ping)]
