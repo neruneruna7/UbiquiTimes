@@ -5,7 +5,7 @@ use serenity::async_trait;
 use serenity::framework::standard::macros::{command, group, hook};
 use serenity::framework::standard::{CommandError, CommandResult, StandardFramework};
 use serenity::http::Http;
-use serenity::model::channel::{Message};
+use serenity::model::channel::Message;
 use serenity::model::prelude::{Ready, ResumedEvent};
 use serenity::model::webhook::Webhook;
 use serenity::prelude::*;
@@ -74,6 +74,21 @@ async fn before_hook(_: &Context, msg: &Message, command_name: &str) -> bool {
     true
 }
 
+// データベース関連の処理はここにまとめる
+
+async fn after_hook_db(ctx: &Context, msg: &Message, command_name: &str) -> CommandResult {
+    // DBから取得する
+    let db = get_db(ctx).await.ok_or(anyhow::anyhow!("db is None"))?;
+
+    match command_name {
+        "a" => {
+            todo!()
+        }
+    }
+
+    Ok(())
+}
+
 #[hook]
 async fn after_hook(_: &Context, _: &Message, cmd_name: &str, error: Result<(), CommandError>) {
     //  Print out an error if it happened
@@ -88,6 +103,17 @@ struct UtDb;
 // TypemapKeyを実装することで、Contextに格納できるようになる
 impl TypeMapKey for UtDb {
     type Value = Arc<SqlitePool>;
+}
+
+// 自身のマスターwebhook, botComチャンネルのwebhookとid
+struct MyServerData {
+    master_webhook: Option<String>,
+    botcom_channel_id: Option<i64>,
+    botcom_webhook_id: Option<i64>,
+}
+
+impl TypeMapKey for MyServerData {
+    type Value = Arc<RwLock<MyServerData>>;
 }
 
 #[tokio::main]
@@ -310,13 +336,8 @@ struct PrivateWebhook {
 
 #[cfg(test)]
 mod tests {
-    
 
-    
-
-    use sqlx::{
-        ConnectOptions, Connection, SqlitePool,
-    };
+    use sqlx::{ConnectOptions, Connection, SqlitePool};
 
     #[tokio::test]
     async fn sqlite_te() {
