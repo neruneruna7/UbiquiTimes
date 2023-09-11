@@ -91,7 +91,7 @@ async fn member_webhook_select(
 
 #[allow(non_snake_case)]
 #[command]
-async fn setMasterHook(ctx: &Context, msg: &Message) -> CommandResult {
+async fn UTregserver(ctx: &Context, msg: &Message) -> CommandResult {
     // msg.contentを分割して、server_nameとwebhook_urlを取得する
     let mut iter = msg.content.split_whitespace();
     let _ = iter.next().unwrap();
