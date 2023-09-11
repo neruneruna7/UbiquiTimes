@@ -345,7 +345,7 @@ async fn master_webhook_insert(
 ) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO serverwebhooks (servername, webhookurl)
+        INSERT INTO master_webhooks (server_name, webhook_url)
         VALUES(?, ?);
         "#,
         server_webhook.server_name,
@@ -363,7 +363,7 @@ async fn master_webhook_select(
 ) -> anyhow::Result<MasterWebhook> {
     let row = sqlx::query!(
         r#"
-        SELECT * FROM serverwebhooks WHERE servername = ?;
+        SELECT * FROM master_webhooks WHERE server_name = ?;
         "#,
         server_name
     )
@@ -372,8 +372,8 @@ async fn master_webhook_select(
 
     let master_webhook = MasterWebhook {
         id: Some(row.id),
-        server_name: row.servername,
-        webhook_url: row.webhookurl,
+        server_name: row.server_name,
+        webhook_url: row.webhook_url,
     };
 
     Ok(master_webhook)
