@@ -26,7 +26,7 @@ impl TypeMapKey for UtDb {
 struct MasterWebhook {
     id: Option<i64>,
     server_name: String,
-    // guild_id: i64,
+    guild_id: i64,
     webhook_url: String,
 }
 
@@ -62,10 +62,11 @@ async fn master_webhook_insert(
 ) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO master_webhooks (server_name, webhook_url)
-        VALUES(?, ?);
+        INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
+        VALUES(?, ?, ?);
         "#,
         server_webhook.server_name,
+        server_webhook.guild_id,
         server_webhook.webhook_url
     )
     .execute(connection)
@@ -90,6 +91,7 @@ async fn master_webhook_select(
     let master_webhook = MasterWebhook {
         id: Some(row.id),
         server_name: row.server_name,
+        guild_id: row.guild_id,
         webhook_url: row.webhook_url,
     };
 

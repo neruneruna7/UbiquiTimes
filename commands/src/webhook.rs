@@ -9,6 +9,7 @@ async fn UTregserver(ctx: &Context, msg: &Message) -> CommandResult {
     let mut iter = msg.content.split_whitespace();
     let _ = iter.next().unwrap();
     let server_name = iter.next().unwrap();
+    let guild_id = iter.next().unwrap().parse::<i64>().unwrap();
     let webhook_url = iter.next().unwrap();
 
     // log
@@ -25,6 +26,7 @@ async fn UTregserver(ctx: &Context, msg: &Message) -> CommandResult {
                 MasterWebhook {
                     id: None,
                     server_name: server_name.to_string(),
+                    guild_id,
                     webhook_url: webhook_url.to_string(),
                 },
             )
