@@ -16,7 +16,7 @@ pub struct ChannelWebhookRegister {
     pub webhook_url: String,
 }
 
-// 他サーバーから，メンバー拡散チャンネルの登録通知が来たときのしょり
+// 他サーバーから，botLogにメンバー拡散チャンネルの登録通知が来たときのしょり
 async fn member_webhook_receive(
     ctx: &Context,
     msg: &Message,
@@ -29,6 +29,10 @@ async fn member_webhook_receive(
         .clone();
 
     let my_server_data = my_server_data.as_ref().blocking_read();
+
+    // 追加記述が必要
+
+
 
     
 

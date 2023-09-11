@@ -62,3 +62,33 @@ async fn getMasterHook(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+
+// メンバーwebhookを登録する
+#[allow(non_snake_case)]
+#[command]
+async fn UTregister(ctx: &Context, msg: &Message) -> CommandResult {
+    // msg.contentを分割して、server_nameとチャンネルidを取得する
+    let mut iter = msg.content.split_whitespace();
+    let _ = iter.next().unwrap();
+    let server_name = iter.next().unwrap();
+    let channel_id = iter.next().unwrap().parse::<i64>().unwrap();
+
+
+    // もしチャンネルにwebhookが存在していたら、それを使う
+    // なければ、新規に作成する
+    // チャンネルidから，存在しているwebhookを取得する
+    let webhooks = msg.channel_id.webhooks(&ctx).await?;
+    
+    // UT- username という名前のwebhookがあるかどうか
+    let webhook = if let Some(webhook) = webhooks.iter().find(|w| w.name == Some(format!("UT-{}", &msg.author.name))) {
+        webhook.to_owned()
+    } else {
+        msg.channel_id.create_webhook(&ctx, format!("UT-{}", &msg.author.name)).await?
+    };
+
+    let my_webhook_url = webhook.url()?;
+
+    // さらなる記述が必要
+
+    Ok(())
+}
