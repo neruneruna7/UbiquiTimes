@@ -92,3 +92,31 @@ async fn UTregister(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+
+
+// 手動でメンバーwebhookを登録する
+// (prefix)UTregisterM server_name webhook_url 
+#[allow(non_snake_case)]
+#[command]
+async fn UTregisterM(ctx: &Context, msg: &Message) -> CommandResult {
+    // msg.contentを分割して、server_nameとチャンネルidを取得する
+    let mut iter = msg.content.split_whitespace();
+    let _ = iter.next().unwrap();
+    let server_name = iter.next().unwrap().to_string();
+    let webhook_url = iter.next().unwrap().to_string();
+
+    let db = get_db(ctx).await.unwrap();
+
+    let menber_webhook = MemberWebhook {
+        id: None,
+        server_name,
+        user_id: 1234,
+        webhook_url,
+    };
+
+    member_webhook_insert(db.as_ref(), menber_webhook).await?;
+
+    info!("member webhook inserted");
+
+    Ok(())
+}
