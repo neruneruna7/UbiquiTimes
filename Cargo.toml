@@ -1,8 +1,9 @@
 [workspace]
 members = [
     "commands",
+    "ubiquitimes/serenity",
     "sb/commands",
 ]
 
-# cargo new sandbox --name sandbox --vcs none
+# cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none
 # cargo shuttle init api/shuttle  --name api-shuttle
