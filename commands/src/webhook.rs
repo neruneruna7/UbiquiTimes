@@ -1,8 +1,6 @@
-
-use tracing::{info, error};
+use tracing::{error, info};
 
 use crate::*;
-
 
 #[allow(non_snake_case)]
 #[command]
@@ -22,18 +20,22 @@ async fn UTregserver(ctx: &Context, msg: &Message) -> CommandResult {
     match db {
         Some(db) => {
             let db = db.clone();
-            master_webhook_insert(db.as_ref(), MasterWebhook {
-                id: None,
-                server_name: server_name.to_string(),
-                webhook_url: webhook_url.to_string(),
-            }).await?;
+            master_webhook_insert(
+                db.as_ref(),
+                MasterWebhook {
+                    id: None,
+                    server_name: server_name.to_string(),
+                    webhook_url: webhook_url.to_string(),
+                },
+            )
+            .await?;
         }
         None => {
             error!("db is None");
             msg.reply(ctx, "[error] db is None").await?;
         }
     }
-    
+
     Ok(())
 }
 

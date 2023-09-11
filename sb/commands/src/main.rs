@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use serenity::async_trait;
 use serenity::framework::standard::macros::{command, group, hook};
-use serenity::framework::standard::{CommandResult, StandardFramework, CommandError};
+use serenity::framework::standard::{CommandError, CommandResult, StandardFramework};
 use serenity::http::Http;
-use serenity::model::channel::{self, Message};
+use serenity::model::channel::{Message};
 use serenity::model::prelude::{Ready, ResumedEvent};
 use serenity::model::webhook::Webhook;
 use serenity::prelude::*;
@@ -80,8 +80,6 @@ async fn after_hook(_: &Context, _: &Message, cmd_name: &str, error: Result<(), 
     }
 }
 
-
-
 // Dbのラッパー
 struct UtDb;
 
@@ -119,7 +117,7 @@ async fn main() {
         .expect("Error creating client");
 
     {
-        let mut pool = SqlitePool::connect(&env::var("DATABASE_URL").unwrap())
+        let pool = SqlitePool::connect(&env::var("DATABASE_URL").unwrap())
             .await
             .unwrap();
         let mut data = client.data.write().await;
@@ -175,7 +173,7 @@ async fn hook(ctx: &Context, msg: &Message) -> CommandResult {
 
 // webhookを実行
 #[command]
-async fn exehook(ctx: &Context, msg: &Message) -> CommandResult {
+async fn exehook(_ctx: &Context, _msg: &Message) -> CommandResult {
     // let webhook_url = "https://discord.com/api/webhooks";
 
     // You don't need a token when you are only dealing with webhooks.
@@ -206,12 +204,10 @@ async fn get2hook(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-
 // ContextからDbを取得する
 async fn get_db(ctx: &Context) -> Option<Arc<SqlitePool>> {
     let data_read = ctx.data.read().await;
-    let db = data_read
-        .get::<UtDb>();
+    let db = data_read.get::<UtDb>();
 
     match db {
         Some(db) => {
@@ -222,7 +218,6 @@ async fn get_db(ctx: &Context) -> Option<Arc<SqlitePool>> {
             error!("db is None");
             None
         }
-        
     }
 }
 
@@ -244,20 +239,19 @@ async fn master_webhook_insert(
     Ok(())
 }
 
-
 #[command]
-async fn sqlxtest(ctx: &Context, msg: &Message) -> CommandResult {
+async fn sqlxtest(ctx: &Context, _msg: &Message) -> CommandResult {
     println!("hey");
     // DBから取得する
     let db = get_db(ctx).await.ok_or(anyhow::anyhow!("db is None"))?;
 
-    let masterwebhook1 = MasterWebhook {
+    let _masterwebhook1 = MasterWebhook {
         id: None,
         server_name: "test1".to_string(),
         webhook_url: "https://discord.com/api/webhooks/1148062413812404244/W2xVsl1Jt055ovjr8KRzV9zoDW3UPJcGhoTMGzLk6dPZJKNhLRDAodh3TOYyYnjSwFjc".to_string(),
     };
 
-    let masterwebhook2 = MasterWebhook {
+    let _masterwebhook2 = MasterWebhook {
         id: None,
         server_name: "test2".to_string(),
         webhook_url: "https://discord.com/api/webhooks/1148062413812404244/W2xVsl1Jt055ovjr8KRzV9zoDW3UPJcGhoTMGzLk6dPZJKNhLRDAodh3TOYyYnjSwFjc".to_string(),
@@ -268,7 +262,6 @@ async fn sqlxtest(ctx: &Context, msg: &Message) -> CommandResult {
 
     // master_webhook_insert(db.as_ref(), masterwebhook2).await?;
     // println!("hey");
-
 
     let row = sqlx::query!(
         r#"
@@ -311,16 +304,14 @@ struct PrivateWebhook {
     webhook_url: String,
 }
 
-
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
+    
 
-    use super::*;
+    
 
     use sqlx::{
-        sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous},
-        ConnectOptions, Connection, Row, Sqlite, SqlitePool, Transaction,
+        ConnectOptions, Connection, SqlitePool,
     };
 
     #[tokio::test]
@@ -330,10 +321,10 @@ mod tests {
 
         let mut conn = pool.acquire().await.unwrap();
 
-        let a = conn
+        let _a = conn
             .transaction(|txn| {
                 Box::pin(async move { sqlx::query("select * from ..").fetch_all(&mut **txn).await })
             })
             .await;
-        }
+    }
 }

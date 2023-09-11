@@ -1,6 +1,5 @@
 use crate::*;
 
-
 // 拡散可能なサーバ一覧を表示する
 #[allow(non_snake_case)]
 #[command]

@@ -10,8 +10,8 @@ use serenity::prelude::*;
 use sqlx::SqlitePool;
 use tracing::error;
 
-mod webhook;
 mod list;
+mod webhook;
 
 // Dbのラッパー
 struct UtDb;
@@ -42,8 +42,7 @@ struct MemberWebhook {
 // ContextからDbを取得する
 async fn get_db(ctx: &Context) -> Option<Arc<SqlitePool>> {
     let data_read = ctx.data.read().await;
-    let db = data_read
-        .get::<UtDb>();
+    let db = data_read.get::<UtDb>();
 
     match db {
         Some(db) => {
@@ -54,10 +53,8 @@ async fn get_db(ctx: &Context) -> Option<Arc<SqlitePool>> {
             error!("db is None");
             None
         }
-        
     }
 }
-
 
 async fn master_webhook_insert(
     connection: &SqlitePool,
@@ -103,16 +100,15 @@ async fn master_webhook_select(
 // 複数の行がとれるので、Vecに格納して返す
 async fn master_webhook_select_all(
     connection: &SqlitePool,
-    server_name: &str,
+    _server_name: &str,
 ) -> anyhow::Result<()> {
-    let row = sqlx::query!(
+    let _row = sqlx::query!(
         r#"
         SELECT * FROM master_webhooks;
         "#,
     )
     .fetch_one(connection)
     .await?;
-
 
     // let master_webhook = MasterWebhook {
     //     id: Some(row.id),
@@ -170,7 +166,6 @@ async fn member_webhook_select(
 
     Ok(member_webhook)
 }
-
 
 async fn create_webhook_from_channel(
     ctx: &Context,
