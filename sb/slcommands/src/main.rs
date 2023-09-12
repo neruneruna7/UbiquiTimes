@@ -6,13 +6,14 @@ use poise::{serenity_prelude as serenity, Event};
 use std::{collections::HashMap, env::var, sync::{Mutex, atomic::{AtomicU32, Ordering}}, time::Duration};
 use tracing_subscriber;
 use tracing::{debug, error, info, instrument};
+use anyhow::Error;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
-type Error = Box<dyn std::error::Error + Send + Sync>;
+// type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 // Custom user data passed to all command functions

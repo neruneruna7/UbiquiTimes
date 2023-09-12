@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 
 use poise::serenity_prelude as serenity;
 
@@ -21,7 +21,7 @@ mod webhook;
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
 type Error = Box<dyn std::error::Error + Send + Sync>;
-type Context<'a> = poise::Context<'a, Data, Error>;
+type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
 
 // Dbのラッパー
 struct Data {
@@ -59,9 +59,21 @@ async fn execute_ubiquitus(username: &str, content: &str, webhooks: Vec<String>)
 struct MasterWebhook {
     id: Option<i64>,
     server_name: String,
-    guild_id: i64,
+    guild_id: Option<i64>,
     webhook_url: String,
 }
+
+impl MasterWebhook {
+    fn from (id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
+        Self {
+            id: None,
+            server_name: server_name.to_string(),
+            guild_id,
+            webhook_url: webhook_url.to_string(),
+        }
+    }
+}
+
 
 #[derive(Debug)]
 // 個々人が持つwebhook
@@ -69,7 +81,20 @@ struct MemberWebhook {
     id: Option<i64>,
     server_name: String,
     member_id: i64,
+    channel_id: i64,
     webhook_url: String,
+}
+
+impl MemberWebhook {
+    fn from (id: Option<i64>, server_name: &str, member_id: i64,channel_id: i64, webhook_url: &str) -> Self {
+        Self {
+            id: None,
+            server_name: server_name.to_string(),
+            member_id,
+            channel_id,
+            webhook_url: webhook_url.to_string(),
+        }
+    }
 }
 
 // // ContextからDbを取得する
@@ -124,12 +149,12 @@ async fn master_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    let master_webhook = MasterWebhook {
-        id: Some(row.id),
-        server_name: row.server_name,
-        guild_id: row.guild_id,
-        webhook_url: row.webhook_url,
-    };
+    let master_webhook = MasterWebhook::from(
+        Some(row.id),
+        &row.server_name,
+        Some(row.guild_id),
+        &row.webhook_url,
+    );
 
     Ok(master_webhook)
 }
@@ -195,12 +220,13 @@ async fn member_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    let member_webhook = MemberWebhook {
-        id: Some(row.id),
-        server_name: row.server_name,
-        member_id: row.member_id,
-        webhook_url: row.webhook_url,
-    };
+    let member_webhook = MemberWebhook::from(
+        Some(row.id),
+        &row.server_name,
+        row.member_id,
+        row.channel_id,
+        &row.webhook_url,
+    );
 
     Ok(member_webhook)
 }
