@@ -1,25 +1,14 @@
-
-use anyhow::Result;
+use anyhow::{Result, Error};
 
 use poise::serenity_prelude::{self as serenity};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
-use anyhow::{Error};
-use poise::Event;
 use sqlx::SqlitePool;
 use std::{
     collections::HashMap,
-    env::{self, var},
-    sync::{
-        atomic::{AtomicU32, Ordering},
-        Arc, Mutex,
-    },
-    time::Duration,
+    sync::{atomic::AtomicU32, Arc, Mutex},
 };
-use tracing::info;
-
-
 
 mod manual_commands;
 

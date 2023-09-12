@@ -2,8 +2,6 @@ use crate::*;
 
 use anyhow::Result;
 
-use poise::serenity_prelude::{self as serenity, guild};
-
 use sqlx::SqlitePool;
 
 use tracing::info;
@@ -153,9 +151,9 @@ pub async fn ut_masterhook_register(
                 Err(_) => {
                     ctx.say("guild_idは数字で指定してください。").await?;
                     return Ok(());
-                },
+                }
             }
-        },
+        }
         None => None,
     };
 

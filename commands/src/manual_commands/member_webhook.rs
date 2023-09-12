@@ -193,7 +193,6 @@ pub async fn ut_times_release(
     Ok(())
 }
 
-
 // 自動でメンバーwebhookを登録できるようにしたい
 // // メンバーwebhookを登録する
 //
