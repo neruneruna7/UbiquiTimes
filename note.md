@@ -127,6 +127,6 @@ Aへのメンバーwebhookの登録を行う
 # テストデータ
 test
 
-1150053746156507267
+115005374_6156507267
 
 https://discord.com/api/webhooks/1150053774518403073/LEEaORLKsL2T0U9kMBjlsxhcmRvbKIHUPNncqdGfZ_ZmXThz9-aL0lZz0U-KrtK5XtmH

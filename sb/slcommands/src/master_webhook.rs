@@ -30,6 +30,29 @@ impl MasterWebhook {
     }
 }
 
+// bot間通信に関わるコマンドの種類
+// 通信の際に必要なデータはここに内包する
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+enum CmdKind {
+    MemberWebhookAutoRegister,
+    MemberWebhookAutoRegisterResponse,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct BotComMessage {
+    src_server: String,
+    dst_server: String,
+    cmd_kind: CmdKind,
+    ttl: i64,
+    timestamp: chrono::DateTime<chrono::Utc>,
+}
+
+struct MemberWebhookAutoRegisters {
+    member_id: u64,
+    channel_id: u64,
+    webhook_url: String,
+}
+
 async fn master_webhook_insert(
     connection: &SqlitePool,
     server_webhook: MasterWebhook,
@@ -98,8 +121,8 @@ async fn master_webhook_select_all(
 }
 
 
-#[poise::command(prefix_command, track_edits, aliases("UTregserver"), slash_command)]
-pub async fn ut_regserver(
+#[poise::command(prefix_command, track_edits, aliases("UTregMaster"), slash_command)]
+pub async fn ut_masterhook_register(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
@@ -126,6 +149,7 @@ pub async fn ut_regserver(
         MasterWebhook::from(None, &server_name, guild_id, &master_webhook_url),
     )
     .await?;
+
 
     Ok(())
 }

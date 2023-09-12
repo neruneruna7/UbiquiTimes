@@ -1,6 +1,7 @@
 #![warn(clippy::str_to_string)]
 
 mod commands;
+mod master_webhook;
 
 use anyhow::{Error, Result};
 use poise::{serenity_prelude as serenity, Event};
