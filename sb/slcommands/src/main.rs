@@ -1,7 +1,6 @@
 #![warn(clippy::str_to_string)]
 
 mod commands;
-mod master_webhook;
 
 use anyhow::{Error, Result};
 use poise::{serenity_prelude as serenity, Event};
@@ -68,15 +67,22 @@ async fn event_handler(
             let mut master_webhooks = data.master_webhooks.lock().unwrap();
             let mut member_webhooks = data.member_webhooks.lock().unwrap();
             let connection = data.connection.clone();
-            let mut master_webhooks_db = master_webhook::master_webhook_select_all(&connection).await?;
+            let mut master_webhooks_db =
+                master_webhook::master_webhook_select_all(&connection).await?;
             let mut member_webhooks_db = commands::member_webhook_select_all2(&connection).await?;
 
             for master_webhook in master_webhooks_db.drain(..) {
-                master_webhooks.insert(master_webhook.guild_id.expect("Guild_id is None"), master_webhook);
+                master_webhooks.insert(
+                    master_webhook.guild_id.expect("Guild_id is None"),
+                    master_webhook,
+                );
             }
 
             for member_webhook in member_webhooks_db.drain(..) {
-                member_webhooks.insert(member_webhook.member_id.expect("Member_id is None"), member_webhook);
+                member_webhooks.insert(
+                    member_webhook.member_id.expect("Member_id is None"),
+                    member_webhook,
+                );
             }
         }
         Event::Message { new_message } => {

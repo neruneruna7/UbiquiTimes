@@ -33,18 +33,14 @@ impl MasterWebhook {
         guild_id: &str,
         webhook_url: &str,
     ) -> Result<Self> {
-
         let guild_id = guild_id.parse::<u64>()?;
-        Ok(
-        Self {
+        Ok(Self {
             id: None,
             server_name: server_name.to_string(),
             guild_id: Some(guild_id),
             webhook_url: webhook_url.to_string(),
-        }
-    )
+        })
     }
-
 }
 
 // // bot間通信に関わるコマンドの種類
@@ -142,7 +138,6 @@ pub async fn master_webhook_select_all(
     Ok(master_webhooks)
 }
 
-
 #[poise::command(prefix_command, track_edits, aliases("UTregMaster"), slash_command)]
 pub async fn ut_masterhook_register(
     ctx: Context<'_>,
@@ -165,7 +160,6 @@ pub async fn ut_masterhook_register(
     )
     .await?;
 
-
     Ok(())
 }
 
@@ -187,4 +181,3 @@ pub async fn get_master_hook(
 
     Ok(())
 }
-

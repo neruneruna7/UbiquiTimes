@@ -1,6 +1,6 @@
+use anyhow::Result;
 use poise::serenity_prelude::{Http, Webhook};
 use sqlx::SqlitePool;
-use anyhow::Result;
 use tracing::info;
 
 use crate::Context;
@@ -40,20 +40,15 @@ impl MemberWebhook {
         channel_id: &str,
         webhook_url: &str,
     ) -> Result<Self> {
-        Ok(
-
-        Self {
+        Ok(Self {
             id: None,
             server_name: server_name.to_string(),
             member_id: member_id.parse()?,
             channel_id: channel_id.parse()?,
             webhook_url: webhook_url.to_string(),
-        }
-    )
+        })
     }
 }
-
-
 
 // 自動でメンバーwebhookを登録できるようにしたい
 // // メンバーwebhookを登録する
@@ -117,7 +112,8 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
 
     let member_id = ctx.author().id.0;
 
-    let member_webhooks = member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
+    let member_webhooks =
+        member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
 
     let mut response = String::new();
 
@@ -174,7 +170,8 @@ pub async fn ut_times_release(
     // SqliteのINTEGER型はi64になる都合で，i64に変換する
     // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
     let member_id = ctx.author().id.0;
-    let member_webhooks = member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
+    let member_webhooks =
+        member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
 
     let member_webhooks = member_webhooks
         .iter()
@@ -202,7 +199,6 @@ async fn execute_ubiquitus(
     }
     Ok(())
 }
-
 
 // メンバーwebhookの登録
 async fn member_webhook_insert(
@@ -257,7 +253,7 @@ pub async fn member_webhook_select(
 }
 
 // メンバーidと一致するメンバーwebhookの全取得
-// 
+//
 pub async fn member_webhook_select_from_member_id(
     connection: &SqlitePool,
     member_id: u64,
@@ -287,10 +283,7 @@ pub async fn member_webhook_select_from_member_id(
     Ok(member_webhook_list)
 }
 
-
-pub async fn member_webhook_select_all(
-    connection: &SqlitePool,
-) -> Result<Vec<MemberWebhook>> {
+pub async fn member_webhook_select_all(connection: &SqlitePool) -> Result<Vec<MemberWebhook>> {
     let rows = sqlx::query!(
         r#"
         SELECT * FROM member_webhooks;

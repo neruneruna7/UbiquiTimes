@@ -15,8 +15,6 @@ pub mod member_webhook;
 // すべてのコマンド関数で使用される型
 type Context<'a> = poise::Context<'a, Data, Error>;
 
-
-
 async fn create_webhook_from_channel(
     ctx: Context<'_>,
     msg: &Message,
@@ -125,8 +123,6 @@ pub async fn ut_serverlist(ctx: Context<'_>) -> Result<()> {
     ctx.say(response).await?;
     Ok(())
 }
-
-
 
 // 自動でメンバーwebhookを登録できるようにしたい
 // // メンバーwebhookを登録する
