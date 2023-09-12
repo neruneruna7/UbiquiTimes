@@ -2,11 +2,20 @@
 
 mod commands;
 
-use poise::{serenity_prelude as serenity, Event};
-use std::{collections::HashMap, env::var, sync::{Mutex, atomic::{AtomicU32, Ordering}}, time::Duration};
-use tracing_subscriber;
-use tracing::{debug, error, info, instrument};
 use anyhow::Error;
+use poise::{serenity_prelude as serenity, Event};
+use sqlx::SqlitePool;
+use std::{
+    collections::HashMap,
+    env::{var, self},
+    sync::{
+        atomic::{AtomicU32, Ordering},
+        Mutex, Arc,
+    },
+    time::Duration,
+};
+use tracing::{debug, error, info, instrument};
+use tracing_subscriber;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -21,6 +30,7 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 pub struct Data {
     votes: Mutex<HashMap<String, u32>>,
     poise_mentions: AtomicU32,
+    connection: Arc<SqlitePool>,
 }
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
@@ -74,8 +84,9 @@ async fn main() {
     dotenvy::dotenv().ok();
 
     tracing_subscriber::fmt::init();
-
-    // env_logger::init();
+// tracing_subscriber::fmt()
+//         .with_max_level(tracing::Level::DEBUG)
+//         .init();
 
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
@@ -83,14 +94,23 @@ async fn main() {
     // すべてのオプションを省略してデフォルト値を使用できます。by google translate
     let options = poise::FrameworkOptions {
         // ここでコマンドを登録する
+        // コマンド名は1~32文字じゃないとダメみたい
+        // どうやらスネークケースじゃないとだめのようだ
         commands: vec![
-            commands::help(), 
-            commands::vote(), 
-            commands::getvotes(), 
-            commands::member_webhook_register_manual()
-            ],
+            commands::help(),
+            // commands::vote(),
+            // commands::getvotes(),
+            // commands::member_webhook_register_manual(),
+            commands::get_master_hook(),
+            commands::ut_serverlist(),
+            commands::ut_regserver(),
+            commands::ut_member_webhook_reg_manual(),
+            commands::ut_list(),
+            commands::ut_delete(),
+            commands::ut_execute(),
+        ],
 
-            // ここでprefixを設定する
+        // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("~".into()),
             edit_tracker: Some(poise::EditTracker::for_timespan(Duration::from_secs(3600))),
@@ -147,6 +167,10 @@ async fn main() {
         ..Default::default()
     };
 
+    let pool = SqlitePool::connect(&env::var("DATABASE_URL").unwrap())
+    .await
+    .unwrap();
+
     poise::Framework::builder()
         .token(
             var("DISCORD_TOKEN")
@@ -159,6 +183,7 @@ async fn main() {
                 Ok(Data {
                     votes: Mutex::new(HashMap::new()),
                     poise_mentions: AtomicU32::new(0),
+                    connection: Arc::new(pool),
                 })
             })
         })

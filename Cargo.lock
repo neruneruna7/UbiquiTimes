@@ -1520,6 +1520,7 @@ dependencies = [
  "env_logger",
  "log",
  "poise",
+ "sqlx",
  "tokio",
  "tracing",
  "tracing-subscriber",
