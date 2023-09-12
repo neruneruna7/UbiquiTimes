@@ -9,14 +9,13 @@ use serenity::{
     http::Http,
     model::{channel::Message, gateway::Ready},
     webhook::Webhook,
-    TypeMapKey,
 };
 
 use sqlx::SqlitePool;
 use tracing::error;
 
-mod list;
-mod webhook;
+pub mod list;
+pub mod webhook;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -24,32 +23,44 @@ type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
 
 // Dbのラッパー
-struct Data {
+pub struct Data {
     connection: Arc<SqlitePool>,
 }
 
-// TypemapKeyを実装することで、Contextに格納できるようになる
-// impl TypeMapKey for UtDb {
-//     type Value = Arc<SqlitePool>;
-// }
+/// Show this help menu
+#[poise::command(prefix_command, track_edits, slash_command)]
+pub async fn help(
+    ctx: Context<'_>,
+    #[description = "Specific command to show help about"]
+    #[autocomplete = "poise::builtins::autocomplete_command"]
+    command: Option<String>,
+) -> Result<()> {
+    poise::builtins::help(
+        ctx,
+        command.as_deref(),
+        poise::builtins::HelpConfiguration {
+            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
+            ..Default::default()
+        },
+    )
+    .await?;
+    Ok(())
+}
 
 
-
-async fn execute_ubiquitus(username: &str, content: &str, webhooks: Vec<String>) -> anyhow::Result<()> {
+async fn execute_ubiquitus(
+    username: &str,
+    content: &str,
+    webhooks: Vec<String>,
+) -> anyhow::Result<()> {
     // webhookを実行する
     let http = Http::new("");
-
-
 
     for webhook_url in webhooks.iter() {
         let webhook = Webhook::from_url(&http, webhook_url).await?;
         webhook
-        .execute(&http, false, |w| {
-            w.content(content)
-                .username(username)
-        })
-        .await?;
-
+            .execute(&http, false, |w| w.content(content).username(username))
+            .await?;
     }
     Ok(())
 }
@@ -64,7 +75,7 @@ struct MasterWebhook {
 }
 
 impl MasterWebhook {
-    fn from (id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
+    fn from(id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -73,7 +84,6 @@ impl MasterWebhook {
         }
     }
 }
-
 
 #[derive(Debug)]
 // 個々人が持つwebhook
@@ -86,7 +96,13 @@ struct MemberWebhook {
 }
 
 impl MemberWebhook {
-    fn from (id: Option<i64>, server_name: &str, member_id: i64,channel_id: i64, webhook_url: &str) -> Self {
+    fn from(
+        id: Option<i64>,
+        server_name: &str,
+        member_id: i64,
+        channel_id: i64,
+        webhook_url: &str,
+    ) -> Self {
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -229,6 +245,54 @@ async fn member_webhook_select(
     );
 
     Ok(member_webhook)
+}
+
+// メンバーwebhookの全取得
+async fn member_webhook_select_all(
+    connection: &SqlitePool,
+    // server_name: &str,
+    member_id: i64,
+) -> anyhow::Result<Vec<MemberWebhook>> {
+    let rows = sqlx::query!(
+        r#"
+        SELECT * FROM member_webhooks WHERE member_id = ?;
+        "#,
+        member_id,
+    )
+    .fetch_all(connection)
+    .await?;
+
+    let mut member_webhook_list = Vec::new();
+    for row in rows {
+        let member_webhook = MemberWebhook::from(
+            Some(row.id), 
+            &row.server_name, 
+            row.member_id, 
+            row.channel_id,
+            &row.webhook_url);
+        member_webhook_list.push(member_webhook);
+    }
+
+    Ok(member_webhook_list)
+}
+
+// servername, member_idを指定してメンバーwebhookを削除する
+async fn member_webhook_delete(
+    connection: &SqlitePool,
+    server_name: &str,
+    member_id: i64,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        DELETE FROM member_webhooks WHERE server_name = ? AND member_id = ?;
+        "#,
+        server_name,
+        member_id
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
 }
 
 async fn create_webhook_from_channel(
