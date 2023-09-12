@@ -75,3 +75,17 @@ pub async fn getvotes(
 
     Ok(())
 }
+
+
+#[poise::command(prefix_command, track_edits, aliases("UTregisterM"), slash_command)]
+pub async fn member_webhook_register_manual(
+    ctx: Context<'_>,
+    #[description = "拡散先のサーバ名"] servername: String,
+    #[description = "拡散先チャンネルのwebhook URL"] webhook_url: String,
+) -> Result<(), Error> {
+
+    
+    ctx.say(format!("{}: {}", servername, webhook_url)).await?;
+
+    Ok(())
+}
