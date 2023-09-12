@@ -1,0 +1,23 @@
+[package]
+name = "sb-slcommands"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+poise = "*"
+
+anyhow = "*"
+dotenvy = "*"
+
+tokio = { version = "1", features = ["full"] }
+
+tracing = "*"
+tracing-subscriber = "*"
+
+env_logger = "*"
+log = "*"
+
+sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
+# commands = {path = "../../commands"}

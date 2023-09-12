@@ -37,6 +37,7 @@ jsonをメッセージに投げ，それをパースする．
 
 {
     "src": "server",
+    "dst": "server",
     "cmd_kind": "log",
     "cmd": "log message"
     "ttl": 4
@@ -80,3 +81,41 @@ CREATE TABLE IF NOT EXISTS privatewebhooks
     userid    TEXT          NOT NULL,
     webhookurl     TEXT                NOT NULL
 )
+
+# bot間通信の流れ
+## マスターwebhookの登録
+サーバA，サーバB
+- AがBのマスターwebhookの登録を行う
+- AはBにマスターwebhookの登録通知を行う
+- Bはそれを受け取り，サーバー名とGUILD_IDを返送する
+- Aはそれを受け取り，サーバー名とGUILD_IDを登録する
+
+おなじ名前のサーバがあるとめんどいな
+やめよう 手動で登録することにする
+
+## メンバーwebhookの登録
+サーバA，サーバB
+- A拡散元チャンネルからコマンドを実行し，がBのチャンネルidを指定してを拡散先として設定する
+- チャンネルidと，拡散元チャンネルのwebhookAをBのマスターwebhookに送信する
+- Bはそれを受け取り，チャンネルidからwebhookBを作成して返送する
+- BはAを拡散可能登録してあれば，webhookAを，Bを拡散元として拡散先として登録する
+- AはBにメンバーwebhookの登録通知を行う
+    - botLogチャンネルへの通知，メンバーチャンネルへの通知
+- もしも双方向にマスターwebhookが登録されていれば，Bから
+Aへのメンバーwebhookの登録を行う
+
+### まずは手動登録を実装しよう
+- 手動登録
+- 削除
+- 共有
+- ping
+- list
+
+
+
+
+### 自身のサーバのマスターwebhookやbotComチャンネルが変更された場合の動き
+`after`を使って，特定のコマンド実行されたときにDBから再取得する
+む，この`after`にdb処理をまとめてもいいのでは？
+すべてをまとめるのは現実的じゃないな
+必要な処理はまとめよう

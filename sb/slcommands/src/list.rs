@@ -1,5 +1,3 @@
-use poise::serenity_prelude::connection;
-
 use crate::*;
 
 /// 拡散可能なサーバ一覧を表示する
