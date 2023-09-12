@@ -64,7 +64,7 @@ impl MasterWebhook {
 //     webhook_url: String,
 // }
 
-pub async fn master_webhook_insert(
+async fn master_webhook_insert(
     connection: &SqlitePool,
     master_webhook: MasterWebhook,
 ) -> anyhow::Result<()> {
@@ -85,7 +85,7 @@ pub async fn master_webhook_insert(
     Ok(())
 }
 
-pub async fn master_webhook_select(
+async fn master_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
 ) -> anyhow::Result<MasterWebhook> {
@@ -110,7 +110,7 @@ pub async fn master_webhook_select(
 
 // すべてのマスターwebhookを取得する
 // 複数の行がとれるので、Vecに格納して返す
-pub async fn master_webhook_select_all(
+async fn master_webhook_select_all(
     connection: &SqlitePool,
 ) -> anyhow::Result<Vec<MasterWebhook>> {
     let rows = sqlx::query!(

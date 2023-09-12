@@ -126,6 +126,7 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
         member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
 
     let mut response = String::new();
+    response.push_str("拡散先リスト\n --------- \n");
 
     for member_webhook in member_webhooks {
         response.push_str(&format!("{}\n", member_webhook.server_name));
@@ -263,7 +264,7 @@ async fn member_webhook_insert(
 }
 
 // メンバーwebhookの取得
-pub async fn member_webhook_select(
+async fn member_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
     member_id: u64,
@@ -292,7 +293,7 @@ pub async fn member_webhook_select(
 
 // メンバーidと一致するメンバーwebhookの全取得
 //
-pub async fn member_webhook_select_from_member_id(
+async fn member_webhook_select_from_member_id(
     connection: &SqlitePool,
     member_id: u64,
 ) -> Result<Vec<MemberWebhook>> {
@@ -321,7 +322,7 @@ pub async fn member_webhook_select_from_member_id(
     Ok(member_webhook_list)
 }
 
-pub async fn member_webhook_select_all(connection: &SqlitePool) -> Result<Vec<MemberWebhook>> {
+async fn member_webhook_select_all(connection: &SqlitePool) -> Result<Vec<MemberWebhook>> {
     let rows = sqlx::query!(
         r#"
         SELECT * FROM member_webhooks;
@@ -346,7 +347,7 @@ pub async fn member_webhook_select_all(connection: &SqlitePool) -> Result<Vec<Me
 }
 
 // servername, member_idを指定してメンバーwebhookを削除する
-pub async fn member_webhook_delete(
+async fn member_webhook_delete(
     connection: &SqlitePool,
     server_name: &str,
     member_id: u64,

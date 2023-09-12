@@ -10,7 +10,7 @@ use std::{
     sync::{atomic::AtomicU32, Arc, Mutex},
 };
 
-mod manual_commands;
+pub mod manual_commands;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -19,9 +19,9 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 // Custom user data passed to all command functions
 // すべてのコマンド関数に渡されるカスタム ユーザー データ
 pub struct Data {
-    votes: Mutex<HashMap<String, u32>>,
-    poise_mentions: AtomicU32,
-    connection: Arc<SqlitePool>,
+    pub votes: Mutex<HashMap<String, u32>>,
+    pub poise_mentions: AtomicU32,
+    pub connection: Arc<SqlitePool>,
 }
 
 async fn create_webhook_from_channel(
