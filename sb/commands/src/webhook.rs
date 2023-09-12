@@ -23,12 +23,11 @@ async fn UTregserver(ctx: &Context, msg: &Message) -> CommandResult {
             let db = db.clone();
             master_webhook_insert(
                 db.as_ref(),
-                MasterWebhook {
-                    id: None,
-                    server_name: server_name.to_string(),
+                MasterWebhook::from(
+                    None,
+                    server_name,
                     guild_id,
-                    webhook_url: webhook_url.to_string(),
-                },
+                    webhook_url,)
             )
             .await?;
         }
@@ -107,16 +106,95 @@ async fn UTregisterM(ctx: &Context, msg: &Message) -> CommandResult {
 
     let db = get_db(ctx).await.unwrap();
 
-    let menber_webhook = MemberWebhook {
-        id: None,
-        server_name,
-        user_id: 1234,
-        webhook_url,
-    };
+    let menber_webhook = MemberWebhook::from(
+        None,
+        &server_name,
+        msg.author.id.0 as i64,
+        &webhook_url,
+    );
 
     member_webhook_insert(db.as_ref(), menber_webhook).await?;
 
     info!("member webhook inserted");
+    msg.reply(ctx, "member webhook registed").await?;
 
     Ok(())
 }
+
+// メンバーwebhookを取得して，リプライにリスト表示する
+#[allow(non_snake_case)]
+#[command]
+async fn UTlist(ctx: &Context, msg: &Message) -> CommandResult {
+    let db = get_db(ctx).await.unwrap();
+
+    // SqliteのINTEGER型はi64になる都合で，i64に変換する
+    // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
+    let member_id = msg.author.id.0 as i64;
+
+    let member_webhooks = member_webhook_select_all(db.as_ref(), member_id).await?;
+
+    let mut reply = String::new();
+
+    for member_webhook in member_webhooks {
+        reply.push_str(&format!("{}\n", member_webhook.server_name));
+    }
+
+    msg.reply(ctx, reply).await?;
+
+    Ok(())
+}
+
+
+// メンバーwebhookを削除する
+#[allow(non_snake_case)]
+#[command]
+async fn UTdelete(ctx: &Context, msg: &Message) -> CommandResult {
+    // msg.contentを分割して、server_nameを取得する
+    let mut iter = msg.content.split_whitespace();
+    let _ = iter.next().unwrap();
+    let server_name = iter.next().unwrap();
+
+    let db = get_db(ctx).await.unwrap();
+
+    // SqliteのINTEGER型はi64になる都合で，i64に変換する
+    // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
+    let member_id = msg.author.id.0 as i64;
+
+    member_webhook_delete(db.as_ref(), server_name, member_id).await?;
+
+    info!("member webhook deleted");
+    msg.reply(ctx, "member webhook deleted").await?;
+
+    Ok(())
+}
+
+// メンバーwebhookにたいして，拡散する
+#[allow(non_snake_case)]
+#[command]
+async fn UT(ctx: &Context, msg: &Message) -> CommandResult {
+    // 文字列からコマンド名を削除する
+    let content = msg.content.clone();
+    let content = content.replace("~UT", "");
+
+    // let mut iter = msg.content.splitn(2, ' ');
+    // let _ = iter.next().unwrap();
+    // let content = iter.next().unwrap();
+
+    let username = format!("UT-{}", msg.author.name.as_str());
+
+
+    // DBからそのユーザのwebhookをすべて取得する
+    let db = get_db(ctx).await.unwrap();
+
+    // SqliteのINTEGER型はi64になる都合で，i64に変換する
+    // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
+    let member_id = msg.author.id.0 as i64;
+    let member_webhooks = member_webhook_select_all(db.as_ref(), member_id).await?;
+
+    let member_webhooks = member_webhooks.iter().map(|m| m.webhook_url.to_owned()).collect::<Vec<String>>();
+
+    execute_ubiquitus(&username, &content, member_webhooks).await?;
+
+    Ok(())
+}
+

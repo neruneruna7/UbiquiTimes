@@ -16,8 +16,10 @@ use tracing::{debug, error, info, instrument};
 mod bot_communicate;
 mod webhook;
 
+use crate::webhook::*;
+
 #[group]
-#[commands(ping, pong, hook, exehook, get2hook, sqlxtest)]
+#[commands(ping, pong, hook, exehook, get2hook, sqlxtest, UTregisterM, UTlist, UT, UTdelete)]
 struct General;
 
 struct Handler;
@@ -304,13 +306,35 @@ struct MasterWebhook {
     webhook_url: String,
 }
 
+impl MasterWebhook {
+    fn from (id: Option<i64>, server_name: &str, guild_id: i64, webhook_url: &str) -> Self {
+        Self {
+            id: None,
+            server_name: server_name.to_string(),
+            guild_id,
+            webhook_url: webhook_url.to_string(),
+        }
+    }
+}
+
 #[derive(Debug)]
 // 個々人が持つwebhook
 struct MemberWebhook {
     id: Option<i64>,
     server_name: String,
-    user_id: i64,
+    member_id: i64,
     webhook_url: String,
+}
+
+impl MemberWebhook {
+    fn from (id: Option<i64>, server_name: &str, member_id: i64, webhook_url: &str) -> Self {
+        Self {
+            id: None,
+            server_name: server_name.to_string(),
+            member_id,
+            webhook_url: webhook_url.to_string(),
+        }
+    }
 }
 
 // ContextからDbを取得する
@@ -362,12 +386,7 @@ async fn master_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    let master_webhook = MasterWebhook {
-        id: Some(row.id),
-        server_name: row.server_name,
-        guild_id: row.guild_id,
-        webhook_url: row.webhook_url,
-    };
+    let master_webhook = MasterWebhook::from(Some(row.id), &row.server_name, row.guild_id, &row.webhook_url);
 
     Ok(master_webhook)
 }
@@ -404,11 +423,11 @@ async fn member_webhook_insert(
 ) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO member_webhooks (server_name, user_id, webhook_url)
+        INSERT INTO member_webhooks (server_name, member_id, webhook_url)
         VALUES(?, ?, ?);
         "#,
         member_webhook.server_name,
-        member_webhook.user_id,
+        member_webhook.member_id,
         member_webhook.webhook_url
     )
     .execute(connection)
@@ -421,26 +440,64 @@ async fn member_webhook_insert(
 async fn member_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
-    user_id: i64,
+    member_id: i64,
 ) -> anyhow::Result<MemberWebhook> {
     let row = sqlx::query!(
         r#"
-        SELECT * FROM member_webhooks WHERE server_name = ? AND user_id = ?;
+        SELECT * FROM member_webhooks WHERE server_name = ? AND member_id = ?;
         "#,
         server_name,
-        user_id
+        member_id
     )
     .fetch_one(connection)
     .await?;
 
-    let member_webhook = MemberWebhook {
-        id: Some(row.id),
-        server_name: row.server_name,
-        user_id: row.user_id,
-        webhook_url: row.webhook_url,
-    };
+    let member_webhook = MemberWebhook::from(Some(row.id), &row.server_name, row.member_id, &row.webhook_url);
 
     Ok(member_webhook)
+}
+
+// メンバーwebhookの全取得
+async fn member_webhook_select_all(
+    connection: &SqlitePool,
+    // server_name: &str,
+    member_id: i64,
+) -> anyhow::Result<Vec<MemberWebhook>> {
+    let rows = sqlx::query!(
+        r#"
+        SELECT * FROM member_webhooks WHERE member_id = ?;
+        "#,
+        member_id,
+    )
+    .fetch_all(connection)
+    .await?;
+
+    let mut member_webhook_list = Vec::new();
+    for row in rows {
+        let member_webhook = MemberWebhook::from(Some(row.id), &row.server_name, row.member_id, &row.webhook_url);
+        member_webhook_list.push(member_webhook);
+    }
+
+    Ok(member_webhook_list)
+}
+
+// servername, member_idを指定してメンバーwebhookを削除する
+async fn member_webhook_delete(
+    connection: &SqlitePool,
+    server_name: &str,
+    member_id: i64,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        DELETE FROM member_webhooks WHERE server_name = ? AND member_id = ?;
+        "#,
+        server_name,
+        member_id
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
 }
 
 async fn create_webhook_from_channel(
@@ -452,16 +509,6 @@ async fn create_webhook_from_channel(
     Ok(webhook)
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn it_works() {
-//         let result = add(2, 2);
-//         assert_eq!(result, 4);
-//     }
-// }
 
 #[cfg(test)]
 mod tests {

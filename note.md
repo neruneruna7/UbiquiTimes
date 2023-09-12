@@ -105,6 +105,13 @@ CREATE TABLE IF NOT EXISTS privatewebhooks
 Aへのメンバーwebhookの登録を行う
 
 ### まずは手動登録を実装しよう
+- 手動登録
+- 削除
+- 共有
+- ping
+- list
+
+
 
 
 ### 自身のサーバのマスターwebhookやbotComチャンネルが変更された場合の動き
