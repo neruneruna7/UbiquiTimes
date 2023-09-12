@@ -16,6 +16,7 @@ use std::{
 };
 use tracing::info;
 
+
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
 
@@ -63,27 +64,6 @@ async fn event_handler(
     match event {
         Event::Ready { data_about_bot } => {
             println!("Logged in as {}", data_about_bot.user.name);
-            // dbからマスターウェブフックを読み込んで，HashMapに格納する
-            let mut master_webhooks = data.master_webhooks.lock().unwrap();
-            let mut member_webhooks = data.member_webhooks.lock().unwrap();
-            let connection = data.connection.clone();
-            let mut master_webhooks_db =
-                master_webhook::master_webhook_select_all(&connection).await?;
-            let mut member_webhooks_db = commands::member_webhook_select_all2(&connection).await?;
-
-            for master_webhook in master_webhooks_db.drain(..) {
-                master_webhooks.insert(
-                    master_webhook.guild_id.expect("Guild_id is None"),
-                    master_webhook,
-                );
-            }
-
-            for member_webhook in member_webhooks_db.drain(..) {
-                member_webhooks.insert(
-                    member_webhook.member_id.expect("Member_id is None"),
-                    member_webhook,
-                );
-            }
         }
         Event::Message { new_message } => {
             if new_message.content.to_lowercase().contains("poise") {
@@ -99,25 +79,25 @@ async fn event_handler(
     Ok(())
 }
 
-/// Show this help menu
-#[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn help(
-    ctx: Context<'_>,
-    #[description = "Specific command to show help about"]
-    #[autocomplete = "poise::builtins::autocomplete_command"]
-    command: Option<String>,
-) -> Result<()> {
-    poise::builtins::help(
-        ctx,
-        command.as_deref(),
-        poise::builtins::HelpConfiguration {
-            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
-            ..Default::default()
-        },
-    )
-    .await?;
-    Ok(())
-}
+// /// Show this help menu
+// #[poise::command(prefix_command, track_edits, slash_command)]
+// pub async fn help(
+//     ctx: Context<'_>,
+//     #[description = "Specific command to show help about"]
+//     #[autocomplete = "poise::builtins::autocomplete_command"]
+//     command: Option<String>,
+// ) -> Result<()> {
+//     poise::builtins::help(
+//         ctx,
+//         command.as_deref(),
+//         poise::builtins::HelpConfiguration {
+//             extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
+//             ..Default::default()
+//         },
+//     )
+//     .await?;
+//     Ok(())
+// }
 
 #[tokio::main]
 async fn main() {
@@ -140,14 +120,15 @@ async fn main() {
             commands::help(),
             // commands::vote(),
             // commands::getvotes(),
-            // commands::member_webhook_register_manual(),
-            commands::ut_serverlist(),
-            commands::ut_member_webhook_reg_manual(),
-            commands::ut_list(),
-            commands::ut_delete(),
-            commands::ut_execute(),
+            commands::master_webhook::ut_get_master_hook(),
+            commands::master_webhook::ut_masterhook_register(),
+            commands::master_webhook::ut_serverlist(),
+            commands::member_webhook::ut_member_webhook_reg_manual(),
+            commands::member_webhook::ut_list(),
+            commands::member_webhook::ut_delete(),
+            commands::member_webhook::ut_times_release(),
         ],
-
+        
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("~".into()),
@@ -222,8 +203,6 @@ async fn main() {
                     votes: Mutex::new(HashMap::new()),
                     poise_mentions: AtomicU32::new(0),
                     connection: Arc::new(pool),
-                    master_webhooks: Mutex::new(HashMap::new()),
-                    member_webhooks: Mutex::new(HashMap::new()),
                 })
             })
         })

@@ -85,10 +85,20 @@ impl MemberWebhook {
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
-    #[description = "拡散先のチャンネルID"] channel_id: u64,
+    // 17桁整数までしか受け取れないので，仕方なくStringにする
+    #[description = "拡散先のチャンネルID"] channel_id: String,
     #[description = "拡散先チャンネルのwebhook URL"] webhook_url: String,
 ) -> Result<()> {
     let member_id = ctx.author().id.0;
+    let channel_id = channel_id.parse::<u64>();
+    let channel_id = match channel_id {
+        Ok(channel_id) => channel_id,
+        Err(_) => {
+            ctx.say("符号なし整数を入力してください").await?;
+            return Ok(());
+        }
+    };
+
     info!("member_id: {}", member_id);
 
     let connection = ctx.data().connection.clone();
@@ -182,6 +192,35 @@ pub async fn ut_times_release(
 
     Ok(())
 }
+
+
+// 自動でメンバーwebhookを登録できるようにしたい
+// // メンバーwebhookを登録する
+//
+// #[poise::command(prefix_command, track_edits, slash_command)]
+// async fn UTregister(
+//     ctx: Context<'_>,
+//     #[description = "拡散先のサーバ名"] server_name: String,
+//     #[description = "拡散先のチャンネルID"] channel_id: i64,
+// ) -> Result<()> {
+//     // もしチャンネルにwebhookが存在していたら、それを使う
+//     // なければ、新規に作成する
+//     // チャンネルidから，存在しているwebhookを取得する
+//     let webhooks = msg.channel_id.webhooks(&ctx).await?;
+
+//     // UT- username という名前のwebhookがあるかどうか
+//     let webhook = if let Some(webhook) = webhooks.iter().find(|w| w.name == Some(format!("UT-{}", &msg.author.name))) {
+//         webhook.to_owned()
+//     } else {
+//         msg.channel_id.create_webhook(&ctx, format!("UT-{}", &msg.author.name)).await?
+//     };
+
+//     let my_webhook_url = webhook.url()?;
+
+//     // さらなる記述が必要
+
+//     Ok(())
+// }
 
 async fn execute_ubiquitus(
     username: &str,

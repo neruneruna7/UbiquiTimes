@@ -143,12 +143,26 @@ pub async fn ut_masterhook_register(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
-    #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: Option<u64>,
+    #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: Option<String>,
 ) -> Result<()> {
+    let guild_id_parsed = match guild_id {
+        Some(id) => {
+            let parse_result = id.parse::<u64>();
+            match parse_result {
+                Ok(id) => Some(id),
+                Err(_) => {
+                    ctx.say("guild_idは数字で指定してください。").await?;
+                    return Ok(());
+                },
+            }
+        },
+        None => None,
+    };
+
     // log
     info!(
         "server_name: {}, webhook_url: {}, guild_id: {:?}",
-        server_name, master_webhook_url, guild_id
+        server_name, master_webhook_url, guild_id_parsed
     );
 
     // DBに登録する
@@ -156,17 +170,34 @@ pub async fn ut_masterhook_register(
 
     master_webhook_insert(
         connection.as_ref(),
-        MasterWebhook::from(None, &server_name, guild_id, &master_webhook_url),
+        MasterWebhook::from(None, &server_name, guild_id_parsed, &master_webhook_url),
     )
     .await?;
 
     Ok(())
 }
 
+#[poise::command(prefix_command, track_edits, aliases("UTserverlist"), slash_command)]
+pub async fn ut_serverlist(ctx: Context<'_>) -> Result<()> {
+    // DBから取得する
+    let connection = ctx.data().connection.clone();
+
+    let master_webhooks = master_webhook_select_all(connection.as_ref()).await?;
+
+    let mut response = String::new();
+    for master_webhook in master_webhooks {
+        response.push_str(&format!("{}\n", master_webhook.server_name));
+    }
+
+    ctx.say(response).await?;
+    Ok(())
+}
+
+/// サーバ名を指定して，webhook_URLを確認する
 #[poise::command(prefix_command, track_edits, aliases("UTgetMasterHook"), slash_command)]
-pub async fn get_master_hook(
+pub async fn ut_get_master_hook(
     ctx: Context<'_>,
-    #[description = "webhookを確認するサーバ名"] server_name: String,
+    #[description = "webhook_URLを確認するサーバ名"] server_name: String,
 ) -> Result<()> {
     // log
     info!("server_name: {}", server_name);
