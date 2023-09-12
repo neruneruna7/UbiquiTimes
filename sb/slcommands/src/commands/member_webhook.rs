@@ -173,7 +173,7 @@ pub async fn ut_times_release(
 
     // SqliteのINTEGER型はi64になる都合で，i64に変換する
     // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
-    let member_id = ctx.author().id.0 as i64;
+    let member_id = ctx.author().id.0;
     let member_webhooks = member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
 
     let member_webhooks = member_webhooks

@@ -150,13 +150,6 @@ pub async fn ut_masterhook_register(
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
     #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: Option<u64>,
 ) -> Result<()> {
-    // msg.contentを分割して、server_nameとwebhook_urlを取得する
-    // let mut iter = msg.content.split_whitespace();
-    // let _ = iter.next().unwrap();
-    // let server_name = iter.next().unwrap();
-    // let guild_id = iter.next().unwrap().parse::<i64>().unwrap();
-    // let webhook_url = iter.next().unwrap();
-
     // log
     info!(
         "server_name: {}, webhook_url: {}, guild_id: {:?}",
