@@ -76,7 +76,9 @@ pub async fn getvotes(
     Ok(())
 }
 
-
+/// メンバー用のウェブフックを登録します
+/// 
+/// 拡散先の名前と，拡散先のwebhook URLを指定してください
 #[poise::command(prefix_command, track_edits, aliases("UTregisterM"), slash_command)]
 pub async fn member_webhook_register_manual(
     ctx: Context<'_>,
