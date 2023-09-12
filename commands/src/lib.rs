@@ -1,12 +1,16 @@
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use serenity::framework::standard::macros::command;
-use serenity::framework::standard::CommandResult;
-use serenity::http::Http;
-use serenity::model::channel::Message;
-use serenity::model::webhook::Webhook;
-use serenity::prelude::*;
+
+use poise::serenity_prelude as serenity;
+
+use serenity::{
+    async_trait,
+    http::Http,
+    model::{channel::Message, gateway::Ready},
+    webhook::Webhook,
+    TypeMapKey,
+};
 
 use sqlx::SqlitePool;
 use tracing::error;
@@ -14,10 +18,28 @@ use tracing::error;
 mod list;
 mod webhook;
 
+// Types used by all command functions
+// すべてのコマンド関数で使用される型
+type Error = Box<dyn std::error::Error + Send + Sync>;
+type Context<'a> = poise::Context<'a, Data, Error>;
+
+// Dbのラッパー
+struct Data {
+    connection: Arc<SqlitePool>,
+}
+
+// TypemapKeyを実装することで、Contextに格納できるようになる
+// impl TypeMapKey for UtDb {
+//     type Value = Arc<SqlitePool>;
+// }
+
+
 
 async fn execute_ubiquitus(username: &str, content: &str, webhooks: Vec<String>) -> anyhow::Result<()> {
     // webhookを実行する
     let http = Http::new("");
+
+
 
     for webhook_url in webhooks.iter() {
         let webhook = Webhook::from_url(&http, webhook_url).await?;
@@ -30,14 +52,6 @@ async fn execute_ubiquitus(username: &str, content: &str, webhooks: Vec<String>)
 
     }
     Ok(())
-}
-
-// Dbのラッパー
-struct UtDb;
-
-// TypemapKeyを実装することで、Contextに格納できるようになる
-impl TypeMapKey for UtDb {
-    type Value = Arc<SqlitePool>;
 }
 
 // 相手サーバーに対して１つだけ存在するwebhook
@@ -54,26 +68,29 @@ struct MasterWebhook {
 struct MemberWebhook {
     id: Option<i64>,
     server_name: String,
-    user_id: i64,
+    member_id: i64,
     webhook_url: String,
 }
 
-// ContextからDbを取得する
-async fn get_db(ctx: &Context) -> Option<Arc<SqlitePool>> {
-    let data_read = ctx.data.read().await;
-    let db = data_read.get::<UtDb>();
+// // ContextからDbを取得する
+// // poiseにより簡単に取得できるようになったので不要の可能性が高い
+// // 一旦コメントアウト
+// async fn get_db(ctx: Context<'_>) -> Option<Arc<SqlitePool>> {
+//     let data_read = ctx.data.read().await;
+//     // let data_read = ctx.data().connection.clone();
+//     let db = data_read.get::<UtDb>();
 
-    match db {
-        Some(db) => {
-            let db = db.clone();
-            Some(db)
-        }
-        None => {
-            error!("db is None");
-            None
-        }
-    }
-}
+//     match db {
+//         Some(db) => {
+//             let db = db.clone();
+//             Some(db)
+//         }
+//         None => {
+//             error!("db is None");
+//             None
+//         }
+//     }
+// }
 
 async fn master_webhook_insert(
     connection: &SqlitePool,
@@ -149,11 +166,11 @@ async fn member_webhook_insert(
 ) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO member_webhooks (server_name, user_id, webhook_url)
+        INSERT INTO member_webhooks (server_name, member_id, webhook_url)
         VALUES(?, ?, ?);
         "#,
         member_webhook.server_name,
-        member_webhook.user_id,
+        member_webhook.member_id,
         member_webhook.webhook_url
     )
     .execute(connection)
@@ -166,14 +183,14 @@ async fn member_webhook_insert(
 async fn member_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
-    user_id: i64,
+    member_id: i64,
 ) -> anyhow::Result<MemberWebhook> {
     let row = sqlx::query!(
         r#"
-        SELECT * FROM member_webhooks WHERE server_name = ? AND user_id = ?;
+        SELECT * FROM member_webhooks WHERE server_name = ? AND member_id = ?;
         "#,
         server_name,
-        user_id
+        member_id
     )
     .fetch_one(connection)
     .await?;
@@ -181,7 +198,7 @@ async fn member_webhook_select(
     let member_webhook = MemberWebhook {
         id: Some(row.id),
         server_name: row.server_name,
-        user_id: row.user_id,
+        member_id: row.member_id,
         webhook_url: row.webhook_url,
     };
 
@@ -189,7 +206,7 @@ async fn member_webhook_select(
 }
 
 async fn create_webhook_from_channel(
-    ctx: &Context,
+    ctx: Context<'_>,
     msg: &Message,
     name: &str,
 ) -> anyhow::Result<Webhook> {
