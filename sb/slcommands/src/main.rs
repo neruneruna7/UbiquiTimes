@@ -7,15 +7,14 @@ use poise::{serenity_prelude as serenity, Event};
 use sqlx::SqlitePool;
 use std::{
     collections::HashMap,
-    env::{var, self},
+    env::{self, var},
     sync::{
         atomic::{AtomicU32, Ordering},
-        Mutex, Arc,
+        Arc, Mutex,
     },
     time::Duration,
 };
-use tracing::{debug, error, info, instrument};
-use tracing_subscriber;
+use tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -79,7 +78,6 @@ async fn event_handler(
     Ok(())
 }
 
-
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
 pub async fn help(
@@ -105,9 +103,9 @@ async fn main() {
     dotenvy::dotenv().ok();
 
     tracing_subscriber::fmt::init();
-// tracing_subscriber::fmt()
-//         .with_max_level(tracing::Level::DEBUG)
-//         .init();
+    // tracing_subscriber::fmt()
+    //         .with_max_level(tracing::Level::DEBUG)
+    //         .init();
 
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
@@ -189,8 +187,8 @@ async fn main() {
     };
 
     let pool = SqlitePool::connect(&env::var("DATABASE_URL").unwrap())
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
     poise::Framework::builder()
         .token(

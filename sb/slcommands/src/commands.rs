@@ -1,20 +1,12 @@
 use crate::*;
 
-use std::sync::Arc;
-
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 use poise::serenity_prelude as serenity;
 
-use serenity::{
-    async_trait,
-    http::Http,
-    model::{channel::Message, gateway::Ready},
-    webhook::Webhook,
-};
+use serenity::{http::Http, model::channel::Message, webhook::Webhook};
 
 use sqlx::SqlitePool;
-use tracing::error;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -47,7 +39,7 @@ struct MasterWebhook {
 }
 
 impl MasterWebhook {
-    fn from(id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
+    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -69,7 +61,7 @@ struct MemberWebhook {
 
 impl MemberWebhook {
     fn from(
-        id: Option<i64>,
+        _id: Option<i64>,
         server_name: &str,
         member_id: i64,
         channel_id: i64,
@@ -220,7 +212,6 @@ async fn member_webhook_select(
     Ok(member_webhook)
 }
 
-
 // メンバーwebhookの全取得
 async fn member_webhook_select_all(
     connection: &SqlitePool,
@@ -239,11 +230,12 @@ async fn member_webhook_select_all(
     let mut member_webhook_list = Vec::new();
     for row in rows {
         let member_webhook = MemberWebhook::from(
-            Some(row.id), 
-            &row.server_name, 
-            row.member_id, 
+            Some(row.id),
+            &row.server_name,
+            row.member_id,
             row.channel_id,
-            &row.webhook_url);
+            &row.webhook_url,
+        );
         member_webhook_list.push(member_webhook);
     }
 
@@ -378,10 +370,7 @@ pub async fn ut_serverlist(ctx: Context<'_>) -> Result<()> {
     Ok(())
 }
 
-use tracing::{info};
-
-use crate::*;
-
+use tracing::info;
 
 #[poise::command(prefix_command, track_edits, aliases("UTregserver"), slash_command)]
 pub async fn ut_regserver(
@@ -415,7 +404,6 @@ pub async fn ut_regserver(
     Ok(())
 }
 
-
 #[poise::command(prefix_command, track_edits, aliases("UTgetMasterHook"), slash_command)]
 pub async fn get_master_hook(
     ctx: Context<'_>,
@@ -437,7 +425,7 @@ pub async fn get_master_hook(
 
 // 自動でメンバーwebhookを登録できるようにしたい
 // // メンバーwebhookを登録する
-// 
+//
 // #[poise::command(prefix_command, track_edits, slash_command)]
 // async fn UTregister(
 //     ctx: Context<'_>,
@@ -477,13 +465,8 @@ pub async fn ut_member_webhook_reg_manual(
     info!("member_id: {}", member_id);
     let connection = ctx.data().connection.clone();
 
-    let menber_webhook = MemberWebhook::from(
-        None,
-        &server_name,
-        member_id,
-        channel_id,
-        &webhook_url
-    );
+    let menber_webhook =
+        MemberWebhook::from(None, &server_name, member_id, channel_id, &webhook_url);
 
     member_webhook_insert(connection.as_ref(), menber_webhook).await?;
 
@@ -496,9 +479,7 @@ pub async fn ut_member_webhook_reg_manual(
 }
 
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
-pub async fn ut_list(
-    ctx: Context<'_>
-) -> Result<()> {
+pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     let connection = ctx.data().connection.clone();
 
     // SqliteのINTEGER型はi64になる都合で，i64に変換する
@@ -519,7 +500,7 @@ pub async fn ut_list(
 }
 
 /// メンバーwebhookを削除する
-/// 
+///
 /// サーバー名を指定して削除します
 #[poise::command(prefix_command, track_edits, aliases("UTdelete"), slash_command)]
 pub async fn ut_delete(
@@ -539,9 +520,8 @@ pub async fn ut_delete(
     Ok(())
 }
 
-
 /// 投稿内容を拡散します. `~UT`コマンドの使用を推奨
-/// 
+///
 /// contentに記述した内容を拡散します
 /// このスラッシュコマンドではなく，`~UT`のプレフィックスコマンドを推奨
 /// ### `~UT`の場合
@@ -553,7 +533,7 @@ pub async fn ut_delete(
 
 #[poise::command(prefix_command, track_edits, aliases("UT"), slash_command)]
 pub async fn ut_execute(
-    ctx: Context<'_>, 
+    ctx: Context<'_>,
     #[description = "拡散内容"] content: String,
 ) -> Result<()> {
     let username = format!("UT-{}", ctx.author().name);
@@ -566,7 +546,10 @@ pub async fn ut_execute(
     let member_id = ctx.author().id.0 as i64;
     let member_webhooks = member_webhook_select_all(connection.as_ref(), member_id).await?;
 
-    let member_webhooks = member_webhooks.iter().map(|m| m.webhook_url.to_owned()).collect::<Vec<String>>();
+    let member_webhooks = member_webhooks
+        .iter()
+        .map(|m| m.webhook_url.to_owned())
+        .collect::<Vec<String>>();
 
     execute_ubiquitus(&username, &content, member_webhooks).await?;
 

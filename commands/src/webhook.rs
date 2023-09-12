@@ -1,4 +1,4 @@
-use tracing::{error, info};
+use tracing::info;
 
 use crate::*;
 
@@ -82,7 +82,7 @@ pub async fn get_master_hook(
 // }
 
 /// 手動で拡散先のサーバ，チャンネル，webhookを登録します
-/// 
+///
 /// 登録する側をサーバＡ，される側をサーバＢとします．
 /// サーバＢの識別名（現状，登録する側が自由に決める）
 /// サーバＢの拡散先のチャンネルID
@@ -98,13 +98,8 @@ pub async fn ut_member_webhook_reg_manual(
     info!("member_id: {}", member_id);
     let connection = ctx.data().connection.clone();
 
-    let menber_webhook = MemberWebhook::from(
-        None,
-        &server_name,
-        member_id,
-        channel_id,
-        &webhook_url
-    );
+    let menber_webhook =
+        MemberWebhook::from(None, &server_name, member_id, channel_id, &webhook_url);
 
     member_webhook_insert(connection.as_ref(), menber_webhook).await?;
 
@@ -118,9 +113,7 @@ pub async fn ut_member_webhook_reg_manual(
 
 /// 自分が拡散先に登録したサーバの一覧を表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
-pub async fn ut_list(
-    ctx: Context<'_>
-) -> Result<()> {
+pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     let connection = ctx.data().connection.clone();
 
     // SqliteのINTEGER型はi64になる都合で，i64に変換する
@@ -141,9 +134,9 @@ pub async fn ut_list(
 }
 
 /// 拡散先から削除する
-/// 
+///
 /// サーバー名を指定して削除します
-/// 
+///
 #[poise::command(prefix_command, track_edits, aliases("UTdelete"), slash_command)]
 pub async fn ut_delete(
     ctx: Context<'_>,
@@ -162,9 +155,8 @@ pub async fn ut_delete(
     Ok(())
 }
 
-
 /// 投稿内容を拡散します. `~UT`コマンドの使用を推奨
-/// 
+///
 /// contentに記述した内容を拡散します
 /// このスラッシュコマンドではなく，`~UT`のプレフィックスコマンドを推奨
 /// ### `~UT`の場合
@@ -175,7 +167,7 @@ pub async fn ut_delete(
 /// ```
 #[poise::command(prefix_command, track_edits, aliases("UT"), slash_command)]
 pub async fn ut_execute(
-    ctx: Context<'_>, 
+    ctx: Context<'_>,
     #[description = "拡散内容"] content: String,
 ) -> Result<()> {
     let username = format!("UT-{}", ctx.author().name);
@@ -188,7 +180,10 @@ pub async fn ut_execute(
     let member_id = ctx.author().id.0 as i64;
     let member_webhooks = member_webhook_select_all(connection.as_ref(), member_id).await?;
 
-    let member_webhooks = member_webhooks.iter().map(|m| m.webhook_url.to_owned()).collect::<Vec<String>>();
+    let member_webhooks = member_webhooks
+        .iter()
+        .map(|m| m.webhook_url.to_owned())
+        .collect::<Vec<String>>();
 
     execute_ubiquitus(&username, &content, member_webhooks).await?;
 

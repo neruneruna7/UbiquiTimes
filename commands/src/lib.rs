@@ -1,18 +1,12 @@
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 use poise::serenity_prelude as serenity;
 
-use serenity::{
-    async_trait,
-    http::Http,
-    model::{channel::Message, gateway::Ready},
-    webhook::Webhook,
-};
+use serenity::{http::Http, model::channel::Message, webhook::Webhook};
 
 use sqlx::SqlitePool;
-use tracing::error;
 
 pub mod list;
 pub mod webhook;
@@ -47,7 +41,6 @@ pub async fn help(
     Ok(())
 }
 
-
 async fn execute_ubiquitus(
     username: &str,
     content: &str,
@@ -75,7 +68,7 @@ struct MasterWebhook {
 }
 
 impl MasterWebhook {
-    fn from(id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
+    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -97,7 +90,7 @@ struct MemberWebhook {
 
 impl MemberWebhook {
     fn from(
-        id: Option<i64>,
+        _id: Option<i64>,
         server_name: &str,
         member_id: i64,
         channel_id: i64,
@@ -265,11 +258,12 @@ async fn member_webhook_select_all(
     let mut member_webhook_list = Vec::new();
     for row in rows {
         let member_webhook = MemberWebhook::from(
-            Some(row.id), 
-            &row.server_name, 
-            row.member_id, 
+            Some(row.id),
+            &row.server_name,
+            row.member_id,
             row.channel_id,
-            &row.webhook_url);
+            &row.webhook_url,
+        );
         member_webhook_list.push(member_webhook);
     }
 
