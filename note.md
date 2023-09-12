@@ -119,3 +119,14 @@ Aへのメンバーwebhookの登録を行う
 む，この`after`にdb処理をまとめてもいいのでは？
 すべてをまとめるのは現実的じゃないな
 必要な処理はまとめよう
+
+## マスターwebhook周りの処理作成
+## channel_idとかがi64だとなんかうまくいかないので修正
+
+
+# テストデータ
+test
+
+1150053746156507267
+
+https://discord.com/api/webhooks/1150053774518403073/LEEaORLKsL2T0U9kMBjlsxhcmRvbKIHUPNncqdGfZ_ZmXThz9-aL0lZz0U-KrtK5XtmH

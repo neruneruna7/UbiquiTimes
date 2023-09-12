@@ -8,12 +8,14 @@ use serenity::{http::Http, model::channel::Message, webhook::Webhook};
 
 use sqlx::SqlitePool;
 
+#[allow(dead_code)]
 pub mod list;
+
+#[allow(dead_code)]
 pub mod webhook;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
-type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
 
 // Dbのラッパー
@@ -60,6 +62,7 @@ async fn execute_ubiquitus(
 
 // 相手サーバーに対して１つだけ存在するwebhook
 #[derive(Debug)]
+#[allow(dead_code)]
 struct MasterWebhook {
     id: Option<i64>,
     server_name: String,
@@ -79,6 +82,7 @@ impl MasterWebhook {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 // 個々人が持つwebhook
 struct MemberWebhook {
     id: Option<i64>,
@@ -170,6 +174,7 @@ async fn master_webhook_select(
 
 // すべてのマスターwebhookを取得する
 // 複数の行がとれるので、Vecに格納して返す
+#[allow(dead_code)]
 async fn master_webhook_select_all(
     connection: &SqlitePool,
     _server_name: &str,
@@ -214,6 +219,7 @@ async fn member_webhook_insert(
 }
 
 // メンバーwebhookの取得
+#[allow(dead_code)]
 async fn member_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
@@ -289,6 +295,7 @@ async fn member_webhook_delete(
     Ok(())
 }
 
+#[allow(dead_code)]
 async fn create_webhook_from_channel(
     ctx: Context<'_>,
     msg: &Message,

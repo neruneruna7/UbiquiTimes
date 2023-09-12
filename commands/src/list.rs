@@ -1,9 +1,9 @@
 use crate::*;
 
 /// 拡散可能なサーバ一覧を表示する
-#[allow(non_snake_case)]
 #[poise::command(prefix_command, track_edits, slash_command)]
-async fn UTserverlist(ctx: Context<'_>) -> Result<()> {
+#[allow(non_snake_case)]
+async fn ut_serverlist(ctx: Context<'_>) -> Result<()> {
     // DBから取得する
     let connection = ctx.data().connection.clone();
 

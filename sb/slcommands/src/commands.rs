@@ -2,11 +2,13 @@ use crate::*;
 
 use anyhow::Result;
 
-use poise::serenity_prelude as serenity;
+use poise::serenity_prelude::{self as serenity, channel};
 
 use serenity::{http::Http, model::channel::Message, webhook::Webhook};
 
 use sqlx::SqlitePool;
+
+use tracing::info;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -29,25 +31,6 @@ async fn execute_ubiquitus(
     Ok(())
 }
 
-// 相手サーバーに対して１つだけ存在するwebhook
-#[derive(Debug)]
-struct MasterWebhook {
-    id: Option<i64>,
-    server_name: String,
-    guild_id: Option<i64>,
-    webhook_url: String,
-}
-
-impl MasterWebhook {
-    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
-        Self {
-            id: None,
-            server_name: server_name.to_string(),
-            guild_id,
-            webhook_url: webhook_url.to_string(),
-        }
-    }
-}
 
 #[derive(Debug)]
 // 個々人が持つwebhook
@@ -55,7 +38,8 @@ struct MemberWebhook {
     id: Option<i64>,
     server_name: String,
     member_id: i64,
-    channel_id: i64,
+    // sqliteがi64しか扱えないため，しかたなくStringを使う
+    channel_id: String,
     webhook_url: String,
 }
 
@@ -64,9 +48,10 @@ impl MemberWebhook {
         _id: Option<i64>,
         server_name: &str,
         member_id: i64,
-        channel_id: i64,
+        channel_id: u64,
         webhook_url: &str,
     ) -> Self {
+        let channel_id = channel_id.to_string();
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -75,93 +60,22 @@ impl MemberWebhook {
             webhook_url: webhook_url.to_string(),
         }
     }
-}
 
-// // ContextからDbを取得する
-// // poiseにより簡単に取得できるようになったので不要の可能性が高い
-// // 一旦コメントアウト
-// async fn get_db(ctx: Context<'_>) -> Option<Arc<SqlitePool>> {
-//     let data_read = ctx.data.read().await;
-//     // let data_read = ctx.data().connection.clone();
-//     let db = data_read.get::<UtDb>();
-
-//     match db {
-//         Some(db) => {
-//             let db = db.clone();
-//             Some(db)
-//         }
-//         None => {
-//             error!("db is None");
-//             None
-//         }
-//     }
-// }
-
-async fn master_webhook_insert(
-    connection: &SqlitePool,
-    server_webhook: MasterWebhook,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
-        VALUES(?, ?, ?);
-        "#,
-        server_webhook.server_name,
-        server_webhook.guild_id,
-        server_webhook.webhook_url
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
-
-async fn master_webhook_select(
-    connection: &SqlitePool,
-    server_name: &str,
-) -> anyhow::Result<MasterWebhook> {
-    let row = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks WHERE server_name = ?;
-        "#,
-        server_name
-    )
-    .fetch_one(connection)
-    .await?;
-
-    let master_webhook = MasterWebhook::from(
-        Some(row.id),
-        &row.server_name,
-        Some(row.guild_id),
-        &row.webhook_url,
-    );
-
-    Ok(master_webhook)
-}
-
-// すべてのマスターwebhookを取得する
-// 複数の行がとれるので、Vecに格納して返す
-async fn master_webhook_select_all(
-    connection: &SqlitePool,
-    _server_name: &str,
-) -> anyhow::Result<()> {
-    let _row = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks;
-        "#,
-    )
-    .fetch_one(connection)
-    .await?;
-
-    // let master_webhook = MasterWebhook {
-    //     id: Some(row.id),
-    //     server_name: row.server_name,
-    //     webhook_url: row.webhook_url,
-    // };
-
-    // Ok(master_webhook)
-
-    Ok(())
+    fn from_row(
+        _id: Option<i64>,
+        server_name: &str,
+        member_id: i64,
+        channel_id: &str,
+        webhook_url: &str,
+    ) -> Self {
+        Self {
+            id: None,
+            server_name: server_name.to_string(),
+            member_id,
+            channel_id: channel_id.to_string(),
+            webhook_url: webhook_url.to_string(),
+        }
+    }
 }
 
 // メンバーwebhookの登録
@@ -201,11 +115,11 @@ async fn member_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    let member_webhook = MemberWebhook::from(
+    let member_webhook = MemberWebhook::from_row(
         Some(row.id),
         &row.server_name,
         row.member_id,
-        row.channel_id,
+        &row.channel_id,
         &row.webhook_url,
     );
 
@@ -229,11 +143,11 @@ async fn member_webhook_select_all(
 
     let mut member_webhook_list = Vec::new();
     for row in rows {
-        let member_webhook = MemberWebhook::from(
+        let member_webhook = MemberWebhook::from_row(
             Some(row.id),
             &row.server_name,
             row.member_id,
-            row.channel_id,
+            &row.channel_id,
             &row.webhook_url,
         );
         member_webhook_list.push(member_webhook);
@@ -370,58 +284,7 @@ pub async fn ut_serverlist(ctx: Context<'_>) -> Result<()> {
     Ok(())
 }
 
-use tracing::info;
 
-#[poise::command(prefix_command, track_edits, aliases("UTregserver"), slash_command)]
-pub async fn ut_regserver(
-    ctx: Context<'_>,
-    #[description = "拡散先のサーバ名"] server_name: String,
-    #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
-    #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: Option<i64>,
-) -> Result<()> {
-    // msg.contentを分割して、server_nameとwebhook_urlを取得する
-    // let mut iter = msg.content.split_whitespace();
-    // let _ = iter.next().unwrap();
-    // let server_name = iter.next().unwrap();
-    // let guild_id = iter.next().unwrap().parse::<i64>().unwrap();
-    // let webhook_url = iter.next().unwrap();
-
-    // log
-    info!(
-        "server_name: {}, webhook_url: {}, guild_id: {:?}",
-        server_name, master_webhook_url, guild_id
-    );
-
-    // DBに登録する
-    let connection = ctx.data().connection.clone();
-
-    master_webhook_insert(
-        connection.as_ref(),
-        MasterWebhook::from(None, &server_name, guild_id, &master_webhook_url),
-    )
-    .await?;
-
-    Ok(())
-}
-
-#[poise::command(prefix_command, track_edits, aliases("UTgetMasterHook"), slash_command)]
-pub async fn get_master_hook(
-    ctx: Context<'_>,
-    #[description = "webhookを確認するサーバ名"] server_name: String,
-) -> Result<()> {
-    // log
-    info!("server_name: {}", server_name);
-
-    // DBから取得する
-    let connection = ctx.data().connection.clone();
-
-    let master_webhook = master_webhook_select(connection.as_ref(), &server_name).await?;
-
-    ctx.say(format!("master_webhook: {:?}", master_webhook))
-        .await?;
-
-    Ok(())
-}
 
 // 自動でメンバーwebhookを登録できるようにしたい
 // // メンバーwebhookを登録する
@@ -458,7 +321,7 @@ pub async fn get_master_hook(
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
-    #[description = "拡散先のチャンネルID"] channel_id: i64,
+    #[description = "拡散先のチャンネルID"] channel_id: u64,
     #[description = "拡散先チャンネルのwebhook URL"] webhook_url: String,
 ) -> Result<()> {
     let member_id = ctx.author().id.0 as i64;
