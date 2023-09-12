@@ -2,178 +2,20 @@ use crate::*;
 
 use anyhow::Result;
 
-use poise::serenity_prelude::{self as serenity, channel};
+use poise::serenity_prelude::{self as serenity};
 
 use serenity::{http::Http, model::channel::Message, webhook::Webhook};
 
-use sqlx::SqlitePool;
-
 use tracing::info;
+
+pub mod master_webhook;
+pub mod member_webhook;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
-// type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
-
-async fn execute_ubiquitus(
-    username: &str,
-    content: &str,
-    webhooks: Vec<String>,
-) -> anyhow::Result<()> {
-    // webhookを実行する
-    let http = Http::new("");
-
-    for webhook_url in webhooks.iter() {
-        let webhook = Webhook::from_url(&http, webhook_url).await?;
-        webhook
-            .execute(&http, false, |w| w.content(content).username(username))
-            .await?;
-    }
-    Ok(())
-}
+type Context<'a> = poise::Context<'a, Data, Error>;
 
 
-#[derive(Debug)]
-// 個々人が持つwebhook
-struct MemberWebhook {
-    id: Option<i64>,
-    server_name: String,
-    member_id: i64,
-    // sqliteがi64しか扱えないため，しかたなくStringを使う
-    channel_id: String,
-    webhook_url: String,
-}
-
-impl MemberWebhook {
-    fn from(
-        _id: Option<i64>,
-        server_name: &str,
-        member_id: i64,
-        channel_id: u64,
-        webhook_url: &str,
-    ) -> Self {
-        let channel_id = channel_id.to_string();
-        Self {
-            id: None,
-            server_name: server_name.to_string(),
-            member_id,
-            channel_id,
-            webhook_url: webhook_url.to_string(),
-        }
-    }
-
-    fn from_row(
-        _id: Option<i64>,
-        server_name: &str,
-        member_id: i64,
-        channel_id: &str,
-        webhook_url: &str,
-    ) -> Self {
-        Self {
-            id: None,
-            server_name: server_name.to_string(),
-            member_id,
-            channel_id: channel_id.to_string(),
-            webhook_url: webhook_url.to_string(),
-        }
-    }
-}
-
-// メンバーwebhookの登録
-async fn member_webhook_insert(
-    connection: &SqlitePool,
-    member_webhook: MemberWebhook,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        INSERT INTO member_webhooks (server_name, member_id, channel_id, webhook_url)
-        VALUES(?, ?, ?, ?);
-        "#,
-        member_webhook.server_name,
-        member_webhook.member_id,
-        member_webhook.channel_id,
-        member_webhook.webhook_url
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
-
-// メンバーwebhookの取得
-async fn member_webhook_select(
-    connection: &SqlitePool,
-    server_name: &str,
-    member_id: i64,
-) -> anyhow::Result<MemberWebhook> {
-    let row = sqlx::query!(
-        r#"
-        SELECT * FROM member_webhooks WHERE server_name = ? AND member_id = ?;
-        "#,
-        server_name,
-        member_id
-    )
-    .fetch_one(connection)
-    .await?;
-
-    let member_webhook = MemberWebhook::from_row(
-        Some(row.id),
-        &row.server_name,
-        row.member_id,
-        &row.channel_id,
-        &row.webhook_url,
-    );
-
-    Ok(member_webhook)
-}
-
-// メンバーwebhookの全取得
-async fn member_webhook_select_all(
-    connection: &SqlitePool,
-    // server_name: &str,
-    member_id: i64,
-) -> anyhow::Result<Vec<MemberWebhook>> {
-    let rows = sqlx::query!(
-        r#"
-        SELECT * FROM member_webhooks WHERE member_id = ?;
-        "#,
-        member_id,
-    )
-    .fetch_all(connection)
-    .await?;
-
-    let mut member_webhook_list = Vec::new();
-    for row in rows {
-        let member_webhook = MemberWebhook::from_row(
-            Some(row.id),
-            &row.server_name,
-            row.member_id,
-            &row.channel_id,
-            &row.webhook_url,
-        );
-        member_webhook_list.push(member_webhook);
-    }
-
-    Ok(member_webhook_list)
-}
-
-// servername, member_idを指定してメンバーwebhookを削除する
-async fn member_webhook_delete(
-    connection: &SqlitePool,
-    server_name: &str,
-    member_id: i64,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        DELETE FROM member_webhooks WHERE server_name = ? AND member_id = ?;
-        "#,
-        server_name,
-        member_id
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
 
 async fn create_webhook_from_channel(
     ctx: Context<'_>,

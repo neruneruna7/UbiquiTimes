@@ -2,9 +2,7 @@ use crate::*;
 
 use anyhow::Result;
 
-use poise::serenity_prelude as serenity;
-
-use serenity::{http::Http, model::channel::Message, webhook::Webhook};
+use poise::serenity_prelude::{self as serenity, guild};
 
 use sqlx::SqlitePool;
 
@@ -12,15 +10,15 @@ use tracing::info;
 
 // 相手サーバーに対して１つだけ存在するwebhook
 #[derive(Debug)]
-struct MasterWebhook {
-    id: Option<i64>,
-    server_name: String,
-    guild_id: Option<i64>,
-    webhook_url: String,
+pub struct MasterWebhook {
+    pub id: Option<u64>,
+    pub server_name: String,
+    pub guild_id: Option<u64>,
+    pub webhook_url: String,
 }
 
 impl MasterWebhook {
-    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
+    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<u64>, webhook_url: &str) -> Self {
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -28,43 +26,64 @@ impl MasterWebhook {
             webhook_url: webhook_url.to_string(),
         }
     }
+
+    fn from_row(
+        _id: Option<i64>,
+        server_name: &str,
+        guild_id: &str,
+        webhook_url: &str,
+    ) -> Result<Self> {
+
+        let guild_id = guild_id.parse::<u64>()?;
+        Ok(
+        Self {
+            id: None,
+            server_name: server_name.to_string(),
+            guild_id: Some(guild_id),
+            webhook_url: webhook_url.to_string(),
+        }
+    )
+    }
+
 }
 
-// bot間通信に関わるコマンドの種類
-// 通信の際に必要なデータはここに内包する
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-enum CmdKind {
-    MemberWebhookAutoRegister,
-    MemberWebhookAutoRegisterResponse,
-}
+// // bot間通信に関わるコマンドの種類
+// // 通信の際に必要なデータはここに内包する
+// #[derive(Debug, serde::Serialize, serde::Deserialize)]
+// enum CmdKind {
+//     MemberWebhookAutoRegister,
+//     MemberWebhookAutoRegisterResponse,
+// }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-struct BotComMessage {
-    src_server: String,
-    dst_server: String,
-    cmd_kind: CmdKind,
-    ttl: i64,
-    timestamp: chrono::DateTime<chrono::Utc>,
-}
+// #[derive(Debug, serde::Serialize, serde::Deserialize)]
+// struct BotComMessage {
+//     src_server: String,
+//     dst_server: String,
+//     cmd_kind: CmdKind,
+//     ttl: i64,
+//     timestamp: chrono::DateTime<chrono::Utc>,
+// }
 
-struct MemberWebhookAutoRegisters {
-    member_id: u64,
-    channel_id: u64,
-    webhook_url: String,
-}
+// struct MemberWebhookAutoRegisters {
+//     member_id: u64,
+//     channel_id: u64,
+//     webhook_url: String,
+// }
 
-async fn master_webhook_insert(
+pub async fn master_webhook_insert(
     connection: &SqlitePool,
-    server_webhook: MasterWebhook,
+    master_webhook: MasterWebhook,
 ) -> anyhow::Result<()> {
+    let guild_id = master_webhook.guild_id.unwrap().to_string();
+
     sqlx::query!(
         r#"
         INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
         VALUES(?, ?, ?);
         "#,
-        server_webhook.server_name,
-        server_webhook.guild_id,
-        server_webhook.webhook_url
+        master_webhook.server_name,
+        guild_id,
+        master_webhook.webhook_url
     )
     .execute(connection)
     .await?;
@@ -72,7 +91,7 @@ async fn master_webhook_insert(
     Ok(())
 }
 
-async fn master_webhook_select(
+pub async fn master_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
 ) -> anyhow::Result<MasterWebhook> {
@@ -88,7 +107,7 @@ async fn master_webhook_select(
     let master_webhook = MasterWebhook::from(
         Some(row.id),
         &row.server_name,
-        Some(row.guild_id),
+        Some(row.guild_id.parse::<u64>()?),
         &row.webhook_url,
     );
 
@@ -97,27 +116,30 @@ async fn master_webhook_select(
 
 // すべてのマスターwebhookを取得する
 // 複数の行がとれるので、Vecに格納して返す
-async fn master_webhook_select_all(
+pub async fn master_webhook_select_all(
     connection: &SqlitePool,
-    _server_name: &str,
-) -> anyhow::Result<()> {
-    let _row = sqlx::query!(
+) -> anyhow::Result<Vec<MasterWebhook>> {
+    let rows = sqlx::query!(
         r#"
         SELECT * FROM master_webhooks;
         "#,
     )
-    .fetch_one(connection)
+    .fetch_all(connection)
     .await?;
 
-    // let master_webhook = MasterWebhook {
-    //     id: Some(row.id),
-    //     server_name: row.server_name,
-    //     webhook_url: row.webhook_url,
-    // };
+    let mut master_webhooks = Vec::new();
 
-    // Ok(master_webhook)
+    for row in rows {
+        let master_webhook = MasterWebhook::from(
+            Some(row.id),
+            &row.server_name,
+            Some(row.guild_id.parse::<u64>()?),
+            &row.webhook_url,
+        );
+        master_webhooks.push(master_webhook);
+    }
 
-    Ok(())
+    Ok(master_webhooks)
 }
 
 
@@ -126,7 +148,7 @@ pub async fn ut_masterhook_register(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
-    #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: Option<i64>,
+    #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: Option<u64>,
 ) -> Result<()> {
     // msg.contentを分割して、server_nameとwebhook_urlを取得する
     // let mut iter = msg.content.split_whitespace();
