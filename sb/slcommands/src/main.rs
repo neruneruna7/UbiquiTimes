@@ -1,7 +1,6 @@
 #![warn(clippy::str_to_string)]
 
 mod commands;
-mod master_webhook;
 
 use anyhow::{Error, Result};
 use poise::{serenity_prelude as serenity, Event};
@@ -16,6 +15,7 @@ use std::{
     time::Duration,
 };
 use tracing::info;
+
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -79,25 +79,25 @@ async fn event_handler(
     Ok(())
 }
 
-/// Show this help menu
-#[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn help(
-    ctx: Context<'_>,
-    #[description = "Specific command to show help about"]
-    #[autocomplete = "poise::builtins::autocomplete_command"]
-    command: Option<String>,
-) -> Result<()> {
-    poise::builtins::help(
-        ctx,
-        command.as_deref(),
-        poise::builtins::HelpConfiguration {
-            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
-            ..Default::default()
-        },
-    )
-    .await?;
-    Ok(())
-}
+// /// Show this help menu
+// #[poise::command(prefix_command, track_edits, slash_command)]
+// pub async fn help(
+//     ctx: Context<'_>,
+//     #[description = "Specific command to show help about"]
+//     #[autocomplete = "poise::builtins::autocomplete_command"]
+//     command: Option<String>,
+// ) -> Result<()> {
+//     poise::builtins::help(
+//         ctx,
+//         command.as_deref(),
+//         poise::builtins::HelpConfiguration {
+//             extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
+//             ..Default::default()
+//         },
+//     )
+//     .await?;
+//     Ok(())
+// }
 
 #[tokio::main]
 async fn main() {
@@ -120,14 +120,15 @@ async fn main() {
             commands::help(),
             // commands::vote(),
             // commands::getvotes(),
-            // commands::member_webhook_register_manual(),
-            commands::ut_serverlist(),
-            commands::ut_member_webhook_reg_manual(),
-            commands::ut_list(),
-            commands::ut_delete(),
-            commands::ut_execute(),
+            commands::master_webhook::ut_get_master_hook(),
+            commands::master_webhook::ut_masterhook_register(),
+            commands::master_webhook::ut_serverlist(),
+            commands::member_webhook::ut_member_webhook_reg_manual(),
+            commands::member_webhook::ut_list(),
+            commands::member_webhook::ut_delete(),
+            commands::member_webhook::ut_times_release(),
         ],
-
+        
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("~".into()),
