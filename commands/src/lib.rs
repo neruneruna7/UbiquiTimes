@@ -1,25 +1,21 @@
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 use poise::serenity_prelude as serenity;
 
-use serenity::{
-    async_trait,
-    http::Http,
-    model::{channel::Message, gateway::Ready},
-    webhook::Webhook,
-};
+use serenity::{http::Http, model::channel::Message, webhook::Webhook};
 
 use sqlx::SqlitePool;
-use tracing::error;
 
+#[allow(dead_code)]
 pub mod list;
+
+#[allow(dead_code)]
 pub mod webhook;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
-type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
 
 // Dbのラッパー
@@ -47,7 +43,6 @@ pub async fn help(
     Ok(())
 }
 
-
 async fn execute_ubiquitus(
     username: &str,
     content: &str,
@@ -67,6 +62,7 @@ async fn execute_ubiquitus(
 
 // 相手サーバーに対して１つだけ存在するwebhook
 #[derive(Debug)]
+#[allow(dead_code)]
 struct MasterWebhook {
     id: Option<i64>,
     server_name: String,
@@ -75,7 +71,7 @@ struct MasterWebhook {
 }
 
 impl MasterWebhook {
-    fn from(id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
+    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -86,6 +82,7 @@ impl MasterWebhook {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 // 個々人が持つwebhook
 struct MemberWebhook {
     id: Option<i64>,
@@ -97,7 +94,7 @@ struct MemberWebhook {
 
 impl MemberWebhook {
     fn from(
-        id: Option<i64>,
+        _id: Option<i64>,
         server_name: &str,
         member_id: i64,
         channel_id: i64,
@@ -177,6 +174,7 @@ async fn master_webhook_select(
 
 // すべてのマスターwebhookを取得する
 // 複数の行がとれるので、Vecに格納して返す
+#[allow(dead_code)]
 async fn master_webhook_select_all(
     connection: &SqlitePool,
     _server_name: &str,
@@ -221,6 +219,7 @@ async fn member_webhook_insert(
 }
 
 // メンバーwebhookの取得
+#[allow(dead_code)]
 async fn member_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
@@ -265,11 +264,12 @@ async fn member_webhook_select_all(
     let mut member_webhook_list = Vec::new();
     for row in rows {
         let member_webhook = MemberWebhook::from(
-            Some(row.id), 
-            &row.server_name, 
-            row.member_id, 
+            Some(row.id),
+            &row.server_name,
+            row.member_id,
             row.channel_id,
-            &row.webhook_url);
+            &row.webhook_url,
+        );
         member_webhook_list.push(member_webhook);
     }
 
@@ -295,6 +295,7 @@ async fn member_webhook_delete(
     Ok(())
 }
 
+#[allow(dead_code)]
 async fn create_webhook_from_channel(
     ctx: Context<'_>,
     msg: &Message,

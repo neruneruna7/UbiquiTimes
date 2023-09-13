@@ -4,15 +4,14 @@ use poise::{serenity_prelude as serenity, Event};
 use sqlx::SqlitePool;
 use std::{
     collections::HashMap,
-    env::{var, self},
+    env::{self, var},
     sync::{
         atomic::{AtomicU32, Ordering},
-        Mutex, Arc,
+        Arc, Mutex,
     },
     time::Duration,
 };
-use tracing::{debug, error, info, instrument};
-use tracing_subscriber;
+use tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -102,9 +101,9 @@ async fn main() {
     dotenvy::dotenv().ok();
 
     tracing_subscriber::fmt::init();
-// tracing_subscriber::fmt()
-//         .with_max_level(tracing::Level::DEBUG)
-//         .init();
+    // tracing_subscriber::fmt()
+    //         .with_max_level(tracing::Level::DEBUG)
+    //         .init();
 
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
@@ -114,9 +113,7 @@ async fn main() {
         // ここでコマンドを登録する
         // コマンド名は1~32文字じゃないとダメみたい
         // どうやらスネークケースじゃないとだめのようだ
-        commands: vec![
-            help()
-        ],
+        commands: vec![help()],
 
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
@@ -176,8 +173,8 @@ async fn main() {
     };
 
     let pool = SqlitePool::connect(&env::var("DATABASE_URL").unwrap())
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
     poise::Framework::builder()
         .token(

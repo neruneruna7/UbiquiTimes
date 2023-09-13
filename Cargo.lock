@@ -205,20 +205,11 @@ checksum = "defd4e7873dbddba6c7c91e199c7fcb946abc4a6a4ac3195400bcfb01b5de877"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets",
-]
-
-[[package]]
-name = "commands"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "poise",
- "sqlx",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -1516,10 +1507,13 @@ name = "sb-slcommands"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "dotenvy",
  "env_logger",
  "log",
  "poise",
+ "serde",
+ "serde_json",
  "sqlx",
  "tokio",
  "tracing",
@@ -2272,19 +2266,6 @@ name = "typenum"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
-
-[[package]]
-name = "ubiquitimes-poise"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dotenvy",
- "poise",
- "sqlx",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "unicase"
