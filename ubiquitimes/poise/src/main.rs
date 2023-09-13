@@ -13,6 +13,23 @@ use std::{
 };
 use tracing::info;
 
+use commands::manual_commands::{
+    master_webhook::{
+        ut_get_master_hook,
+        ut_masterhook_register,
+        ut_serverlist,
+    }, 
+    member_webhook::{
+        ut_member_webhook_reg_manual,
+        ut_list,
+        ut_delete,
+        ut_times_release,
+    }
+};
+
+use  commands::Data;
+
+
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
 
@@ -23,11 +40,11 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 // Custom user data passed to all command functions
 // すべてのコマンド関数に渡されるカスタム ユーザー データ
-pub struct Data {
-    votes: Mutex<HashMap<String, u32>>,
-    poise_mentions: AtomicU32,
-    connection: Arc<SqlitePool>,
-}
+// pub struct Data {
+//     votes: Mutex<HashMap<String, u32>>,
+//     poise_mentions: AtomicU32,
+//     connection: Arc<SqlitePool>,
+// }
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     // This is our custom error handler
@@ -113,7 +130,16 @@ async fn main() {
         // ここでコマンドを登録する
         // コマンド名は1~32文字じゃないとダメみたい
         // どうやらスネークケースじゃないとだめのようだ
-        commands: vec![help()],
+        commands: vec![
+            help(),
+            ut_masterhook_register(),
+            ut_serverlist(),
+            ut_get_master_hook(),
+            ut_member_webhook_reg_manual(),
+            ut_list(),
+            ut_delete(),
+            ut_times_release(),
+            ],
 
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {

@@ -1,26 +1,36 @@
-use std::sync::Arc;
+use anyhow::{Result, Error};
 
-use anyhow::Result;
+use poise::serenity_prelude::{self as serenity};
 
-use poise::serenity_prelude as serenity;
-
-use serenity::{http::Http, model::channel::Message, webhook::Webhook};
+use serenity::{model::channel::Message, webhook::Webhook};
 
 use sqlx::SqlitePool;
+use std::{
+    collections::HashMap,
+    sync::{atomic::AtomicU32, Arc, Mutex},
+};
 
-#[allow(dead_code)]
-pub mod list;
-
-#[allow(dead_code)]
-pub mod webhook;
+pub mod manual_commands;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
-type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
+type Context<'a> = poise::Context<'a, Data, Error>;
 
-// Dbのラッパー
+// Custom user data passed to all command functions
+// すべてのコマンド関数に渡されるカスタム ユーザー データ
 pub struct Data {
-    connection: Arc<SqlitePool>,
+    pub votes: Mutex<HashMap<String, u32>>,
+    pub poise_mentions: AtomicU32,
+    pub connection: Arc<SqlitePool>,
+}
+
+async fn create_webhook_from_channel(
+    ctx: Context<'_>,
+    msg: &Message,
+    name: &str,
+) -> anyhow::Result<Webhook> {
+    let webhook = msg.channel_id.create_webhook(ctx, name).await?;
+    Ok(webhook)
 }
 
 /// Show this help menu
@@ -43,275 +53,58 @@ pub async fn help(
     Ok(())
 }
 
-async fn execute_ubiquitus(
-    username: &str,
-    content: &str,
-    webhooks: Vec<String>,
-) -> anyhow::Result<()> {
-    // webhookを実行する
-    let http = Http::new("");
+// /// Vote for something
+// ///
+// /// Enter `~vote pumpkin` to vote for pumpkins
+// #[poise::command(prefix_command, slash_command)]
+// pub async fn vote(
+//     ctx: Context<'_>,
+//     #[description = "What to vote for"] choice: String,
+// ) -> Result<()> {
+//     // Lock the Mutex in a block {} so the Mutex isn't locked across an await point
+//     let num_votes = {
+//         let mut hash_map = ctx.data().votes.lock().unwrap();
+//         let num_votes = hash_map.entry(choice.clone()).or_default();
+//         *num_votes += 1;
+//         *num_votes
+//     };
 
-    for webhook_url in webhooks.iter() {
-        let webhook = Webhook::from_url(&http, webhook_url).await?;
-        webhook
-            .execute(&http, false, |w| w.content(content).username(username))
-            .await?;
-    }
-    Ok(())
-}
-
-// 相手サーバーに対して１つだけ存在するwebhook
-#[derive(Debug)]
-#[allow(dead_code)]
-struct MasterWebhook {
-    id: Option<i64>,
-    server_name: String,
-    guild_id: Option<i64>,
-    webhook_url: String,
-}
-
-impl MasterWebhook {
-    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<i64>, webhook_url: &str) -> Self {
-        Self {
-            id: None,
-            server_name: server_name.to_string(),
-            guild_id,
-            webhook_url: webhook_url.to_string(),
-        }
-    }
-}
-
-#[derive(Debug)]
-#[allow(dead_code)]
-// 個々人が持つwebhook
-struct MemberWebhook {
-    id: Option<i64>,
-    server_name: String,
-    member_id: i64,
-    channel_id: i64,
-    webhook_url: String,
-}
-
-impl MemberWebhook {
-    fn from(
-        _id: Option<i64>,
-        server_name: &str,
-        member_id: i64,
-        channel_id: i64,
-        webhook_url: &str,
-    ) -> Self {
-        Self {
-            id: None,
-            server_name: server_name.to_string(),
-            member_id,
-            channel_id,
-            webhook_url: webhook_url.to_string(),
-        }
-    }
-}
-
-// // ContextからDbを取得する
-// // poiseにより簡単に取得できるようになったので不要の可能性が高い
-// // 一旦コメントアウト
-// async fn get_db(ctx: Context<'_>) -> Option<Arc<SqlitePool>> {
-//     let data_read = ctx.data.read().await;
-//     // let data_read = ctx.data().connection.clone();
-//     let db = data_read.get::<UtDb>();
-
-//     match db {
-//         Some(db) => {
-//             let db = db.clone();
-//             Some(db)
-//         }
-//         None => {
-//             error!("db is None");
-//             None
-//         }
-//     }
+//     let response = format!("Successfully voted for {choice}. {choice} now has {num_votes} votes!");
+//     ctx.say(response).await?;
+//     Ok(())
 // }
 
-async fn master_webhook_insert(
-    connection: &SqlitePool,
-    server_webhook: MasterWebhook,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
-        VALUES(?, ?, ?);
-        "#,
-        server_webhook.server_name,
-        server_webhook.guild_id,
-        server_webhook.webhook_url
-    )
-    .execute(connection)
-    .await?;
+// /// Retrieve number of votes
+// ///
+// /// Retrieve the number of votes either in general, or for a specific choice:
+// /// ```
+// /// ~getvotes
+// /// ~getvotes pumpkin
+// /// ```
+// #[poise::command(prefix_command, track_edits, aliases("votes"), slash_command)]
+// pub async fn getvotes(
+//     ctx: Context<'_>,
+//     #[description = "Choice to retrieve votes for"] choice: Option<String>,
+// ) -> Result<()> {
+//     if let Some(choice) = choice {
+//         let num_votes = *ctx.data().votes.lock().unwrap().get(&choice).unwrap_or(&0);
+//         let response = match num_votes {
+//             0 => format!("Nobody has voted for {} yet", choice),
+//             _ => format!("{} people have voted for {}", num_votes, choice),
+//         };
+//         ctx.say(response).await?;
+//     } else {
+//         let mut response = String::new();
+//         for (choice, num_votes) in ctx.data().votes.lock().unwrap().iter() {
+//             response += &format!("{}: {} votes", choice, num_votes);
+//         }
 
-    Ok(())
-}
+//         if response.is_empty() {
+//             response += "Nobody has voted for anything yet :(";
+//         }
 
-async fn master_webhook_select(
-    connection: &SqlitePool,
-    server_name: &str,
-) -> anyhow::Result<MasterWebhook> {
-    let row = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks WHERE server_name = ?;
-        "#,
-        server_name
-    )
-    .fetch_one(connection)
-    .await?;
+//         ctx.say(response).await?;
+//     };
 
-    let master_webhook = MasterWebhook::from(
-        Some(row.id),
-        &row.server_name,
-        Some(row.guild_id),
-        &row.webhook_url,
-    );
-
-    Ok(master_webhook)
-}
-
-// すべてのマスターwebhookを取得する
-// 複数の行がとれるので、Vecに格納して返す
-#[allow(dead_code)]
-async fn master_webhook_select_all(
-    connection: &SqlitePool,
-    _server_name: &str,
-) -> anyhow::Result<()> {
-    let _row = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks;
-        "#,
-    )
-    .fetch_one(connection)
-    .await?;
-
-    // let master_webhook = MasterWebhook {
-    //     id: Some(row.id),
-    //     server_name: row.server_name,
-    //     webhook_url: row.webhook_url,
-    // };
-
-    // Ok(master_webhook)
-
-    Ok(())
-}
-
-// メンバーwebhookの登録
-async fn member_webhook_insert(
-    connection: &SqlitePool,
-    member_webhook: MemberWebhook,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        INSERT INTO member_webhooks (server_name, member_id, webhook_url)
-        VALUES(?, ?, ?);
-        "#,
-        member_webhook.server_name,
-        member_webhook.member_id,
-        member_webhook.webhook_url
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
-
-// メンバーwebhookの取得
-#[allow(dead_code)]
-async fn member_webhook_select(
-    connection: &SqlitePool,
-    server_name: &str,
-    member_id: i64,
-) -> anyhow::Result<MemberWebhook> {
-    let row = sqlx::query!(
-        r#"
-        SELECT * FROM member_webhooks WHERE server_name = ? AND member_id = ?;
-        "#,
-        server_name,
-        member_id
-    )
-    .fetch_one(connection)
-    .await?;
-
-    let member_webhook = MemberWebhook::from(
-        Some(row.id),
-        &row.server_name,
-        row.member_id,
-        row.channel_id,
-        &row.webhook_url,
-    );
-
-    Ok(member_webhook)
-}
-
-// メンバーwebhookの全取得
-async fn member_webhook_select_all(
-    connection: &SqlitePool,
-    // server_name: &str,
-    member_id: i64,
-) -> anyhow::Result<Vec<MemberWebhook>> {
-    let rows = sqlx::query!(
-        r#"
-        SELECT * FROM member_webhooks WHERE member_id = ?;
-        "#,
-        member_id,
-    )
-    .fetch_all(connection)
-    .await?;
-
-    let mut member_webhook_list = Vec::new();
-    for row in rows {
-        let member_webhook = MemberWebhook::from(
-            Some(row.id),
-            &row.server_name,
-            row.member_id,
-            row.channel_id,
-            &row.webhook_url,
-        );
-        member_webhook_list.push(member_webhook);
-    }
-
-    Ok(member_webhook_list)
-}
-
-// servername, member_idを指定してメンバーwebhookを削除する
-async fn member_webhook_delete(
-    connection: &SqlitePool,
-    server_name: &str,
-    member_id: i64,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        DELETE FROM member_webhooks WHERE server_name = ? AND member_id = ?;
-        "#,
-        server_name,
-        member_id
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
-
-#[allow(dead_code)]
-async fn create_webhook_from_channel(
-    ctx: Context<'_>,
-    msg: &Message,
-    name: &str,
-) -> anyhow::Result<Webhook> {
-    let webhook = msg.channel_id.create_webhook(ctx, name).await?;
-    Ok(webhook)
-}
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn it_works() {
-//         let result = add(2, 2);
-//         assert_eq!(result, 4);
-//     }
+//     Ok(())
 // }

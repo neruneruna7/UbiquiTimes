@@ -16,7 +16,6 @@ use std::{
 };
 use tracing::info;
 
-
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
 
@@ -128,7 +127,7 @@ async fn main() {
             commands::member_webhook::ut_delete(),
             commands::member_webhook::ut_times_release(),
         ],
-        
+
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("~".into()),

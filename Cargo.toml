@@ -1,9 +1,9 @@
 [workspace]
 members = [
-    # "commands",
-    # "ubiquitimes/poise",
+    "commands",
+    "ubiquitimes/poise",
     # "sb/commands",
-    "sb/slcommands",
+    # "sb/slcommands",
 ]
 
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none
