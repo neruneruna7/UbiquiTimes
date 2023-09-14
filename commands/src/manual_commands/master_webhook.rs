@@ -1,6 +1,6 @@
 use crate::*;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 
 use sqlx::SqlitePool;
 
@@ -110,9 +110,7 @@ async fn master_webhook_select(
 
 // すべてのマスターwebhookを取得する
 // 複数の行がとれるので、Vecに格納して返す
-async fn master_webhook_select_all(
-    connection: &SqlitePool,
-) -> anyhow::Result<Vec<MasterWebhook>> {
+async fn master_webhook_select_all(connection: &SqlitePool) -> anyhow::Result<Vec<MasterWebhook>> {
     let rows = sqlx::query!(
         r#"
         SELECT * FROM master_webhooks;
@@ -135,6 +133,58 @@ async fn master_webhook_select_all(
 
     Ok(master_webhooks)
 }
+
+/// 自身のマスターwebhookを登録する
+#[poise::command(prefix_command, track_edits, aliases("UTsetOwnMastereWebhook"), slash_command)]
+pub async fn ut_set_own_master_webhook(
+    ctx: Context<'_>,
+    #[description = "本サーバのサーバ名"] server_name: String,
+    #[description = "本サーバのマスターwebhook URL"] master_webhook_url: String,
+) -> Result<()> {
+    let master_webhook = Webhook::from_url(ctx, &master_webhook_url).await?;
+    let master_channel_id = master_webhook
+        .channel_id
+        .ok_or(anyhow!("webhookからチャンネルidを取得できませんでした"))?
+        .to_string();
+
+    let guild_id = ctx.guild_id().ok_or(anyhow!("guild_idが取得できませんでした"))?.0.to_string();
+
+    let connection = ctx.data().connection.clone();
+
+    upsert_a_server_data(&connection, &server_name, &guild_id, &master_channel_id, &master_webhook_url).await?;
+
+    Ok(())
+}
+
+/// 自身のマスターwebhookを a_server_data テーブルにupsertする
+async fn upsert_a_server_data(
+    connection: &SqlitePool,
+    server_name: &str,
+    guild_id: &str,
+    master_channel_id: &str,
+    master_webhook_url: &str,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        INSERT INTO a_server_data (server_name, guild_id, master_channel_id, master_webhook_url)
+        VALUES(?, ?, ?, ?)
+        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, master_channel_id = ?, master_webhook_url = ?;
+        "#,
+        server_name,
+        guild_id,
+        master_channel_id,
+        master_webhook_url,
+        server_name,
+        master_channel_id,
+        master_webhook_url
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
+}
+
+
 
 #[poise::command(prefix_command, track_edits, aliases("UTregMaster"), slash_command)]
 pub async fn ut_masterhook_register(
