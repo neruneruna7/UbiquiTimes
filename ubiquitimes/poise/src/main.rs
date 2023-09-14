@@ -13,14 +13,9 @@ use std::{
 };
 use tracing::info;
 
-use commands::manual_commands::{
-    master_webhook::{
-        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
-    },
-    member_webhook::{ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release},
-};
-
-use commands::auto_commands::member_webhook::{ut_times_set, ut_times_show, ut_times_unset};
+use commands::master_webhook::manual::{ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook};
+use commands::member_webhook::manual::{ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release};
+use commands::member_webhook::auto::{ut_times_set, ut_times_show, ut_times_unset};
 
 use commands::Data;
 

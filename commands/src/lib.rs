@@ -10,8 +10,8 @@ use std::{
     sync::{atomic::AtomicU32, Arc, Mutex},
 };
 
-pub mod auto_commands;
-pub mod manual_commands;
+pub mod member_webhook;
+pub mod master_webhook;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型

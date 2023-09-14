@@ -1,14 +1,20 @@
 use crate::{Context, Result, SqlitePool};
 
 use tracing::info;
+use serde::{Deserialize, Serialize};
 
-// #[derive(Debug, Serialize, Deserialize)]
-// pub struct BotComMessage {
-//     pub src: String,
-//     pub dst: String,
-//     pub cmd: CmdKind,
-//     pub ttl: usize,
-// }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BotComMessage {
+    pub src: String,
+    pub dst: String,
+    pub cmd: CmdKind,
+    pub ttl: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CmdKind {
+    TimesUbiquiSetting(TimesUbiquiSetting),
+}
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
@@ -151,6 +157,47 @@ async fn upsert_member_times(
     .await?;
 
     info!("{:?}", _a);
+
+    Ok(())
+}
+
+
+
+
+// #[poise::command(prefix_command, track_edits, aliases("UTtimesUnset"), slash_command)]
+// pub async fn ut_times_unset(
+//     ctx: Context<'_>,
+//     #[description = "`untimes`と入力してください"] untimes: String,
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TimesUbiquiSetting {
+    member_id: u64,
+    master_webhook: String,
+    channel_id: u64,
+    servername: String,
+    webhook_url: String,
+}
+
+/// あなたのTimesを拡散するための設定リクエストを送信します．
+/// 
+/// 拡散可能サーバすべてに対して，拡散設定するためのリクエストを送信します
+
+#[poise::command(prefix_command, track_edits, aliases("UTtimesUbiquiSettingSend"), slash_command)]
+pub async fn ut_times_ubiqui_setting_send(
+    ctx: Context<'_>,
+    #[description = "`release`と入力してください"] release: String,
+) -> Result<()> {
+    sign_str_command(&ctx, &release, "release").await?;
+
+    // 拡散可能サーバのリストを取得
+    let connection = ctx.data().connection.clone();
+    let member_times = sqlx::query!(
+        r#"
+        SELECT * FROM a_member_times_data
+        "#,
+    )
+    .fetch_all(connection.as_ref())
+    .await?;
 
     Ok(())
 }
