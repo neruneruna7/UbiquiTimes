@@ -11,6 +11,7 @@ use std::{
 };
 
 pub mod manual_commands;
+pub mod auto_commands;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型

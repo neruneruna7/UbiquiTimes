@@ -97,12 +97,51 @@ CREATE TABLE IF NOT EXISTS privatewebhooks
 サーバA，サーバB
 - A拡散元チャンネルからコマンドを実行し，がBのチャンネルidを指定してを拡散先として設定する
 - チャンネルidと，拡散元チャンネルのwebhookAをBのマスターwebhookに送信する
+{a_member_webhook, b_channel_id}
 - Bはそれを受け取り，チャンネルidからwebhookBを作成して返送する
 - BはAを拡散可能登録してあれば，webhookAを，Bを拡散元として拡散先として登録する
 - AはBにメンバーwebhookの登録通知を行う
     - botLogチャンネルへの通知，メンバーチャンネルへの通知
 - もしも双方向にマスターwebhookが登録されていれば，Bから
 Aへのメンバーwebhookの登録を行う
+## 改
+
+### マスターwebhookの登録
+極力シンプルがいい
+- 
+### メンバーwebhookの登録
+両サーバが，互いに拡散可能サーバとして登録されている場合
+
+最終的に必要なデータ
+両者のwebhook
+- A {B_channel_id}
+- Aチャンネルのwebhookは存在するか？
+- 条件: webhookの名前が`UT-{userid}`
+    - する それを取得
+    - しない AチャンネルIDから作成
+- `{A-webhook, B_channel_id, A-servername}`をB-マスターwebhookに送信
+- BはA-webhookを拡散先に登録
+- BはチャンネルIDからB-webhookを作成
+- BはA-マスターwebhookにB-webhookを返送
+- Aは受け取ったB-webhookを登録
+
+登録時のデータ
+{
+    b_servername,
+    b_guild_id,
+    b_member_webhook,
+}
+
+サーバーネームをどうするか
+
+# 欠点
+- マスターwebhookをなんらかの形で公開する必要がある
+- 第三者がスパムを送り付けてくるかもしれない
+- マスターwebhookはBot専用のチャンネルなので，被害は少なめになるだろうと予測しているとはいえ...
+
+# 対策
+- bot間通信の暗号化
+- なんかlinuxで鍵を作成するやつあったな
 
 ### まずは手動登録を実装しよう
 - 手動登録

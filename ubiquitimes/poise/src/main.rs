@@ -27,6 +27,14 @@ use commands::manual_commands::{
     }
 };
 
+use commands::auto_commands::{
+    member_webhook::{
+        ut_times_set,
+        ut_times_unset,
+        ut_times_show,
+    }
+};
+
 use  commands::Data;
 
 
@@ -139,6 +147,9 @@ async fn main() {
             ut_list(),
             ut_delete(),
             ut_times_release(),
+            ut_times_set(),
+            ut_times_unset(),
+            ut_times_show(),
             ],
 
         // ここでprefixを設定する
@@ -220,7 +231,9 @@ async fn main() {
         })
         .options(options)
         .intents(
-            serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT,
+            serenity::GatewayIntents::non_privileged() | 
+            serenity::GatewayIntents::MESSAGE_CONTENT |
+            serenity::GatewayIntents::GUILD_WEBHOOKS,
         )
         .run()
         .await
