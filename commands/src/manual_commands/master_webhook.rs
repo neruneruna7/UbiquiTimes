@@ -1,8 +1,7 @@
 use crate::*;
 
-use anyhow::{Result, anyhow};
 use anyhow::Context as anyhowContext;
-
+use anyhow::{anyhow, Result};
 
 use sqlx::SqlitePool;
 
@@ -37,7 +36,7 @@ impl MasterWebhook {
         Ok(Self {
             id: None,
             server_name: server_name.to_string(),
-            guild_id: guild_id,
+            guild_id,
             webhook_url: webhook_url.to_string(),
         })
     }
@@ -137,8 +136,13 @@ async fn master_webhook_select_all(connection: &SqlitePool) -> anyhow::Result<Ve
 }
 
 /// 自身のマスターwebhook，サーバ情報を登録する
-/// 
-#[poise::command(prefix_command, track_edits, aliases("UTsetOwnMastereWebhook"), slash_command)]
+///
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UTsetOwnMastereWebhook"),
+    slash_command
+)]
 pub async fn ut_set_own_master_webhook(
     ctx: Context<'_>,
     #[description = "本サーバのサーバ名"] server_name: String,
@@ -150,11 +154,22 @@ pub async fn ut_set_own_master_webhook(
         .ok_or(anyhow!("webhookからチャンネルidを取得できませんでした"))?
         .to_string();
 
-    let guild_id = ctx.guild_id().ok_or(anyhow!("guild_idが取得できませんでした"))?.0.to_string();
+    let guild_id = ctx
+        .guild_id()
+        .ok_or(anyhow!("guild_idが取得できませんでした"))?
+        .0
+        .to_string();
 
     let connection = ctx.data().connection.clone();
 
-    upsert_a_server_data(&connection, &server_name, &guild_id, &master_channel_id, &master_webhook_url).await?;
+    upsert_a_server_data(
+        &connection,
+        &server_name,
+        &guild_id,
+        &master_channel_id,
+        &master_webhook_url,
+    )
+    .await?;
 
     ctx.say(format!("server_data: \n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}", server_name, guild_id, master_channel_id, master_webhook_url)).await?;
 
@@ -189,9 +204,12 @@ async fn upsert_a_server_data(
     Ok(())
 }
 
-
-
-#[poise::command(prefix_command, track_edits, aliases("UTsetOtherMaster"), slash_command)]
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UTsetOtherMaster"),
+    slash_command
+)]
 pub async fn ut_set_other_masterhook(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
@@ -212,7 +230,9 @@ pub async fn ut_set_other_masterhook(
     //     None => None,
     // };
 
-    let guild_id = guild_id.parse::<u64>().context("guild_idは数字で指定してください。")?;
+    let guild_id = guild_id
+        .parse::<u64>()
+        .context("guild_idは数字で指定してください。")?;
 
     // log
     info!(

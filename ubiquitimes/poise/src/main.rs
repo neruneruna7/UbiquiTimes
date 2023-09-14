@@ -14,7 +14,9 @@ use std::{
 use tracing::info;
 
 use commands::manual_commands::{
-    master_webhook::{ut_get_master_hook, ut_masterhook_register, ut_serverlist},
+    master_webhook::{
+        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
+    },
     member_webhook::{ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release},
 };
 
@@ -125,7 +127,8 @@ async fn main() {
         // どうやらスネークケースじゃないとだめのようだ
         commands: vec![
             help(),
-            ut_masterhook_register(),
+            ut_set_own_master_webhook(),
+            ut_set_other_masterhook(),
             ut_serverlist(),
             ut_get_master_hook(),
             ut_member_webhook_reg_manual(),

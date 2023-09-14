@@ -1,8 +1,8 @@
-use anyhow::{Result};
+use anyhow::Context as anyhowContext;
+use anyhow::Result;
 use poise::serenity_prelude::{Http, Webhook};
 use sqlx::SqlitePool;
 use tracing::info;
-use anyhow::Context as anyhowContext;
 
 use crate::*;
 
@@ -96,10 +96,13 @@ pub async fn ut_member_webhook_reg_manual(
     #[description = "拡散先チャンネルのwebhook URL"] b_webhook_url: String,
 ) -> Result<()> {
     let a_member_id = ctx.author().id.0;
-    let b_channel_id = b_channel_id.parse::<u64>().context("符号なし整数を入力してください")?;
-    let b_guild_id = b_guild_id.parse::<u64>().context("符号なし整数を入力してください")?;
+    let b_channel_id = b_channel_id
+        .parse::<u64>()
+        .context("符号なし整数を入力してください")?;
+    let b_guild_id = b_guild_id
+        .parse::<u64>()
+        .context("符号なし整数を入力してください")?;
 
-    
     // match channel_id {
     //     Ok(channel_id) => channel_id,
     //     Err(_) => {
@@ -112,8 +115,14 @@ pub async fn ut_member_webhook_reg_manual(
 
     let connection = ctx.data().connection.clone();
 
-    let menber_webhook =
-        MemberWebhook::from(None, a_member_id, &b_server_name,  b_guild_id, b_channel_id, &b_webhook_url);
+    let menber_webhook = MemberWebhook::from(
+        None,
+        a_member_id,
+        &b_server_name,
+        b_guild_id,
+        b_channel_id,
+        &b_webhook_url,
+    );
 
     member_webhook_insert(connection.as_ref(), menber_webhook).await?;
 
@@ -256,7 +265,6 @@ async fn member_webhook_insert(
     let member_id = member_webhook.a_member_id.to_string();
     let channel_id = member_webhook.b_channel_id.to_string();
     let guild_id = member_webhook.b_guild_id.to_string();
-
 
     sqlx::query!(
         r#"

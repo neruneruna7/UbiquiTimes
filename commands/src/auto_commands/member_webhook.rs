@@ -1,8 +1,5 @@
-use crate::{Context, Data, Error, Result, SqlitePool};
+use crate::{Context, Result, SqlitePool};
 
-use poise::serenity_prelude::{channel, guild, Http};
-use serde::{Deserialize, Serialize};
-use sqlx::Sqlite;
 use tracing::info;
 
 // #[derive(Debug, Serialize, Deserialize)]
