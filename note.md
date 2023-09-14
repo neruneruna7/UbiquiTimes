@@ -105,17 +105,52 @@ CREATE TABLE IF NOT EXISTS privatewebhooks
 - もしも双方向にマスターwebhookが登録されていれば，Bから
 Aへのメンバーwebhookの登録を行う
 ## 改
-
 ### マスターwebhookの登録
-極力シンプルがいい
-- 
+サーバA, サーバB 
+- Aは，Bの`master_webhook`, `guild_id`, `servername`を登録する
+- あとから偽装されていないことを人間が確認できるようにするためである
+
+
+サーバA,自身のマスターwebhook作成
+- `ut_set_masterwebhook_and_serverdata`コマンドで作成する
+- 作成するのは，botComチャンネルで作成してもらいたい
+- いずれ運営のみが実行できるようにパスワード機能をつけたい
+- `ut_set_masterwebhook`コマンドを実行すると，webhookの入力を要求し，webhookからchannel_idを作成し，それをマスターwebhookとして登録する
+- 実行時に`servername`, `master_webhook_url`を入力し，登録する
+- 実行結果として，`servername`, `guild_id`, `master_webhook_url`を返す
+
+サーバ情報取得
+- 実行結果として，`servername`, `guild_id`, `master_webhook_url`を返す
+
 ### メンバーwebhookの登録
-両サーバが，互いに拡散可能サーバとして登録されている場合
+両サーバが，互いに拡散可能サーバとして登録されている前提  
+でない場合は手動登録で対応する
+
+互いに登録してなくても，1方向で可能ではないか？ botが導入されている前提とはいえ．
+
+
+サーバAは，サーバBのマスターwebhookを登録済みであるものとする．
 
 最終的に必要なデータ
 両者のwebhook
-- A {B_channel_id}
-- Aチャンネルのwebhookは存在するか？
+- それぞれのサーバで，どれが自分のTimesのチャンネルなのか登録する．その際に`webhook`は作成されている
+- `webhook`は`member_id`に紐づいている
+- 拡散可能サーバに登録されているすべてのサーバに，拡散登録リクエストを送る
+- `{a_member_id, a_master_webhook, a_channel_id, a_servername, a_guild_id}`
+- `a_channel_id`, `a_servername, a_guild_id`は，あとからaサーバが偽装されていないことを確認できるようにするため． 
+- 拡散登録リクエストを受け取ったbサーバは，`a_member_id`と紐づいている`webhook`を拡散登録リプライする.
+- 存在しなければ何も返送しない
+- `{a_member_id, b_servername, b_guild_id, b_channel_id, b_webhook}`
+- `b_servername`はbサーバ側で登録したbサーバのサーバ名
+- aサーバで登録されているbサーバの名前とは違う可能性がある
+
+- 同じ名前のサーバ，団体が存在する可能性もあるため，衝突を許容することにした.
+
+- リプライを受け取ったaサーバは，受け取った`webhook`を登録する
+- 
+
+
+<!-- - Aチャンネルのwebhookは存在するか？
 - 条件: webhookの名前が`UT-{userid}`
     - する それを取得
     - しない AチャンネルIDから作成
@@ -123,7 +158,7 @@ Aへのメンバーwebhookの登録を行う
 - BはA-webhookを拡散先に登録
 - BはチャンネルIDからB-webhookを作成
 - BはA-マスターwebhookにB-webhookを返送
-- Aは受け取ったB-webhookを登録
+- Aは受け取ったB-webhookを登録 -->
 
 登録時のデータ
 {
