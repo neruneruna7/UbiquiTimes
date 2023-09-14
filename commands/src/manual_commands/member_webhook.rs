@@ -1,51 +1,56 @@
-use anyhow::Result;
+use anyhow::{Result};
 use poise::serenity_prelude::{Http, Webhook};
 use sqlx::SqlitePool;
 use tracing::info;
+use anyhow::Context as anyhowContext;
 
-use crate::Context;
+use crate::*;
 
 #[derive(Debug)]
 // 個々人が持つwebhook
 pub struct MemberWebhook {
     pub id: Option<i64>,
-    pub server_name: String,
-    pub member_id: u64,
-    // sqliteがi64しか扱えないため，しかたなくStringを使う
-    pub channel_id: u64,
-    pub webhook_url: String,
+    pub a_member_id: u64,
+    pub b_server_name: String,
+    pub b_guild_id: u64,
+    pub b_channel_id: u64,
+    pub b_webhook_url: String,
 }
 
 impl MemberWebhook {
     fn from(
         _id: Option<i64>,
-        server_name: &str,
-        member_id: u64,
-        channel_id: u64,
-        webhook_url: &str,
+        a_member_id: u64,
+        b_server_name: &str,
+        b_guild_id: u64,
+        b_channel_id: u64,
+        b_webhook_url: &str,
     ) -> Self {
         Self {
             id: None,
-            server_name: server_name.to_string(),
-            member_id,
-            channel_id,
-            webhook_url: webhook_url.to_string(),
+            a_member_id,
+            b_server_name: b_server_name.to_string(),
+            b_guild_id,
+            b_channel_id,
+            b_webhook_url: b_webhook_url.to_string(),
         }
     }
 
     fn from_row(
         _id: Option<i64>,
-        server_name: &str,
-        member_id: &str,
-        channel_id: &str,
-        webhook_url: &str,
+        a_member_id: &str,
+        b_server_name: &str,
+        b_guild_id: &str,
+        b_channel_id: &str,
+        b_webhook_url: &str,
     ) -> Result<Self> {
         Ok(Self {
             id: None,
-            server_name: server_name.to_string(),
-            member_id: member_id.parse()?,
-            channel_id: channel_id.parse()?,
-            webhook_url: webhook_url.to_string(),
+            a_member_id: a_member_id.parse()?,
+            b_server_name: b_server_name.to_string(),
+            b_guild_id: b_guild_id.parse()?,
+            b_channel_id: b_channel_id.parse()?,
+            b_webhook_url: b_webhook_url.to_string(),
         })
     }
 }
@@ -84,27 +89,31 @@ impl MemberWebhook {
 #[poise::command(prefix_command, track_edits, aliases("UTregisterM"), slash_command)]
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
-    #[description = "拡散先のサーバ名"] server_name: String,
+    #[description = "拡散先のサーバ名"] b_server_name: String,
     // 17桁整数までしか受け取れないので，仕方なくStringにする
-    #[description = "拡散先のチャンネルID"] channel_id: String,
-    #[description = "拡散先チャンネルのwebhook URL"] webhook_url: String,
+    #[description = "拡散先のサーバID"] b_guild_id: String,
+    #[description = "拡散先のチャンネルID"] b_channel_id: String,
+    #[description = "拡散先チャンネルのwebhook URL"] b_webhook_url: String,
 ) -> Result<()> {
-    let member_id = ctx.author().id.0;
-    let channel_id = channel_id.parse::<u64>();
-    let channel_id = match channel_id {
-        Ok(channel_id) => channel_id,
-        Err(_) => {
-            ctx.say("符号なし整数を入力してください").await?;
-            return Ok(());
-        }
-    };
+    let a_member_id = ctx.author().id.0;
+    let b_channel_id = b_channel_id.parse::<u64>().context("符号なし整数を入力してください")?;
+    let b_guild_id = b_guild_id.parse::<u64>().context("符号なし整数を入力してください")?;
 
-    info!("member_id: {}", member_id);
+    
+    // match channel_id {
+    //     Ok(channel_id) => channel_id,
+    //     Err(_) => {
+    //         ctx.say("符号なし整数を入力してください").await?;
+    //         return Ok(());
+    //     }
+    // };
+
+    info!("a_member_id: {}", a_member_id);
 
     let connection = ctx.data().connection.clone();
 
     let menber_webhook =
-        MemberWebhook::from(None, &server_name, member_id, channel_id, &webhook_url);
+        MemberWebhook::from(None, a_member_id, &b_server_name,  b_guild_id, b_channel_id, &b_webhook_url);
 
     member_webhook_insert(connection.as_ref(), menber_webhook).await?;
 
@@ -129,7 +138,7 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     response.push_str("拡散先リスト\n --------- \n");
 
     for member_webhook in member_webhooks {
-        response.push_str(&format!("{}\n", member_webhook.server_name));
+        response.push_str(&format!("{}\n", member_webhook.b_server_name));
     }
 
     ctx.say(response).await?;
@@ -186,7 +195,7 @@ pub async fn ut_times_release(
 
     let member_webhooks = member_webhooks
         .iter()
-        .map(|m| m.webhook_url.to_owned())
+        .map(|m| m.b_webhook_url.to_owned())
         .collect::<Vec<String>>();
 
     execute_ubiquitus(&username, &content, member_webhooks).await?;
@@ -244,18 +253,21 @@ async fn member_webhook_insert(
     connection: &SqlitePool,
     member_webhook: MemberWebhook,
 ) -> anyhow::Result<()> {
-    let member_id = member_webhook.member_id.to_string();
-    let channel_id = member_webhook.channel_id.to_string();
+    let member_id = member_webhook.a_member_id.to_string();
+    let channel_id = member_webhook.b_channel_id.to_string();
+    let guild_id = member_webhook.b_guild_id.to_string();
+
 
     sqlx::query!(
         r#"
-        INSERT INTO member_webhooks (server_name, member_id, channel_id, webhook_url)
-        VALUES(?, ?, ?, ?);
+        INSERT INTO member_webhooks (b_server_name, a_member_id, b_guild_id, b_channel_id, b_webhook_url)
+        VALUES(?, ?, ?, ?, ?);
         "#,
-        member_webhook.server_name,
+        member_webhook.b_server_name,
         member_id,
+        guild_id,
         channel_id,
-        member_webhook.webhook_url
+        member_webhook.b_webhook_url
     )
     .execute(connection)
     .await?;
@@ -272,7 +284,7 @@ async fn member_webhook_select(
     let member_id = member_id.to_string();
     let row = sqlx::query!(
         r#"
-        SELECT * FROM member_webhooks WHERE server_name = ? AND member_id = ?;
+        SELECT * FROM member_webhooks WHERE b_server_name = ? AND a_member_id = ?;
         "#,
         server_name,
         member_id,
@@ -282,10 +294,11 @@ async fn member_webhook_select(
 
     let member_webhook = MemberWebhook::from_row(
         Some(row.id),
-        &row.server_name,
-        &row.member_id,
-        &row.channel_id,
-        &row.webhook_url,
+        &row.a_member_id,
+        &row.b_server_name,
+        &row.b_guild_id,
+        &row.b_channel_id,
+        &row.b_webhook_url,
     )?;
 
     Ok(member_webhook)
@@ -300,7 +313,7 @@ async fn member_webhook_select_from_member_id(
     let member_id = member_id.to_string();
     let rows = sqlx::query!(
         r#"
-        SELECT * FROM member_webhooks WHERE member_id = ?;
+        SELECT * FROM member_webhooks WHERE a_member_id = ?;
         "#,
         member_id,
     )
@@ -311,10 +324,11 @@ async fn member_webhook_select_from_member_id(
     for row in rows {
         let member_webhook = MemberWebhook::from_row(
             Some(row.id),
-            &row.server_name,
-            &row.member_id,
-            &row.channel_id,
-            &row.webhook_url,
+            &row.a_member_id,
+            &row.b_server_name,
+            &row.b_guild_id,
+            &row.b_channel_id,
+            &row.b_webhook_url,
         )?;
         member_webhook_list.push(member_webhook);
     }
@@ -335,10 +349,11 @@ async fn member_webhook_select_all(connection: &SqlitePool) -> Result<Vec<Member
     for row in rows {
         let member_webhook = MemberWebhook::from_row(
             Some(row.id),
-            &row.server_name,
-            &row.member_id,
-            &row.channel_id,
-            &row.webhook_url,
+            &row.a_member_id,
+            &row.b_server_name,
+            &row.b_guild_id,
+            &row.b_channel_id,
+            &row.b_webhook_url,
         )?;
         member_webhook_list.push(member_webhook);
     }
@@ -355,7 +370,7 @@ async fn member_webhook_delete(
     let member_id = member_id.to_string();
     sqlx::query!(
         r#"
-        DELETE FROM member_webhooks WHERE server_name = ? AND member_id = ?;
+        DELETE FROM member_webhooks WHERE b_server_name = ? AND a_member_id = ?;
         "#,
         server_name,
         member_id
