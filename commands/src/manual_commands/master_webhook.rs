@@ -2,6 +2,8 @@ use crate::*;
 
 use anyhow::{Result, anyhow};
 
+use anyhow::Context as anyhowContext;
+
 use sqlx::SqlitePool;
 
 use tracing::info;
@@ -11,12 +13,12 @@ use tracing::info;
 pub struct MasterWebhook {
     pub id: Option<u64>,
     pub server_name: String,
-    pub guild_id: Option<u64>,
+    pub guild_id: u64,
     pub webhook_url: String,
 }
 
 impl MasterWebhook {
-    fn from(_id: Option<i64>, server_name: &str, guild_id: Option<u64>, webhook_url: &str) -> Self {
+    fn from(_id: Option<i64>, server_name: &str, guild_id: u64, webhook_url: &str) -> Self {
         Self {
             id: None,
             server_name: server_name.to_string(),
@@ -35,7 +37,7 @@ impl MasterWebhook {
         Ok(Self {
             id: None,
             server_name: server_name.to_string(),
-            guild_id: Some(guild_id),
+            guild_id: guild_id,
             webhook_url: webhook_url.to_string(),
         })
     }
@@ -68,7 +70,7 @@ async fn master_webhook_insert(
     connection: &SqlitePool,
     master_webhook: MasterWebhook,
 ) -> anyhow::Result<()> {
-    let guild_id = master_webhook.guild_id.unwrap().to_string();
+    let guild_id = master_webhook.guild_id.to_string();
 
     sqlx::query!(
         r#"
@@ -101,7 +103,7 @@ async fn master_webhook_select(
     let master_webhook = MasterWebhook::from(
         Some(row.id),
         &row.server_name,
-        Some(row.guild_id.parse::<u64>()?),
+        row.guild_id.parse::<u64>()?,
         &row.webhook_url,
     );
 
@@ -125,7 +127,7 @@ async fn master_webhook_select_all(connection: &SqlitePool) -> anyhow::Result<Ve
         let master_webhook = MasterWebhook::from(
             Some(row.id),
             &row.server_name,
-            Some(row.guild_id.parse::<u64>()?),
+            row.guild_id.parse::<u64>()?,
             &row.webhook_url,
         );
         master_webhooks.push(master_webhook);
@@ -190,30 +192,32 @@ async fn upsert_a_server_data(
 
 
 #[poise::command(prefix_command, track_edits, aliases("UTregMaster"), slash_command)]
-pub async fn ut_masterhook_register(
+pub async fn ut_set_other_masterhook(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
-    #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: Option<String>,
+    #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: String,
 ) -> Result<()> {
-    let guild_id_parsed = match guild_id {
-        Some(id) => {
-            let parse_result = id.parse::<u64>();
-            match parse_result {
-                Ok(id) => Some(id),
-                Err(_) => {
-                    ctx.say("guild_idは数字で指定してください。").await?;
-                    return Ok(());
-                }
-            }
-        }
-        None => None,
-    };
+    // let guild_id_parsed = match guild_id {
+    //     Some(id) => {
+    //         let parse_result = id.parse::<u64>();
+    //         match parse_result {
+    //             Ok(id) => Some(id),
+    //             Err(_) => {
+    //                 ctx.say("guild_idは数字で指定してください。").await?;
+    //                 return Ok(());
+    //             }
+    //         }
+    //     }
+    //     None => None,
+    // };
+
+    let guild_id = guild_id.parse::<u64>().context("guild_idは数字で指定してください。")?;
 
     // log
     info!(
-        "server_name: {}, webhook_url: {}, guild_id: {:?}",
-        server_name, master_webhook_url, guild_id_parsed
+        "server_name: {}, webhook_url: {}, guild_id: {}",
+        server_name, master_webhook_url, guild_id
     );
 
     // DBに登録する
@@ -221,7 +225,7 @@ pub async fn ut_masterhook_register(
 
     master_webhook_insert(
         connection.as_ref(),
-        MasterWebhook::from(None, &server_name, guild_id_parsed, &master_webhook_url),
+        MasterWebhook::from(None, &server_name, guild_id, &master_webhook_url),
     )
     .await?;
 

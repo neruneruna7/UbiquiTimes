@@ -1,7 +1,7 @@
-use crate::{Result, Error, Data, SqlitePool, Context};
+use crate::{Context, Data, Error, Result, SqlitePool};
 
-use poise::serenity_prelude::{guild, channel, Http};
-use serde::{Serialize, Deserialize};
+use poise::serenity_prelude::{channel, guild, Http};
+use serde::{Deserialize, Serialize};
 use sqlx::Sqlite;
 use tracing::info;
 
@@ -13,9 +13,8 @@ use tracing::info;
 //     pub ttl: usize,
 // }
 
-
 /// そのサーバーでの自分のtimesであることをセットする
-/// 
+///
 /// 本サーバにおいて，このコマンドを実行したチャンネルがあなたのTimesであるとbotに登録します．
 /// 結果は実行するチャンネルに依存します．
 #[poise::command(prefix_command, track_edits, aliases("UTtimesSetting"), slash_command)]
@@ -29,17 +28,15 @@ pub async fn ut_times_set(
     let member_name = ctx.author().name.clone();
     let channel_id = ctx.channel_id().0;
 
-
     let webhook_name = format!("UT-{}", member_id);
-    let webhook = ctx.channel_id().create_webhook(&ctx, webhook_name)
-    .await;
-    
+    let webhook = ctx.channel_id().create_webhook(&ctx, webhook_name).await;
+
     info!("{:?}", webhook);
 
     let webhook_url = match webhook {
         Ok(t) => t.url()?,
         Err(e) => {
-            let m = format!("webhookの作成に失敗しました: {}", e); 
+            let m = format!("webhookの作成に失敗しました: {}", e);
             ctx.say(&m).await?;
             return Err(anyhow::anyhow!(m));
         }
@@ -53,15 +50,17 @@ pub async fn ut_times_set(
         &member_name,
         channel_id,
         &webhook_url,
-    ).await?;
+    )
+    .await?;
 
-    ctx.say("このチャンネルを，本サーバでのあなたのTimesとして登録しました").await?;
+    ctx.say("このチャンネルを，本サーバでのあなたのTimesとして登録しました")
+        .await?;
 
     Ok(())
 }
 
 /// 自身のtimesを解除する
-/// 
+///
 /// 本サーバにおいて，あなたの登録されているTimesを削除します.
 /// 結果は実行するチャンネルに依存しません．
 /// どのチャンネルから実行しても同じ内容が実行されます．
@@ -85,16 +84,15 @@ pub async fn ut_times_unset(
     .execute(connection.as_ref())
     .await?;
 
-    ctx.say("本サーバでのあなたのTimes登録を削除しました").await?;
+    ctx.say("本サーバでのあなたのTimes登録を削除しました")
+        .await?;
 
     Ok(())
 }
 
 /// デバッグ用に member_times_data を全て表示する
 #[poise::command(prefix_command, track_edits, aliases("UTtimesShow"), slash_command)]
-pub async fn ut_times_show(
-    ctx: Context<'_>,
-) -> Result<()> {
+pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
     let connection = ctx.data().connection.clone();
 
     let member_times = sqlx::query!(
@@ -105,18 +103,20 @@ pub async fn ut_times_show(
     .fetch_all(connection.as_ref())
     .await?;
 
-
     let mut response = String::new();
     for member_time in member_times {
-        response.push_str(&format!("{}: times_channel_id: {}\n",member_time.member_name, member_time.member_id));
+        response.push_str(&format!(
+            "{}: times_channel_id: {}\n",
+            member_time.member_name, member_time.member_id
+        ));
     }
 
     ctx.say(response).await?;
     Ok(())
 }
 
-async fn sign_str_command(ctx: &Context<'_>,enter_str: &str, sign_str: &str) -> Result<()> {
-    let err_text = format!("{}と入力してください", sign_str); 
+async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) -> Result<()> {
+    let err_text = format!("{}と入力してください", sign_str);
     if enter_str != sign_str {
         ctx.say(&err_text).await?;
         return Err(anyhow::anyhow!(err_text));
@@ -124,7 +124,6 @@ async fn sign_str_command(ctx: &Context<'_>,enter_str: &str, sign_str: &str) -> 
 
     Ok(())
 }
-
 
 // sqliteにmember自身のtimes情報をupsertする
 async fn upsert_member_times(
