@@ -1,8 +1,8 @@
 use crate::*;
 
 use anyhow::{Result, anyhow};
-
 use anyhow::Context as anyhowContext;
+
 
 use sqlx::SqlitePool;
 
@@ -191,7 +191,7 @@ async fn upsert_a_server_data(
 
 
 
-#[poise::command(prefix_command, track_edits, aliases("UTregMaster"), slash_command)]
+#[poise::command(prefix_command, track_edits, aliases("UTsetOtherMaster"), slash_command)]
 pub async fn ut_set_other_masterhook(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
