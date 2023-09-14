@@ -175,7 +175,7 @@ pub async fn ut_set_own_master_webhook(
     )
     .await?;
 
-    ctx.say(format!("server_data: \n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}", server_name, guild_id, master_channel_id, master_webhook_url)).await?;
+    ctx.say(format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)).await?;
 
     Ok(())
 }
@@ -254,7 +254,7 @@ pub async fn ut_set_other_masterhook(
     .await?;
 
     let response_msg = format!(
-        "登録しました．\nserver_name: {}, webhook_url: {}, guild_id: {}",
+        "登録しました．```\nserver_name: {}, webhook_url: {}, guild_id: {}```",
         server_name, master_webhook_url, guild_id
     );
     ctx.say(response_msg).await?;

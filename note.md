@@ -113,7 +113,6 @@ Aへのメンバーwebhookの登録を行う
 
 サーバA,自身のマスターwebhook作成
 - `ut_set_masterwebhook_and_serverdata`コマンドで作成する
-- 作成するのは，botComチャンネルで作成してもらいたい
 - いずれ運営のみが実行できるようにパスワード機能をつけたい
 - `ut_set_masterwebhook`コマンドを実行すると，webhookの入力を要求し，webhookからchannel_idを作成し，それをマスターwebhookとして登録する
 - 実行時に`servername`, `master_webhook_url`を入力し，登録する
@@ -204,3 +203,8 @@ test
 1150053746156507267
 
 https://discord.com/api/webhooks/1150053774518403073/LEEaORLKsL2T0U9kMBjlsxhcmRvbKIHUPNncqdGfZ_ZmXThz9-aL0lZz0U-KrtK5XtmH
+
+
+1150053692540723281
+
+https://discord.com/api/webhooks/1151880824547975170/FR6T_U_ghGVXleL6buQeKIgBIsKJD9Xlr3SoxwK8kf-BDEV5ZQUpF-lpa_Pa9_s_dI7J
