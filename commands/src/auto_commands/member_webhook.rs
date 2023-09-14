@@ -76,7 +76,7 @@ pub async fn ut_times_unset(
 
     let _a = sqlx::query!(
         r#"
-        DELETE FROM member_times_data
+        DELETE FROM a_member_times_data
         WHERE member_id = ?
         "#,
         member_id,
@@ -97,7 +97,7 @@ pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
 
     let member_times = sqlx::query!(
         r#"
-        SELECT * FROM member_times_data
+        SELECT * FROM a_member_times_data
         "#,
     )
     .fetch_all(connection.as_ref())
@@ -138,7 +138,7 @@ async fn upsert_member_times(
     let channel_id = channel_id.to_string();
     let _a = sqlx::query!(
         r#"
-        INSERT INTO member_times_data (member_id, member_name, channel_id, webhook_url)
+        INSERT INTO a_member_times_data (member_id, member_name, channel_id, webhook_url)
         VALUES (?, ?, ?, ?)
         ON CONFLICT (member_id) DO UPDATE SET member_name = ?, channel_id = ?, webhook_url = ?
         "#,
