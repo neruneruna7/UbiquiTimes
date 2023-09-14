@@ -16,7 +16,8 @@ use tracing::info;
 
 /// そのサーバーでの自分のtimesであることをセットする
 /// 
-/// 
+/// 本サーバにおいて，このコマンドを実行したチャンネルがあなたのTimesであるとbotに登録します．
+/// 結果は実行するチャンネルに依存します．
 #[poise::command(prefix_command, track_edits, aliases("UTtimesSetting"), slash_command)]
 pub async fn ut_times_set(
     ctx: Context<'_>,
@@ -61,6 +62,9 @@ pub async fn ut_times_set(
 
 /// 自身のtimesを解除する
 /// 
+/// 本サーバにおいて，あなたの登録されているTimesを削除します.
+/// 結果は実行するチャンネルに依存しません．
+/// どのチャンネルから実行しても同じ内容が実行されます．
 #[poise::command(prefix_command, track_edits, aliases("UTtimesUnset"), slash_command)]
 pub async fn ut_times_unset(
     ctx: Context<'_>,
@@ -86,7 +90,7 @@ pub async fn ut_times_unset(
     Ok(())
 }
 
-// デバッグ用に member_times_data を全て表示する
+/// デバッグ用に member_times_data を全て表示する
 #[poise::command(prefix_command, track_edits, aliases("UTtimesShow"), slash_command)]
 pub async fn ut_times_show(
     ctx: Context<'_>,
