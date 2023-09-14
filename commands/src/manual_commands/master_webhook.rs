@@ -65,7 +65,7 @@ impl MasterWebhook {
 //     webhook_url: String,
 // }
 
-async fn master_webhook_insert(
+async fn master_webhook_upsert(
     connection: &SqlitePool,
     master_webhook: MasterWebhook,
 ) -> anyhow::Result<()> {
@@ -74,10 +74,14 @@ async fn master_webhook_insert(
     sqlx::query!(
         r#"
         INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
-        VALUES(?, ?, ?);
+        VALUES(?, ?, ?)
+        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, webhook_url = ?
+        ;
         "#,
         master_webhook.server_name,
         guild_id,
+        master_webhook.webhook_url,
+        master_webhook.server_name,
         master_webhook.webhook_url
     )
     .execute(connection)
@@ -243,11 +247,17 @@ pub async fn ut_set_other_masterhook(
     // DBに登録する
     let connection = ctx.data().connection.clone();
 
-    master_webhook_insert(
+    master_webhook_upsert(
         connection.as_ref(),
         MasterWebhook::from(None, &server_name, guild_id, &master_webhook_url),
     )
     .await?;
+
+    let response_msg = format!(
+        "登録しました．\nserver_name: {}, webhook_url: {}, guild_id: {}",
+        server_name, master_webhook_url, guild_id
+    );
+    ctx.say(response_msg).await?;
 
     Ok(())
 }
