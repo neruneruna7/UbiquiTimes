@@ -14,29 +14,13 @@ use std::{
 use tracing::info;
 
 use commands::manual_commands::{
-    master_webhook::{
-        ut_get_master_hook,
-        ut_masterhook_register,
-        ut_serverlist,
-    }, 
-    member_webhook::{
-        ut_member_webhook_reg_manual,
-        ut_list,
-        ut_delete,
-        ut_times_release,
-    }
+    master_webhook::{ut_get_master_hook, ut_masterhook_register, ut_serverlist},
+    member_webhook::{ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release},
 };
 
-use commands::auto_commands::{
-    member_webhook::{
-        ut_times_set,
-        ut_times_unset,
-        ut_times_show,
-    }
-};
+use commands::auto_commands::member_webhook::{ut_times_set, ut_times_show, ut_times_unset};
 
-use  commands::Data;
-
+use commands::Data;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -65,6 +49,7 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
         poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
         poise::FrameworkError::Command { error, ctx } => {
             info!("Error in command `{}`: {:?}", ctx.command().name, error,);
+            ctx.say(error.to_string()).await.ok();
         }
         error => {
             if let Err(e) = poise::builtins::on_error(error).await {
@@ -150,7 +135,7 @@ async fn main() {
             ut_times_set(),
             ut_times_unset(),
             ut_times_show(),
-            ],
+        ],
 
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
@@ -231,9 +216,9 @@ async fn main() {
         })
         .options(options)
         .intents(
-            serenity::GatewayIntents::non_privileged() | 
-            serenity::GatewayIntents::MESSAGE_CONTENT |
-            serenity::GatewayIntents::GUILD_WEBHOOKS,
+            serenity::GatewayIntents::non_privileged()
+                | serenity::GatewayIntents::MESSAGE_CONTENT
+                | serenity::GatewayIntents::GUILD_WEBHOOKS,
         )
         .run()
         .await
