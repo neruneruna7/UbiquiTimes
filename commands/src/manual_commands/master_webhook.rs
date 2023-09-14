@@ -134,7 +134,8 @@ async fn master_webhook_select_all(connection: &SqlitePool) -> anyhow::Result<Ve
     Ok(master_webhooks)
 }
 
-/// 自身のマスターwebhookを登録する
+/// 自身のマスターwebhook，サーバ情報を登録する
+/// 
 #[poise::command(prefix_command, track_edits, aliases("UTsetOwnMastereWebhook"), slash_command)]
 pub async fn ut_set_own_master_webhook(
     ctx: Context<'_>,
@@ -152,6 +153,8 @@ pub async fn ut_set_own_master_webhook(
     let connection = ctx.data().connection.clone();
 
     upsert_a_server_data(&connection, &server_name, &guild_id, &master_channel_id, &master_webhook_url).await?;
+
+    ctx.say(format!("server_data: \n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}", server_name, guild_id, master_channel_id, master_webhook_url)).await?;
 
     Ok(())
 }
