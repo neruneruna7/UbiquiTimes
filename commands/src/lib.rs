@@ -1,4 +1,4 @@
-use anyhow::{Result, Error};
+use anyhow::{Error, Result};
 
 use poise::serenity_prelude::{self as serenity};
 
@@ -10,8 +10,8 @@ use std::{
     sync::{atomic::AtomicU32, Arc, Mutex},
 };
 
-pub mod manual_commands;
 pub mod auto_commands;
+pub mod manual_commands;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
