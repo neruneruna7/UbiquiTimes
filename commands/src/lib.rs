@@ -181,6 +181,47 @@ pub async fn help(
     Ok(())
 }
 
+struct AServerData {
+    pub guild_id: u64,
+    pub server_name: String,
+    pub master_channel_id: u64,
+    pub master_webhook_url: String,
+}
+
+impl AServerData {
+    fn from(
+        guild_id: u64,
+        server_name: &str,
+        master_channel_id: u64,
+        master_webhook_url: &str,
+    ) -> Self {
+        Self {
+            guild_id,
+            server_name: server_name.to_string(),
+            master_channel_id,
+            master_webhook_url: master_webhook_url.to_string(),
+        }
+    }
+
+    fn from_row(
+        guild_id: &str,
+        server_name: &str,
+        master_channel_id: &str,
+        master_webhook_url: &str,
+    ) -> anyhow::Result<Self> {
+        let guild_id = guild_id.parse::<u64>()?;
+        let master_channel_id = master_channel_id.parse::<u64>()?;
+
+        Ok(Self {
+            guild_id,
+            server_name: server_name.to_string(),
+            master_channel_id,
+            master_webhook_url: master_webhook_url.to_string(),
+        })
+    }
+}
+
+
 // /// Vote for something
 // ///
 // /// Enter `~vote pumpkin` to vote for pumpkins
