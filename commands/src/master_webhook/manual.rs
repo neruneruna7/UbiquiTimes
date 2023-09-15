@@ -1,143 +1,14 @@
 use crate::*;
 
+use crate::db_query::master_webhooks::*;
+use crate::db_query::a_server_data::*;
+
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
 
 use sqlx::SqlitePool;
 
 use tracing::info;
-
-// 相手サーバーに対して１つだけ存在するwebhook
-#[derive(Debug)]
-pub struct MasterWebhook {
-    pub id: Option<u64>,
-    pub server_name: String,
-    pub guild_id: u64,
-    pub webhook_url: String,
-}
-
-impl MasterWebhook {
-    fn from(_id: Option<i64>, server_name: &str, guild_id: u64, webhook_url: &str) -> Self {
-        Self {
-            id: None,
-            server_name: server_name.to_string(),
-            guild_id,
-            webhook_url: webhook_url.to_string(),
-        }
-    }
-
-    fn from_row(
-        _id: Option<i64>,
-        server_name: &str,
-        guild_id: &str,
-        webhook_url: &str,
-    ) -> Result<Self> {
-        let guild_id = guild_id.parse::<u64>()?;
-        Ok(Self {
-            id: None,
-            server_name: server_name.to_string(),
-            guild_id,
-            webhook_url: webhook_url.to_string(),
-        })
-    }
-}
-
-// // bot間通信に関わるコマンドの種類
-// // 通信の際に必要なデータはここに内包する
-// #[derive(Debug, serde::Serialize, serde::Deserialize)]
-// enum CmdKind {
-//     MemberWebhookAutoRegister,
-//     MemberWebhookAutoRegisterResponse,
-// }
-
-// #[derive(Debug, serde::Serialize, serde::Deserialize)]
-// struct BotComMessage {
-//     src_server: String,
-//     dst_server: String,
-//     cmd_kind: CmdKind,
-//     ttl: i64,
-//     timestamp: chrono::DateTime<chrono::Utc>,
-// }
-
-// struct MemberWebhookAutoRegisters {
-//     member_id: u64,
-//     channel_id: u64,
-//     webhook_url: String,
-// }
-
-async fn master_webhook_upsert(
-    connection: &SqlitePool,
-    master_webhook: MasterWebhook,
-) -> anyhow::Result<()> {
-    let guild_id = master_webhook.guild_id.to_string();
-
-    sqlx::query!(
-        r#"
-        INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
-        VALUES(?, ?, ?)
-        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, webhook_url = ?
-        ;
-        "#,
-        master_webhook.server_name,
-        guild_id,
-        master_webhook.webhook_url,
-        master_webhook.server_name,
-        master_webhook.webhook_url
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
-
-async fn master_webhook_select(
-    connection: &SqlitePool,
-    server_name: &str,
-) -> anyhow::Result<MasterWebhook> {
-    let row = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks WHERE server_name = ?;
-        "#,
-        server_name
-    )
-    .fetch_one(connection)
-    .await?;
-
-    let master_webhook = MasterWebhook::from(
-        Some(row.id),
-        &row.server_name,
-        row.guild_id.parse::<u64>()?,
-        &row.webhook_url,
-    );
-
-    Ok(master_webhook)
-}
-
-// すべてのマスターwebhookを取得する
-// 複数の行がとれるので、Vecに格納して返す
-async fn master_webhook_select_all(connection: &SqlitePool) -> anyhow::Result<Vec<MasterWebhook>> {
-    let rows = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks;
-        "#,
-    )
-    .fetch_all(connection)
-    .await?;
-
-    let mut master_webhooks = Vec::new();
-
-    for row in rows {
-        let master_webhook = MasterWebhook::from(
-            Some(row.id),
-            &row.server_name,
-            row.guild_id.parse::<u64>()?,
-            &row.webhook_url,
-        );
-        master_webhooks.push(master_webhook);
-    }
-
-    Ok(master_webhooks)
-}
 
 /// 自身のマスターwebhook，サーバ情報を登録する
 ///
@@ -180,33 +51,6 @@ pub async fn ut_set_own_master_webhook(
     Ok(())
 }
 
-/// 自身のマスターwebhookを a_server_data テーブルにupsertする
-async fn upsert_a_server_data(
-    connection: &SqlitePool,
-    server_name: &str,
-    guild_id: &str,
-    master_channel_id: &str,
-    master_webhook_url: &str,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        INSERT INTO a_server_data (server_name, guild_id, master_channel_id, master_webhook_url)
-        VALUES(?, ?, ?, ?)
-        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, master_channel_id = ?, master_webhook_url = ?;
-        "#,
-        server_name,
-        guild_id,
-        master_channel_id,
-        master_webhook_url,
-        server_name,
-        master_channel_id,
-        master_webhook_url
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
 
 #[poise::command(
     prefix_command,

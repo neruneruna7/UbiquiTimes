@@ -1,7 +1,9 @@
-use crate::{Context, Result, SqlitePool};
+use crate::{Context, Result, SqlitePool, db_query::master_webhooks::master_webhook_select_all};
 
 use tracing::info;
 use serde::{Deserialize, Serialize};
+
+use crate::db_query::a_member_times_data::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BotComMessage {
@@ -128,38 +130,6 @@ async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) ->
     Ok(())
 }
 
-// sqliteにmember自身のtimes情報をupsertする
-async fn upsert_member_times(
-    connection: &SqlitePool,
-    member_id: u64,
-    member_name: &str,
-    channel_id: u64,
-    webhook_url: &str,
-) -> Result<()> {
-    // let mut conn = pool.acquire().await?;
-    let member_id = member_id.to_string();
-    let channel_id = channel_id.to_string();
-    let _a = sqlx::query!(
-        r#"
-        INSERT INTO a_member_times_data (member_id, member_name, channel_id, webhook_url)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT (member_id) DO UPDATE SET member_name = ?, channel_id = ?, webhook_url = ?
-        "#,
-        member_id,
-        member_name,
-        channel_id,
-        webhook_url,
-        member_name,
-        channel_id,
-        webhook_url,
-    )
-    .execute(connection)
-    .await?;
-
-    info!("{:?}", _a);
-
-    Ok(())
-}
 
 
 
@@ -189,15 +159,14 @@ pub async fn ut_times_ubiqui_setting_send(
 ) -> Result<()> {
     sign_str_command(&ctx, &release, "release").await?;
 
-    // 拡散可能サーバのリストを取得
     let connection = ctx.data().connection.clone();
-    let member_times = sqlx::query!(
-        r#"
-        SELECT * FROM a_member_times_data
-        "#,
-    )
-    .fetch_all(connection.as_ref())
-    .await?;
+    // 自身のtimesの情報を取得
+    
+
+    // 拡散可能サーバのリストを取得
+    let master_webhooks = master_webhook_select_all(connection.as_ref()).await?;
+
+
 
     Ok(())
 }

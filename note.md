@@ -208,3 +208,6 @@ https://discord.com/api/webhooks/1150053774518403073/LEEaORLKsL2T0U9kMBjlsxhcmRv
 1150053692540723281
 
 https://discord.com/api/webhooks/1151880824547975170/FR6T_U_ghGVXleL6buQeKIgBIsKJD9Xlr3SoxwK8kf-BDEV5ZQUpF-lpa_Pa9_s_dI7J
+
+# 発生したgitエラー
+object file .git/objects/ad/10d7e89c9a717582ff5c6dca6ef8582db494d2 is empty

@@ -13,6 +13,9 @@ use std::{
 pub mod member_webhook;
 pub mod master_webhook;
 
+mod db_query;
+
+
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
 type Context<'a> = poise::Context<'a, Data, Error>;
@@ -32,6 +35,130 @@ async fn create_webhook_from_channel(
 ) -> anyhow::Result<Webhook> {
     let webhook = msg.channel_id.create_webhook(ctx, name).await?;
     Ok(webhook)
+}
+
+// 相手サーバーに対して１つだけ存在するwebhook
+#[derive(Debug)]
+pub struct MasterWebhook {
+    pub id: Option<u64>,
+    pub server_name: String,
+    pub guild_id: u64,
+    pub webhook_url: String,
+}
+
+impl MasterWebhook {
+    fn from(_id: Option<i64>, server_name: &str, guild_id: u64, webhook_url: &str) -> Self {
+        Self {
+            id: None,
+            server_name: server_name.to_string(),
+            guild_id,
+            webhook_url: webhook_url.to_string(),
+        }
+    }
+
+    fn from_row(
+        _id: Option<i64>,
+        server_name: &str,
+        guild_id: &str,
+        webhook_url: &str,
+    ) -> Result<Self> {
+        let guild_id = guild_id.parse::<u64>()?;
+        Ok(Self {
+            id: None,
+            server_name: server_name.to_string(),
+            guild_id,
+            webhook_url: webhook_url.to_string(),
+        })
+    }
+}
+
+#[derive(Debug)]
+// 個々人が持つwebhook
+pub struct MemberWebhook {
+    pub id: Option<i64>,
+    pub a_member_id: u64,
+    pub b_server_name: String,
+    pub b_guild_id: u64,
+    pub b_channel_id: u64,
+    pub b_webhook_url: String,
+}
+
+impl MemberWebhook {
+    fn from(
+        _id: Option<i64>,
+        a_member_id: u64,
+        b_server_name: &str,
+        b_guild_id: u64,
+        b_channel_id: u64,
+        b_webhook_url: &str,
+    ) -> Self {
+        Self {
+            id: None,
+            a_member_id,
+            b_server_name: b_server_name.to_string(),
+            b_guild_id,
+            b_channel_id,
+            b_webhook_url: b_webhook_url.to_string(),
+        }
+    }
+
+    fn from_row(
+        _id: Option<i64>,
+        a_member_id: &str,
+        b_server_name: &str,
+        b_guild_id: &str,
+        b_channel_id: &str,
+        b_webhook_url: &str,
+    ) -> Result<Self> {
+        Ok(Self {
+            id: None,
+            a_member_id: a_member_id.parse()?,
+            b_server_name: b_server_name.to_string(),
+            b_guild_id: b_guild_id.parse()?,
+            b_channel_id: b_channel_id.parse()?,
+            b_webhook_url: b_webhook_url.to_string(),
+        })
+    }
+}
+
+#[derive(Debug)]
+struct MemberTimesData {
+    member_id: u64,
+    member_name: String,
+    channel_id: u64,
+    webhook_url: String,
+}
+
+impl MemberTimesData {
+    fn from(
+        member_id: u64,
+        member_name: &str,
+        channel_id: u64,
+        webhook_url: &str,
+    ) -> Self {
+        Self {
+            member_id,
+            member_name: member_name.to_string(),
+            channel_id,
+            webhook_url: webhook_url.to_string(),
+        }
+    }
+
+    fn from_row(
+        member_id: &str,
+        member_name: &str,
+        channel_id: &str,
+        webhook_url: &str,
+    ) -> Result<Self> {
+        Ok(
+        Self {
+            member_id: member_id.parse::<u64>()?,
+            member_name: member_name.to_string(),
+            channel_id: channel_id.parse::<u64>()?,
+            webhook_url: webhook_url.to_string(),
+        }
+    )
+    }
 }
 
 /// Show this help menu
