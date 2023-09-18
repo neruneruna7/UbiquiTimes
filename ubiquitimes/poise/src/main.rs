@@ -15,8 +15,9 @@ use tracing::info;
 
 use commands::master_webhook::manual::{ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook};
 use commands::member_webhook::manual::{ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release};
-use commands::member_webhook::auto::{ut_times_set, ut_times_show, ut_times_unset};
+use commands::member_webhook::auto::{ut_times_set, ut_times_show, ut_times_unset, ut_times_ubiqui_setting_send};
 
+use commands::member_webhook::auto::bot_com_msg_recv;
 use commands::Data;
 
 /// poise公式リポジトリのサンプルコードの改造
@@ -69,13 +70,34 @@ async fn event_handler(
             println!("Logged in as {}", data_about_bot.user.name);
         }
         Event::Message { new_message } => {
-            if new_message.content.to_lowercase().contains("poise") {
-                let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
-                data.poise_mentions.store(mentions, Ordering::SeqCst);
-                new_message
-                    .reply(ctx, format!("Poise has been mentioned {} times", mentions))
-                    .await?;
+            if !new_message.author.bot {
+                return Ok(());
             }
+            let bot_com_msg = match bot_com_msg_recv(new_message).await {
+                Some(t) => t,
+                None => return Ok(())
+            }; 
+
+            let cmd_kind = &bot_com_msg.cmd;
+
+            match cmd_kind {
+                commands::member_webhook::auto::CmdKind::TimesUbiquiSettingSend(t) => {
+                    
+                },
+                commands::member_webhook::auto::CmdKind::None => {},
+                _ => {},
+            }
+
+
+
+
+            // if new_message.content.to_lowercase().contains("poise") {
+            //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
+            //     data.poise_mentions.store(mentions, Ordering::SeqCst);
+            //     new_message
+            //         .reply(ctx, format!("Poise has been mentioned {} times", mentions))
+            //         .await?;
+            // }
         }
         _ => {}
     }
@@ -133,6 +155,7 @@ async fn main() {
             ut_times_set(),
             ut_times_unset(),
             ut_times_show(),
+            ut_times_ubiqui_setting_send(),
         ],
 
         // ここでprefixを設定する
