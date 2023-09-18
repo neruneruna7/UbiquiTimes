@@ -135,8 +135,8 @@ Aへのメンバーwebhookの登録を行う
 - それぞれのサーバで，どれが自分のTimesのチャンネルなのか登録する．その際に`webhook`は作成されている
 - `webhook`は`member_id`に紐づいている
 - 拡散可能サーバに登録されているすべてのサーバに，拡散登録リクエストを送る
-- `{a_member_id, a_master_webhook, a_channel_id, a_servername, a_guild_id}`
-- `a_channel_id`, `a_servername, a_guild_id`は，あとからaサーバが偽装されていないことを確認できるようにするため． 
+- `{a_member_id, a_master_webhook, a_channel_id, a_guild_id}`
+- `a_channel_id`,  `a_guild_id`は，あとからaサーバが偽装されていないことを確認できるようにするため． 
 - 拡散登録リクエストを受け取ったbサーバは，`a_member_id`と紐づいている`webhook`を拡散登録リプライする.
 - 存在しなければ何も返送しない
 - `{a_member_id, b_servername, b_guild_id, b_channel_id, b_webhook}`
@@ -147,6 +147,9 @@ Aへのメンバーwebhookの登録を行う
 
 - リプライを受け取ったaサーバは，受け取った`webhook`を登録する
 - 
+
+## bot間メッセージの流れ
+
 
 
 <!-- - Aチャンネルのwebhookは存在するか？

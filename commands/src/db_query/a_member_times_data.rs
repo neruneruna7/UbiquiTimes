@@ -63,3 +63,22 @@ pub(crate) async fn select_member_times(
 
     Ok(member_times)
 }
+
+// 引数としてとったmember_idが存在していればtrueを返す
+pub(crate) async fn is_exist_member_times(
+    connection: &SqlitePool,
+    member_id: u64,
+) -> Result<bool> {
+    let member_id = member_id.to_string();
+    let member_times_row = sqlx::query!(
+        r#"
+        SELECT * FROM a_member_times_data
+        WHERE member_id = ?;
+        "#,
+        member_id,
+    )
+    .fetch_optional(connection)
+    .await?;
+
+    Ok(member_times_row.is_some())
+}
