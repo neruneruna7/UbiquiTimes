@@ -76,47 +76,47 @@ impl MasterWebhook {
 // 個々人が持つwebhook
 pub struct MemberWebhook {
     pub id: Option<i64>,
-    pub a_member_id: u64,
-    pub b_server_name: String,
-    pub b_guild_id: u64,
-    pub b_channel_id: u64,
-    pub b_webhook_url: String,
+    pub src_member_id: u64,
+    pub dst_server_name: String,
+    pub dst_guild_id: u64,
+    pub dst_channel_id: u64,
+    pub dst_webhook_url: String,
 }
 
 impl MemberWebhook {
     fn from(
         _id: Option<i64>,
-        a_member_id: u64,
-        b_server_name: &str,
-        b_guild_id: u64,
-        b_channel_id: u64,
-        b_webhook_url: &str,
+        src_member_id: u64,
+        dst_server_name: &str,
+        dst_guild_id: u64,
+        dst_channel_id: u64,
+        dst_webhook_url: &str,
     ) -> Self {
         Self {
             id: None,
-            a_member_id,
-            b_server_name: b_server_name.to_string(),
-            b_guild_id,
-            b_channel_id,
-            b_webhook_url: b_webhook_url.to_string(),
+            src_member_id,
+            dst_server_name: dst_server_name.to_string(),
+            dst_guild_id,
+            dst_channel_id,
+            dst_webhook_url: dst_webhook_url.to_string(),
         }
     }
 
     fn from_row(
         _id: Option<i64>,
-        a_member_id: &str,
-        b_server_name: &str,
-        b_guild_id: &str,
-        b_channel_id: &str,
-        b_webhook_url: &str,
+        src_member_id: &str,
+        dst_server_name: &str,
+        dst_guild_id: &str,
+        dst_channel_id: &str,
+        dst_webhook_url: &str,
     ) -> Result<Self> {
         Ok(Self {
             id: None,
-            a_member_id: a_member_id.parse()?,
-            b_server_name: b_server_name.to_string(),
-            b_guild_id: b_guild_id.parse()?,
-            b_channel_id: b_channel_id.parse()?,
-            b_webhook_url: b_webhook_url.to_string(),
+            src_member_id: src_member_id.parse()?,
+            dst_server_name: dst_server_name.to_string(),
+            dst_guild_id: dst_guild_id.parse()?,
+            dst_channel_id: dst_channel_id.parse()?,
+            dst_webhook_url: dst_webhook_url.to_string(),
         })
     }
 }
