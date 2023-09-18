@@ -10,11 +10,10 @@ use std::{
     sync::{atomic::AtomicU32, Arc, Mutex},
 };
 
-pub mod member_webhook;
 pub mod master_webhook;
+pub mod member_webhook;
 
 mod db_query;
-
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -130,12 +129,7 @@ struct MemberTimesData {
 }
 
 impl MemberTimesData {
-    fn from(
-        member_id: u64,
-        member_name: &str,
-        channel_id: u64,
-        webhook_url: &str,
-    ) -> Self {
+    fn from(member_id: u64, member_name: &str, channel_id: u64, webhook_url: &str) -> Self {
         Self {
             member_id,
             member_name: member_name.to_string(),
@@ -150,14 +144,12 @@ impl MemberTimesData {
         channel_id: &str,
         webhook_url: &str,
     ) -> Result<Self> {
-        Ok(
-        Self {
+        Ok(Self {
             member_id: member_id.parse::<u64>()?,
             member_name: member_name.to_string(),
             channel_id: channel_id.parse::<u64>()?,
             webhook_url: webhook_url.to_string(),
-        }
-    )
+        })
     }
 }
 
@@ -220,7 +212,6 @@ impl AServerData {
         })
     }
 }
-
 
 // /// Vote for something
 // ///

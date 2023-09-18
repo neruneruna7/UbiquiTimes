@@ -1,20 +1,20 @@
 use crate::Data;
-use crate::{Context, Result, SqlitePool, db_query::master_webhooks::master_webhook_select_all};
+use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result, SqlitePool};
 
+use anyhow::anyhow;
 use poise::serenity_prelude as serenity;
+use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Member;
 use poise::serenity_prelude::Webhook;
-use poise::serenity_prelude::Http;
+use serde::{Deserialize, Serialize};
 use tracing::debug;
 use tracing::info;
-use serde::{Deserialize, Serialize};
-use anyhow::anyhow;
 
-use crate::db_query::{a_server_data::{*, self}, a_member_times_data};
 use crate::db_query::a_member_times_data::*;
-
-
-
+use crate::db_query::{
+    a_member_times_data,
+    a_server_data::{self, *},
+};
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
@@ -128,10 +128,6 @@ async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) ->
     Ok(())
 }
 
-
-
-
-
 // #[poise::command(prefix_command, track_edits, aliases("UTtimesUnset"), slash_command)]
 // pub async fn ut_times_unset(
 //     ctx: Context<'_>,
@@ -146,11 +142,7 @@ pub struct BotComMessage {
 }
 
 impl BotComMessage {
-    fn from(
-        src: &str,
-        dst: &str,
-        cmd: CmdKind,
-    ) -> BotComMessage {
+    fn from(src: &str, dst: &str, cmd: CmdKind) -> BotComMessage {
         let src = src.to_string();
         let dst = dst.to_string();
         let ttl = 4;
@@ -184,9 +176,14 @@ pub struct TimesUbiquiSettingRecv {
 }
 
 /// あなたのTimesを拡散するための設定リクエストを送信します．
-/// 
+///
 /// 拡散可能サーバすべてに対して，拡散設定するためのリクエストを送信します
-#[poise::command(prefix_command, track_edits, aliases("UTtimesUbiquiSettingSend"), slash_command)]
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UTtimesUbiquiSettingSend"),
+    slash_command
+)]
 pub async fn ut_times_ubiqui_setting_send(
     ctx: Context<'_>,
     #[description = "`release`と入力してください"] release: String,
@@ -211,7 +208,10 @@ pub async fn ut_times_ubiqui_setting_send(
         src_member_webhook_url: member_times.webhook_url,
     };
 
-    debug!("times_ubiqui_setting_send: {:?}", &times_ubiqui_setting_send);
+    debug!(
+        "times_ubiqui_setting_send: {:?}",
+        &times_ubiqui_setting_send
+    );
 
     let bot_com_msg = BotComMessage::from(
         &ctx.author().name,
@@ -222,17 +222,14 @@ pub async fn ut_times_ubiqui_setting_send(
 
     info!("serialized_msg: {}", &serialized_msg);
 
-
     // ここのhttpはどうするか，空白トークンのHttpをnewするか，ctxを使うか
-    for other_master_webhook in other_master_webhooks.iter(){
+    for other_master_webhook in other_master_webhooks.iter() {
         let webhook = Webhook::from_url(&ctx, &other_master_webhook.webhook_url).await?;
 
-
-
-        webhook.execute(&ctx, false, |w| {
-            w.content(format!("{}", &serialized_msg))
-        }).await?;
-    } 
+        webhook
+            .execute(&ctx, false, |w| w.content(format!("{}", &serialized_msg)))
+            .await?;
+    }
 
     ctx.say("拡散設定リクエストを送信しました").await?;
 
@@ -269,7 +266,7 @@ pub async fn times_ubiqui_setting_recv(
     times_ubiqui_setting: &TimesUbiquiSettingSend,
 ) -> Result<()> {
     let src_member_id = times_ubiqui_setting.src_member_id;
-    
+
     let connection = data.connection.clone();
 
     // 返送先のmasterwebhook
@@ -278,14 +275,14 @@ pub async fn times_ubiqui_setting_recv(
     let recv_master_webhook = Webhook::from_url(http, &recv_master_webhook_url).await?;
 
     // a_member_id と紐づいているtimeswebhookを取得
-    let member_times_data = a_member_times_data::select_member_times(connection.as_ref(), src_member_id).await?;
+    let member_times_data =
+        a_member_times_data::select_member_times(connection.as_ref(), src_member_id).await?;
     let times_webhook_url = member_times_data.webhook_url;
     let times_channel_id = member_times_data.channel_id;
 
     // 自身のサーバ情報を取得
-    let a_server_data = a_server_data::select_a_server_data_without_guild_id(connection.as_ref()).await?;
-
-
+    let a_server_data =
+        a_server_data::select_a_server_data_without_guild_id(connection.as_ref()).await?;
 
     // データをTimesUbiquiSettingRecvに詰める
     let times_ubiqui_setting_recv = TimesUbiquiSettingRecv {
@@ -306,9 +303,9 @@ pub async fn times_ubiqui_setting_recv(
     let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
     // データを送信
-    recv_master_webhook.execute(ctx, false, |w| {
-        w.content(format!("{}", &serialized_msg))
-    }).await?;
+    recv_master_webhook
+        .execute(ctx, false, |w| w.content(format!("{}", &serialized_msg)))
+        .await?;
 
     Ok(())
 }

@@ -50,7 +50,9 @@ pub async fn master_webhook_select(
 
 // すべてのマスターwebhookを取得する
 // 複数の行がとれるので、Vecに格納して返す
-pub async fn master_webhook_select_all(connection: &SqlitePool) -> anyhow::Result<Vec<MasterWebhook>> {
+pub async fn master_webhook_select_all(
+    connection: &SqlitePool,
+) -> anyhow::Result<Vec<MasterWebhook>> {
     let rows = sqlx::query!(
         r#"
         SELECT * FROM master_webhooks;

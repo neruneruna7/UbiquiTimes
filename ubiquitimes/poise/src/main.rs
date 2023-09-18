@@ -13,9 +13,18 @@ use std::{
 };
 use tracing::info;
 
-use commands::{master_webhook::manual::{ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook}, member_webhook::auto};
-use commands::member_webhook::manual::{ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release};
-use commands::member_webhook::auto::{ut_times_set, ut_times_show, ut_times_unset, ut_times_ubiqui_setting_send};
+use commands::member_webhook::auto::{
+    ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
+};
+use commands::member_webhook::manual::{
+    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+};
+use commands::{
+    master_webhook::manual::{
+        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
+    },
+    member_webhook::auto,
+};
 
 use commands::member_webhook::auto::*;
 use commands::Data;
@@ -75,8 +84,8 @@ async fn event_handler(
             }
             let bot_com_msg = match bot_com_msg_recv(new_message).await {
                 Some(t) => t,
-                None => return Ok(())
-            }; 
+                None => return Ok(()),
+            };
 
             let cmd_kind = &bot_com_msg.cmd;
 
@@ -84,13 +93,10 @@ async fn event_handler(
                 commands::member_webhook::auto::CmdKind::TimesUbiquiSettingSend(t) => {
                     let src_server_name = bot_com_msg.src;
                     auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
-                },
-                commands::member_webhook::auto::CmdKind::None => {},
-                _ => {},
+                }
+                commands::member_webhook::auto::CmdKind::None => {}
+                _ => {}
             }
-
-
-
 
             // if new_message.content.to_lowercase().contains("poise") {
             //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;

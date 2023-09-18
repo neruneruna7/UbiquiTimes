@@ -1,8 +1,5 @@
 use super::*;
 
-
-
-
 /// 自身のマスターwebhookを a_server_data テーブルにupsertする
 pub(crate) async fn upsert_a_server_data(
     connection: &SqlitePool,

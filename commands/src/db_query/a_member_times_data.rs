@@ -3,8 +3,6 @@ use tracing::debug;
 
 use super::*;
 
-
-
 // sqliteにmember自身のtimes情報をupsertする
 pub(crate) async fn upsert_member_times(
     connection: &SqlitePool,
@@ -65,10 +63,7 @@ pub(crate) async fn select_member_times(
 }
 
 // 引数としてとったmember_idが存在していればtrueを返す
-pub(crate) async fn is_exist_member_times(
-    connection: &SqlitePool,
-    member_id: u64,
-) -> Result<bool> {
+pub(crate) async fn is_exist_member_times(connection: &SqlitePool, member_id: u64) -> Result<bool> {
     let member_id = member_id.to_string();
     let member_times_row = sqlx::query!(
         r#"

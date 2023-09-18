@@ -1,7 +1,7 @@
 use crate::*;
 
-use crate::db_query::master_webhooks::*;
 use crate::db_query::a_server_data::*;
+use crate::db_query::master_webhooks::*;
 
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
@@ -50,7 +50,6 @@ pub async fn ut_set_own_master_webhook(
 
     Ok(())
 }
-
 
 #[poise::command(
     prefix_command,

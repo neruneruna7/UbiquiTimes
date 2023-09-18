@@ -87,7 +87,9 @@ pub(crate) async fn member_webhook_select_from_member_id(
     Ok(member_webhook_list)
 }
 
-pub(crate) async fn member_webhook_select_all(connection: &SqlitePool) -> Result<Vec<MemberWebhook>> {
+pub(crate) async fn member_webhook_select_all(
+    connection: &SqlitePool,
+) -> Result<Vec<MemberWebhook>> {
     let rows = sqlx::query!(
         r#"
         SELECT * FROM member_webhooks;
