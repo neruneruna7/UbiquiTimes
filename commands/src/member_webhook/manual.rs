@@ -100,7 +100,7 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     response.push_str("拡散先リスト\n --------- \n");
 
     for member_webhook in member_webhooks {
-        response.push_str(&format!("{}\n", member_webhook.b_server_name));
+        response.push_str(&format!("{}\n", member_webhook.dst_server_name));
     }
 
     ctx.say(response).await?;
@@ -157,7 +157,7 @@ pub async fn ut_times_release(
 
     let member_webhooks = member_webhooks
         .iter()
-        .map(|m| m.b_webhook_url.to_owned())
+        .map(|m| m.dst_webhook_url.to_owned())
         .collect::<Vec<String>>();
 
     execute_ubiquitus(&username, &content, member_webhooks).await?;

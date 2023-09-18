@@ -5,20 +5,20 @@ pub(crate) async fn member_webhook_insert(
     connection: &SqlitePool,
     member_webhook: MemberWebhook,
 ) -> anyhow::Result<()> {
-    let member_id = member_webhook.a_member_id.to_string();
-    let channel_id = member_webhook.b_channel_id.to_string();
-    let guild_id = member_webhook.b_guild_id.to_string();
+    let member_id = member_webhook.src_member_id.to_string();
+    let channel_id = member_webhook.dst_channel_id.to_string();
+    let guild_id = member_webhook.dst_guild_id.to_string();
 
     sqlx::query!(
         r#"
         INSERT INTO member_webhooks (b_server_name, a_member_id, b_guild_id, b_channel_id, b_webhook_url)
         VALUES(?, ?, ?, ?, ?);
         "#,
-        member_webhook.b_server_name,
+        member_webhook.dst_server_name,
         member_id,
         guild_id,
         channel_id,
-        member_webhook.b_webhook_url
+        member_webhook.dst_webhook_url
     )
     .execute(connection)
     .await?;
