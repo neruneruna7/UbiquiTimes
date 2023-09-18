@@ -13,11 +13,11 @@ use std::{
 };
 use tracing::info;
 
-use commands::master_webhook::manual::{ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook};
+use commands::{master_webhook::manual::{ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook}, member_webhook::auto};
 use commands::member_webhook::manual::{ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release};
 use commands::member_webhook::auto::{ut_times_set, ut_times_show, ut_times_unset, ut_times_ubiqui_setting_send};
 
-use commands::member_webhook::auto::bot_com_msg_recv;
+use commands::member_webhook::auto::*;
 use commands::Data;
 
 /// poise公式リポジトリのサンプルコードの改造
@@ -82,7 +82,8 @@ async fn event_handler(
 
             match cmd_kind {
                 commands::member_webhook::auto::CmdKind::TimesUbiquiSettingSend(t) => {
-                    
+                    let src_server_name = bot_com_msg.src;
+                    auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
                 },
                 commands::member_webhook::auto::CmdKind::None => {},
                 _ => {},

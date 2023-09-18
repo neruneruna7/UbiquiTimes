@@ -55,3 +55,26 @@ pub(crate) async fn select_a_server_data(
 
     Ok(a_server_data)
 }
+
+// 取得 guild_idを用いない
+// このデータは1つしかないことを前提にしている
+pub(crate) async fn select_a_server_data_without_guild_id(
+    connection: &SqlitePool,
+) -> anyhow::Result<AServerData> {
+    let row = sqlx::query!(
+        r#"
+        SELECT * FROM a_server_data;
+        "#
+    )
+    .fetch_one(connection)
+    .await?;
+
+    let a_server_data = AServerData::from_row(
+        &row.guild_id.to_string(),
+        &row.server_name,
+        &row.master_channel_id.to_string(),
+        &row.master_webhook_url,
+    )?;
+
+    Ok(a_server_data)
+}

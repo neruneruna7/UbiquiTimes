@@ -10,7 +10,7 @@ use tracing::info;
 use serde::{Deserialize, Serialize};
 use anyhow::anyhow;
 
-use crate::db_query::{a_server_data::*, a_member_times_data};
+use crate::db_query::{a_server_data::{*, self}, a_member_times_data};
 use crate::db_query::a_member_times_data::*;
 
 
@@ -160,25 +160,27 @@ impl BotComMessage {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CmdKind {
-    TimesUbiquiSettingSend(TimesUbiquiSetting),
+    TimesUbiquiSettingSend(TimesUbiquiSettingSend),
     TimesUbiquiSettingRecv(TimesUbiquiSettingRecv),
     None,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TimesUbiquiSetting {
-    member_id: u64,
-    master_webhook_url: String,
-    channel_id: u64,
-    webhook_url: String,
+pub struct TimesUbiquiSettingSend {
+    src_member_id: u64,
+    src_master_webhook_url: String,
+    src_channel_id: u64,
+    src_member_webhook_url: String,
 }
 
+// 常にリクエストの送信側をsrcとする
+// AサーバがBサーバにリクエストを送信するとき，この構想体においてもAサーバがsrc，Bサーバがdstである
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TimesUbiquiSettingRecv {
-    pub a_member_id: u64,
-    pub b_guild_id: u64,
-    pub b_channel_id: u64,
-    pub b_webhook_url: String,
+    pub src_member_id: u64,
+    pub dst_guild_id: u64,
+    pub dst_channel_id: u64,
+    pub dst_webhook_url: String,
 }
 
 /// あなたのTimesを拡散するための設定リクエストを送信します．
@@ -202,11 +204,11 @@ pub async fn ut_times_ubiqui_setting_send(
     // 拡散可能サーバのリストを取得
     let other_master_webhooks = master_webhook_select_all(connection.as_ref()).await?;
 
-    let times_ubiqui_setting_send = TimesUbiquiSetting {
-        member_id: member_times.member_id,
-        master_webhook_url: server_data.master_webhook_url,
-        channel_id: member_times.channel_id,
-        webhook_url: member_times.webhook_url,
+    let times_ubiqui_setting_send = TimesUbiquiSettingSend {
+        src_member_id: member_times.member_id,
+        src_master_webhook_url: server_data.master_webhook_url,
+        src_channel_id: member_times.channel_id,
+        src_member_webhook_url: member_times.webhook_url,
     };
 
     debug!("times_ubiqui_setting_send: {:?}", &times_ubiqui_setting_send);
@@ -228,7 +230,7 @@ pub async fn ut_times_ubiqui_setting_send(
 
 
         webhook.execute(&ctx, false, |w| {
-            w.content(format!("{}: {}", "TimesUbiquiSetting", &serialized_msg))
+            w.content(format!("{}", &serialized_msg))
         }).await?;
     } 
 
@@ -260,33 +262,53 @@ pub async fn bot_com_msg_recv(
 }
 
 /// 拡散設定リクエストを受信したときの処理
-async fn times_ubiqui_setting_recv(
+pub async fn times_ubiqui_setting_recv(
     ctx: &serenity::Context,
     data: &Data,
-    times_ubiqui_setting: &TimesUbiquiSetting,
+    src_server_name: &str,
+    times_ubiqui_setting: &TimesUbiquiSettingSend,
 ) -> Result<()> {
-    let a_member_id = times_ubiqui_setting.member_id;
+    let src_member_id = times_ubiqui_setting.src_member_id;
     
     let connection = data.connection.clone();
 
     // 返送先のmasterwebhook
-    let recv_master_webhook_url = times_ubiqui_setting.master_webhook_url.clone();
+    let recv_master_webhook_url = times_ubiqui_setting.src_master_webhook_url.clone();
     let http = Http::new("");
     let recv_master_webhook = Webhook::from_url(http, &recv_master_webhook_url).await?;
 
     // a_member_id と紐づいているtimeswebhookを取得
-    let member_times_data = a_member_times_data::select_member_times(connection.as_ref(), a_member_id).await?;
+    let member_times_data = a_member_times_data::select_member_times(connection.as_ref(), src_member_id).await?;
     let times_webhook_url = member_times_data.webhook_url;
     let times_channel_id = member_times_data.channel_id;
 
+    // 自身のサーバ情報を取得
+    let a_server_data = a_server_data::select_a_server_data_without_guild_id(connection.as_ref()).await?;
+
+
 
     // データをTimesUbiquiSettingRecvに詰める
-    // let times_ubiqui_setting_recv = TimesUbiquiSettingRecv {
-    //     a_member_id,
-    //     b_guild_id: ctx.guild_id().ok_or(anyhow!(""))?.0,
-    //     b_channel_id: times_ubiqui_setting.channel_id,
-    //     b_webhook_url: times_webhook_url,
-    // };
+    let times_ubiqui_setting_recv = TimesUbiquiSettingRecv {
+        src_member_id,
+        dst_guild_id: a_server_data.guild_id,
+        dst_channel_id: times_channel_id,
+        dst_webhook_url: times_webhook_url,
+    };
+
+    // データをシリアライズ
+    // ここにおいては，srcとdstがそのほかの構造体と逆になる
+    // つまり，自身のサーバがsrcである
+    let bot_com_msg = BotComMessage::from(
+        &a_server_data.server_name,
+        src_server_name,
+        CmdKind::TimesUbiquiSettingRecv(times_ubiqui_setting_recv),
+    );
+    let serialized_msg = serde_json::to_string(&bot_com_msg)?;
+
+    // データを送信
+    recv_master_webhook.execute(ctx, false, |w| {
+        w.content(format!("{}", &serialized_msg))
+    }).await?;
 
     Ok(())
 }
