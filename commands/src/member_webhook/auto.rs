@@ -265,6 +265,7 @@ pub async fn times_ubiqui_setting_recv(
     src_server_name: &str,
     times_ubiqui_setting: &TimesUbiquiSettingSend,
 ) -> Result<()> {
+    info!("拡散設定リクエストを受信しました");
     let src_member_id = times_ubiqui_setting.src_member_id;
 
     let connection = data.connection.clone();
@@ -272,7 +273,7 @@ pub async fn times_ubiqui_setting_recv(
     // 返送先のmasterwebhook
     let recv_master_webhook_url = times_ubiqui_setting.src_master_webhook_url.clone();
     let http = Http::new("");
-    let recv_master_webhook = Webhook::from_url(http, &recv_master_webhook_url).await?;
+    let recv_master_webhook = Webhook::from_url(&http, &recv_master_webhook_url).await?;
 
     // a_member_id と紐づいているtimeswebhookを取得
     let member_times_data =
@@ -306,6 +307,14 @@ pub async fn times_ubiqui_setting_recv(
     recv_master_webhook
         .execute(ctx, false, |w| w.content(format!("{}", &serialized_msg)))
         .await?;
+
+
+    let my_webhook = Webhook::from_url(&http, &a_server_data.master_webhook_url).await?;
+    my_webhook
+        .execute(ctx, false, |w| w.content("拡散設定リクエスト 受信"))
+        .await?;
+
+
 
     Ok(())
 }
