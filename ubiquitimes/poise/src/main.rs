@@ -79,9 +79,9 @@ async fn event_handler(
             println!("Logged in as {}", data_about_bot.user.name);
         }
         Event::Message { new_message } => {
-            if !new_message.author.bot {
-                return Ok(());
-            }
+            println!("msg recvd");
+
+            // info!("Got a message from a bot: {:?}", new_message);
             let bot_com_msg = match bot_com_msg_recv(new_message).await {
                 Some(t) => t,
                 None => return Ok(()),
@@ -154,7 +154,7 @@ async fn main() {
             ut_set_own_master_webhook(),
             ut_set_other_masterhook(),
             ut_serverlist(),
-            ut_get_master_hook(),
+            // ut_get_master_hook(),
             ut_member_webhook_reg_manual(),
             ut_list(),
             ut_delete(),
@@ -164,6 +164,8 @@ async fn main() {
             ut_times_show(),
             ut_times_ubiqui_setting_send(),
         ],
+
+        
 
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
@@ -216,7 +218,7 @@ async fn main() {
         event_handler: |_ctx, event, _framework, _data| {
             Box::pin(async move {
                 info!("Got an event in event handler: {:?}", event.name());
-                Ok(())
+                event_handler(_ctx, event, _framework, _data).await
             })
         },
         ..Default::default()
