@@ -4,6 +4,7 @@ use poise::serenity_prelude::{Http, Webhook};
 use sqlx::SqlitePool;
 use tracing::info;
 
+use crate::db_query::a_member_times_data;
 use crate::db_query::member_webhooks::*;
 use crate::*;
 
@@ -145,8 +146,16 @@ pub async fn ut_times_release(
 ) -> Result<()> {
     let username = format!("UT-{}", ctx.author().name);
 
-    // DBからそのユーザのwebhookをすべて取得する
     let connection = ctx.data().connection.clone();
+    // そのユーザのtimesデータを取得する
+    let times_data = a_member_times_data::select_member_times(connection.as_ref(), ctx.author().id.0)
+        .await?;
+
+    // webhookのusernameを設定する
+
+    let username = format!("UT-{}", times_data.member_name);
+
+    // DBからそのユーザのwebhookをすべて取得する
 
     // SqliteのINTEGER型はi64になる都合で，i64に変換する
     // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
@@ -159,7 +168,7 @@ pub async fn ut_times_release(
         .map(|m| m.dst_webhook_url.to_owned())
         .collect::<Vec<String>>();
 
-    execute_ubiquitus(&ctx, &content, member_webhooks).await?;
+    execute_ubiquitus(&ctx, &username, &content, member_webhooks).await?;
 
     Ok(())
 }
@@ -194,11 +203,11 @@ pub async fn ut_times_release(
 
 async fn execute_ubiquitus(
     ctx: &Context<'_>,
+    username: &str,
     content: &str,
     webhooks: Vec<String>,
 ) -> anyhow::Result<()> {
-    let username = format!("UT-{}", ctx.author().name);
-
+    // avatar_urlを取得する
     let avatar_url = ctx.author().avatar_url().unwrap_or_default();
 
     // webhookを実行する
@@ -207,7 +216,7 @@ async fn execute_ubiquitus(
     for webhook_url in webhooks.iter() {
         let webhook = Webhook::from_url(&http, webhook_url).await?;
         webhook
-            .execute(&http, false, |w| w.content(content).username(&username).avatar_url(&avatar_url))
+            .execute(&http, false, |w| w.content(content).username(username).avatar_url(&avatar_url))
             .await?;
     }
     Ok(())

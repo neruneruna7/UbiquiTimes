@@ -23,12 +23,12 @@ use crate::db_query::{a_member_times_data::*, member_webhooks};
 #[poise::command(prefix_command, track_edits, aliases("UTtimesSetting"), slash_command)]
 pub async fn ut_times_set(
     ctx: Context<'_>,
-    #[description = "`times`と入力してください"] times: String,
+    #[description = "拡散時に使う名前を入力してください"] name: String,
 ) -> Result<()> {
-    sign_str_command(&ctx, &times, "times").await?;
+    // sign_str_command(&ctx, &times, "times").await?;
 
     let member_id = ctx.author().id.0;
-    let member_name = ctx.author().name.clone();
+    let member_name = name;
     let channel_id = ctx.channel_id().0;
 
     let webhook_name = format!("UT-{}", member_id);
