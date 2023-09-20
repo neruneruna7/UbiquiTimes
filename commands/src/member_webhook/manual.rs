@@ -131,6 +131,7 @@ pub async fn ut_delete(
 ///
 /// contentに記述した内容を拡散します
 /// このスラッシュコマンドではなく，`~UT`のプレフィックスコマンドを推奨
+/// スラッシュコマンドの場合，拡散元のサーバでは内容が表示されません
 /// ### `~UT`の場合
 /// ```
 /// ~UT
@@ -158,7 +159,7 @@ pub async fn ut_times_release(
         .map(|m| m.dst_webhook_url.to_owned())
         .collect::<Vec<String>>();
 
-    execute_ubiquitus(&username, &content, member_webhooks).await?;
+    execute_ubiquitus(&ctx, &content, member_webhooks).await?;
 
     Ok(())
 }
@@ -192,17 +193,21 @@ pub async fn ut_times_release(
 // }
 
 async fn execute_ubiquitus(
-    username: &str,
+    ctx: &Context<'_>,
     content: &str,
     webhooks: Vec<String>,
 ) -> anyhow::Result<()> {
+    let username = format!("UT-{}", ctx.author().name);
+
+    let avatar_url = ctx.author().avatar_url().unwrap_or_default();
+
     // webhookを実行する
     let http = Http::new("");
 
     for webhook_url in webhooks.iter() {
         let webhook = Webhook::from_url(&http, webhook_url).await?;
         webhook
-            .execute(&http, false, |w| w.content(content).username(username))
+            .execute(&http, false, |w| w.content(content).username(&username).avatar_url(&avatar_url))
             .await?;
     }
     Ok(())
