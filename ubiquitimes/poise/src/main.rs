@@ -99,7 +99,6 @@ async fn event_handler(
                     auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
                 }
                 commands::member_webhook::auto::CmdKind::None => {}
-                _ => {}
             }
 
             // if new_message.content.to_lowercase().contains("poise") {
