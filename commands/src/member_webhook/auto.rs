@@ -1,5 +1,5 @@
-use crate::Data;
 use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result, SqlitePool};
+use crate::{member_webhook, Data, MemberWebhook};
 
 use anyhow::anyhow;
 use poise::serenity_prelude as serenity;
@@ -10,11 +10,11 @@ use serde::{Deserialize, Serialize};
 use tracing::debug;
 use tracing::info;
 
-use crate::db_query::a_member_times_data::*;
 use crate::db_query::{
     a_member_times_data,
     a_server_data::{self, *},
 };
+use crate::db_query::{a_member_times_data::*, member_webhooks};
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
@@ -213,18 +213,19 @@ pub async fn ut_times_ubiqui_setting_send(
         &times_ubiqui_setting_send
     );
 
-    let bot_com_msg = BotComMessage::from(
-        &ctx.author().name,
+    let mut bot_com_msg = BotComMessage::from(
         &server_data.server_name,
+        "次のすべての送信先サーバに送信するループ内にて，送信先のサーバ名を代入してください",
         CmdKind::TimesUbiquiSettingSend(times_ubiqui_setting_send),
     );
-    let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
-    info!("serialized_msg: {}", &serialized_msg);
+    info!("bot_com_msg: {:?}", &bot_com_msg);
 
     // ここのhttpはどうするか，空白トークンのHttpをnewするか，ctxを使うか
     for other_master_webhook in other_master_webhooks.iter() {
         let webhook = Webhook::from_url(&ctx, &other_master_webhook.webhook_url).await?;
+        bot_com_msg.dst = other_master_webhook.server_name.clone();
+        let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
         webhook
             .execute(&ctx, false, |w| w.content(format!("{}", &serialized_msg)))
@@ -308,13 +309,37 @@ pub async fn times_ubiqui_setting_recv(
         .execute(ctx, false, |w| w.content(format!("{}", &serialized_msg)))
         .await?;
 
-
     let my_webhook = Webhook::from_url(&http, &a_server_data.master_webhook_url).await?;
     my_webhook
         .execute(ctx, false, |w| w.content("拡散設定リクエスト 受信"))
         .await?;
 
+    Ok(())
+}
 
+/// 拡散設定返信を受信したときの処理
+pub async fn times_ubiqui_setting_set(
+    ctx: &serenity::Context,
+    data: &Data,
+    src_server_name: &str,
+    times_ubiqui_setting: &TimesUbiquiSettingRecv,
+) -> Result<()> {
+    info!("拡散設定リクエストを受信しました");
+    let src_member_id = times_ubiqui_setting.src_member_id;
+
+    // 必要なデータをMemberWebhookに詰める
+    let member_webhook = MemberWebhook::from(
+        None,
+        src_member_id,
+        src_server_name,
+        times_ubiqui_setting.dst_guild_id,
+        times_ubiqui_setting.dst_channel_id,
+        &times_ubiqui_setting.dst_webhook_url,
+    );
+
+    let connection = data.connection.clone();
+
+    member_webhooks::member_webhook_insert(connection.as_ref(), member_webhook).await?;
 
     Ok(())
 }

@@ -165,8 +165,6 @@ async fn main() {
             ut_times_ubiqui_setting_send(),
         ],
 
-        
-
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("~".into()),
