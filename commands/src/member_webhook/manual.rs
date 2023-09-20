@@ -75,7 +75,7 @@ pub async fn ut_member_webhook_reg_manual(
         &b_webhook_url,
     );
 
-    member_webhook_insert(connection.as_ref(), menber_webhook).await?;
+    member_webhook_upsert(connection.as_ref(), menber_webhook).await?;
 
     let text = "member webhook inserted";
     info!(text);

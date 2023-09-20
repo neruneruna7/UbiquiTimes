@@ -339,7 +339,7 @@ pub async fn times_ubiqui_setting_set(
     let connection = data.connection.clone();
 
     info!("times_ubiqui_setting_set: DB処理 到達");
-    member_webhooks::member_webhook_insert(connection.as_ref(), member_webhook).await?;
+    member_webhooks::member_webhook_upsert(connection.as_ref(), member_webhook).await?;
 
     Ok(())
 }

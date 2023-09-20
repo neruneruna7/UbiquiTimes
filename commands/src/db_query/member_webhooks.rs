@@ -2,7 +2,7 @@ use super::*;
 
 // メンバーwebhookの登録
 // upsert
-pub(crate) async fn member_webhook_insert(
+pub(crate) async fn member_webhook_upsert(
     connection: &SqlitePool,
     member_webhook: MemberWebhook,
 ) -> anyhow::Result<()> {
