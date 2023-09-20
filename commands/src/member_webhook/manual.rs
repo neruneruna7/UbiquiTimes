@@ -68,7 +68,6 @@ pub async fn ut_member_webhook_reg_manual(
     let connection = ctx.data().connection.clone();
 
     let menber_webhook = MemberWebhook::from(
-        None,
         a_member_id,
         &b_server_name,
         b_guild_id,

@@ -1,6 +1,7 @@
 use super::*;
 
 // メンバーwebhookの登録
+// upsert
 pub(crate) async fn member_webhook_insert(
     connection: &SqlitePool,
     member_webhook: MemberWebhook,
@@ -12,13 +13,20 @@ pub(crate) async fn member_webhook_insert(
     sqlx::query!(
         r#"
         INSERT INTO member_webhooks (b_server_name, a_member_id, b_guild_id, b_channel_id, b_webhook_url)
-        VALUES(?, ?, ?, ?, ?);
+        VALUES(?, ?, ?, ?, ?)
+        ON CONFLICT(b_guild_id, a_member_id) DO UPDATE SET
+            b_server_name = ?,
+            b_channel_id = ?,
+            b_webhook_url = ?;
         "#,
         member_webhook.dst_server_name,
         member_id,
         guild_id,
         channel_id,
-        member_webhook.dst_webhook_url
+        member_webhook.dst_webhook_url,
+        member_webhook.dst_server_name,
+        channel_id,
+        member_webhook.dst_webhook_url,
     )
     .execute(connection)
     .await?;
@@ -44,7 +52,6 @@ pub(crate) async fn member_webhook_select(
     .await?;
 
     let member_webhook = MemberWebhook::from_row(
-        Some(row.id),
         &row.a_member_id,
         &row.b_server_name,
         &row.b_guild_id,
@@ -74,7 +81,6 @@ pub(crate) async fn member_webhook_select_from_member_id(
     let mut member_webhook_list = Vec::new();
     for row in rows {
         let member_webhook = MemberWebhook::from_row(
-            Some(row.id),
             &row.a_member_id,
             &row.b_server_name,
             &row.b_guild_id,
@@ -101,7 +107,6 @@ pub(crate) async fn member_webhook_select_all(
     let mut member_webhook_list = Vec::new();
     for row in rows {
         let member_webhook = MemberWebhook::from_row(
-            Some(row.id),
             &row.a_member_id,
             &row.b_server_name,
             &row.b_guild_id,

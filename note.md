@@ -214,3 +214,6 @@ https://discord.com/api/webhooks/1151880824547975170/FR6T_U_ghGVXleL6buQeKIgBIsK
 
 # 発生したgitエラー
 object file .git/objects/ad/10d7e89c9a717582ff5c6dca6ef8582db494d2 is empty
+
+# 発生しているエラー
+2回送信される

@@ -329,7 +329,6 @@ pub async fn times_ubiqui_setting_set(
 
     // 必要なデータをMemberWebhookに詰める
     let member_webhook = MemberWebhook::from(
-        None,
         src_member_id,
         src_server_name,
         times_ubiqui_setting.dst_guild_id,

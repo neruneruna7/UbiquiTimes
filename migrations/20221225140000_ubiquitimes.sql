@@ -9,12 +9,13 @@ CREATE TABLE IF NOT EXISTS master_webhooks
 
 CREATE TABLE IF NOT EXISTS member_webhooks
 (
-    id      INTEGER PRIMARY KEY NOT NULL,
     a_member_id      TEXT       NOT NULL,
     b_server_name    TEXT          NOT NULL,
     b_guild_id     TEXT     NOT NULL,
     b_channel_id     TEXT     NOT NULL,
-    b_webhook_url     TEXT                NOT NULL
+    b_webhook_url     TEXT                NOT NULL,
+
+    PRIMARY KEY(a_member_id, b_guild_id)
 );
 
 CREATE TABLE IF NOT EXISTS a_member_times_data

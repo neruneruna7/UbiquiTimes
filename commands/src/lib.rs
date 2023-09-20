@@ -74,7 +74,6 @@ impl MasterWebhook {
 #[derive(Debug)]
 // 個々人が持つwebhook
 pub struct MemberWebhook {
-    pub id: Option<i64>,
     pub src_member_id: u64,
     pub dst_server_name: String,
     pub dst_guild_id: u64,
@@ -84,7 +83,6 @@ pub struct MemberWebhook {
 
 impl MemberWebhook {
     fn from(
-        _id: Option<i64>,
         src_member_id: u64,
         dst_server_name: &str,
         dst_guild_id: u64,
@@ -92,7 +90,6 @@ impl MemberWebhook {
         dst_webhook_url: &str,
     ) -> Self {
         Self {
-            id: None,
             src_member_id,
             dst_server_name: dst_server_name.to_string(),
             dst_guild_id,
@@ -102,7 +99,6 @@ impl MemberWebhook {
     }
 
     fn from_row(
-        _id: Option<i64>,
         src_member_id: &str,
         dst_server_name: &str,
         dst_guild_id: &str,
@@ -110,7 +106,6 @@ impl MemberWebhook {
         dst_webhook_url: &str,
     ) -> Result<Self> {
         Ok(Self {
-            id: None,
             src_member_id: src_member_id.parse()?,
             dst_server_name: dst_server_name.to_string(),
             dst_guild_id: dst_guild_id.parse()?,
