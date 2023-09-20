@@ -94,6 +94,10 @@ async fn event_handler(
                     let src_server_name = bot_com_msg.src;
                     auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
                 }
+                commands::member_webhook::auto::CmdKind::TimesUbiquiSettingRecv(t) => {
+                    let src_server_name = bot_com_msg.src;
+                    auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
+                }
                 commands::member_webhook::auto::CmdKind::None => {}
                 _ => {}
             }
