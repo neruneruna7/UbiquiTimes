@@ -1,0 +1,77 @@
+use super::*;
+
+pub async fn master_webhook_upsert(
+    connection: &SqlitePool,
+    master_webhook: MasterWebhook,
+) -> anyhow::Result<()> {
+    let guild_id = master_webhook.guild_id.to_string();
+
+    sqlx::query!(
+        r#"
+        INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
+        VALUES(?, ?, ?)
+        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, webhook_url = ?
+        ;
+        "#,
+        master_webhook.server_name,
+        guild_id,
+        master_webhook.webhook_url,
+        master_webhook.server_name,
+        master_webhook.webhook_url
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn master_webhook_select(
+    connection: &SqlitePool,
+    server_name: &str,
+) -> anyhow::Result<MasterWebhook> {
+    let row = sqlx::query!(
+        r#"
+        SELECT * FROM master_webhooks WHERE server_name = ?;
+        "#,
+        server_name
+    )
+    .fetch_one(connection)
+    .await?;
+
+    let master_webhook = MasterWebhook::from(
+        Some(row.id),
+        &row.server_name,
+        row.guild_id.parse::<u64>()?,
+        &row.webhook_url,
+    );
+
+    Ok(master_webhook)
+}
+
+// すべてのマスターwebhookを取得する
+// 複数の行がとれるので、Vecに格納して返す
+pub async fn master_webhook_select_all(
+    connection: &SqlitePool,
+) -> anyhow::Result<Vec<MasterWebhook>> {
+    let rows = sqlx::query!(
+        r#"
+        SELECT * FROM master_webhooks;
+        "#,
+    )
+    .fetch_all(connection)
+    .await?;
+
+    let mut master_webhooks = Vec::new();
+
+    for row in rows {
+        let master_webhook = MasterWebhook::from(
+            Some(row.id),
+            &row.server_name,
+            row.guild_id.parse::<u64>()?,
+            &row.webhook_url,
+        );
+        master_webhooks.push(master_webhook);
+    }
+
+    Ok(master_webhooks)
+}

@@ -13,22 +13,21 @@ use std::{
 };
 use tracing::info;
 
-use commands::manual_commands::{
-    master_webhook::{
-        ut_get_master_hook,
-        ut_masterhook_register,
-        ut_serverlist,
-    }, 
-    member_webhook::{
-        ut_member_webhook_reg_manual,
-        ut_list,
-        ut_delete,
-        ut_times_release,
-    }
+use commands::member_webhook::auto::{
+    ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
+};
+use commands::member_webhook::manual::{
+    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+};
+use commands::{
+    master_webhook::manual::{
+        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
+    },
+    member_webhook::auto,
 };
 
-use  commands::Data;
-
+use commands::member_webhook::auto::*;
+use commands::Data;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -57,6 +56,7 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
         poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
         poise::FrameworkError::Command { error, ctx } => {
             info!("Error in command `{}`: {:?}", ctx.command().name, error,);
+            ctx.say(error.to_string()).await.ok();
         }
         error => {
             if let Err(e) = poise::builtins::on_error(error).await {
@@ -79,13 +79,35 @@ async fn event_handler(
             println!("Logged in as {}", data_about_bot.user.name);
         }
         Event::Message { new_message } => {
-            if new_message.content.to_lowercase().contains("poise") {
-                let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
-                data.poise_mentions.store(mentions, Ordering::SeqCst);
-                new_message
-                    .reply(ctx, format!("Poise has been mentioned {} times", mentions))
-                    .await?;
+            println!("msg recvd");
+
+            // info!("Got a message from a bot: {:?}", new_message);
+            let bot_com_msg = match bot_com_msg_recv(new_message).await {
+                Some(t) => t,
+                None => return Ok(()),
+            };
+
+            let cmd_kind = &bot_com_msg.cmd;
+
+            match cmd_kind {
+                commands::member_webhook::auto::CmdKind::TimesUbiquiSettingSend(t) => {
+                    let src_server_name = bot_com_msg.src;
+                    auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
+                }
+                commands::member_webhook::auto::CmdKind::TimesUbiquiSettingRecv(t) => {
+                    let src_server_name = bot_com_msg.src;
+                    auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
+                }
+                commands::member_webhook::auto::CmdKind::None => {}
             }
+
+            // if new_message.content.to_lowercase().contains("poise") {
+            //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
+            //     data.poise_mentions.store(mentions, Ordering::SeqCst);
+            //     new_message
+            //         .reply(ctx, format!("Poise has been mentioned {} times", mentions))
+            //         .await?;
+            // }
         }
         _ => {}
     }
@@ -132,14 +154,19 @@ async fn main() {
         // どうやらスネークケースじゃないとだめのようだ
         commands: vec![
             help(),
-            ut_masterhook_register(),
+            ut_set_own_master_webhook(),
+            ut_set_other_masterhook(),
             ut_serverlist(),
-            ut_get_master_hook(),
+            // ut_get_master_hook(),
             ut_member_webhook_reg_manual(),
             ut_list(),
             ut_delete(),
             ut_times_release(),
-            ],
+            ut_times_set(),
+            ut_times_unset(),
+            ut_times_show(),
+            ut_times_ubiqui_setting_send(),
+        ],
 
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
@@ -192,7 +219,7 @@ async fn main() {
         event_handler: |_ctx, event, _framework, _data| {
             Box::pin(async move {
                 info!("Got an event in event handler: {:?}", event.name());
-                Ok(())
+                event_handler(_ctx, event, _framework, _data).await
             })
         },
         ..Default::default()
@@ -220,7 +247,9 @@ async fn main() {
         })
         .options(options)
         .intents(
-            serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT,
+            serenity::GatewayIntents::non_privileged()
+                | serenity::GatewayIntents::MESSAGE_CONTENT
+                | serenity::GatewayIntents::GUILD_WEBHOOKS,
         )
         .run()
         .await
