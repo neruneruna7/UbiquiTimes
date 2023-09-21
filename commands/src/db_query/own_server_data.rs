@@ -1,7 +1,8 @@
 use super::*;
+use types::own_server_data::ServerData;
 
 /// 自身のマスターwebhookを a_server_data テーブルにupsertする
-pub(crate) async fn upsert_a_server_data(
+pub(crate) async fn upsert_own_server_data(
     connection: &SqlitePool,
     server_name: &str,
     guild_id: &str,
@@ -29,10 +30,10 @@ pub(crate) async fn upsert_a_server_data(
 }
 
 // 取得する
-pub(crate) async fn select_a_server_data(
+pub(crate) async fn select_own_server_data(
     connection: &SqlitePool,
     guild_id: u64,
-) -> anyhow::Result<AServerData> {
+) -> anyhow::Result<ServerData> {
     let guild_id = guild_id.to_string();
     let row = sqlx::query!(
         r#"
@@ -43,7 +44,7 @@ pub(crate) async fn select_a_server_data(
     .fetch_one(connection)
     .await?;
 
-    let a_server_data = AServerData::from_row(
+    let a_server_data = ServerData::from_row(
         &row.guild_id.to_string(),
         &row.server_name,
         &row.master_channel_id.to_string(),
@@ -55,9 +56,9 @@ pub(crate) async fn select_a_server_data(
 
 // 取得 guild_idを用いない
 // このデータは1つしかないことを前提にしている
-pub(crate) async fn select_a_server_data_without_guild_id(
+pub(crate) async fn select_own_server_data_without_guild_id(
     connection: &SqlitePool,
-) -> anyhow::Result<AServerData> {
+) -> anyhow::Result<ServerData> {
     let row = sqlx::query!(
         r#"
         SELECT * FROM a_server_data;
@@ -66,7 +67,7 @@ pub(crate) async fn select_a_server_data_without_guild_id(
     .fetch_one(connection)
     .await?;
 
-    let a_server_data = AServerData::from_row(
+    let a_server_data = ServerData::from_row(
         &row.guild_id.to_string(),
         &row.server_name,
         &row.master_channel_id.to_string(),
