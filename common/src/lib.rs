@@ -1,10 +1,10 @@
 use anyhow::Error;
 use poise::{serenity_prelude as serenity, Event};
 
-
 use commands::member_webhook::auto;
 use commands::member_webhook::auto::*;
-use commands::Data;
+use commands::types::botcom::CmdKind;
+use commands::types::global_data::Data;
 use tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造
@@ -68,15 +68,15 @@ pub async fn event_handler(
             let cmd_kind = &bot_com_msg.cmd;
 
             match cmd_kind {
-                commands::member_webhook::auto::CmdKind::TimesUbiquiSettingSend(t) => {
+                CmdKind::TimesUbiquiSettingSend(t) => {
                     let src_server_name = bot_com_msg.src;
                     auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
                 }
-                commands::member_webhook::auto::CmdKind::TimesUbiquiSettingRecv(t) => {
+                CmdKind::TimesUbiquiSettingRecv(t) => {
                     let src_server_name = bot_com_msg.src;
                     auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
                 }
-                commands::member_webhook::auto::CmdKind::None => {}
+                CmdKind::None => {}
             }
 
             // if new_message.content.to_lowercase().contains("poise") {

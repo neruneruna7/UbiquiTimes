@@ -3065,6 +3065,7 @@ dependencies = [
  "shuttle-poise",
  "shuttle-runtime",
  "shuttle-secrets",
+ "sqlx",
  "tokio",
  "tracing",
 ]
