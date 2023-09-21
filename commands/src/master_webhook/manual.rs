@@ -1,12 +1,11 @@
 use crate::*;
 
-use crate::db_query::a_server_data::*;
 use crate::db_query::master_webhooks::*;
+use crate::db_query::own_server_data::*;
+use crate::types::webhook::MasterWebhook;
 
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
-
-
 
 use tracing::info;
 
@@ -37,7 +36,7 @@ pub async fn ut_set_own_master_webhook(
 
     let connection = ctx.data().connection.clone();
 
-    upsert_a_server_data(
+    upsert_own_server_data(
         &connection,
         &server_name,
         &guild_id,

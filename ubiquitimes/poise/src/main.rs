@@ -5,10 +5,7 @@ use sqlx::SqlitePool;
 use std::{
     collections::HashMap,
     env::{self, var},
-    sync::{
-        atomic::{AtomicU32},
-        Arc, Mutex,
-    },
+    sync::{atomic::AtomicU32, Arc, Mutex},
     time::Duration,
 };
 use tracing::info;
@@ -20,14 +17,12 @@ use commands::member_webhook::manual::{
     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 };
 use commands::{
-    master_webhook::manual::{
-        ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
-    },
+    master_webhook::manual::{ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook},
     member_webhook::auto,
 };
 
 use commands::member_webhook::auto::*;
-use commands::Data;
+use commands::types::global_data::Data;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -239,8 +234,6 @@ async fn main() {
                 info!("Logged in as {}", _ready.user.name);
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
-                    votes: Mutex::new(HashMap::new()),
-                    poise_mentions: AtomicU32::new(0),
                     connection: Arc::new(pool),
                 })
             })

@@ -1,5 +1,6 @@
+use crate::types::global_data::Data;
+use crate::types::webhook::MemberWebhook;
 use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
-use crate::{Data, MemberWebhook};
 
 use anyhow::anyhow;
 use poise::serenity_prelude as serenity;
@@ -10,11 +11,11 @@ use serde::{Deserialize, Serialize};
 use tracing::debug;
 use tracing::info;
 
+use crate::db_query::{member_webhooks, own_server_times_data::*};
 use crate::db_query::{
-    a_member_times_data,
-    a_server_data::{self, *},
+    own_server_data::{self, *},
+    own_server_times_data,
 };
-use crate::db_query::{a_member_times_data::*, member_webhooks};
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
@@ -47,7 +48,7 @@ pub async fn ut_times_set(
 
     let connection = ctx.data().connection.clone();
 
-    upsert_member_times(
+    upsert_own_times_data(
         connection.as_ref(),
         member_id,
         &member_name,
@@ -192,11 +193,11 @@ pub async fn ut_times_ubiqui_setting_send(
 
     let connection = ctx.data().connection.clone();
     // 自身のtimesの情報を取得
-    let member_times = select_member_times(connection.as_ref(), ctx.author().id.0).await?;
+    let member_times = select_own_times_data(connection.as_ref(), ctx.author().id.0).await?;
 
     // 自身のサーバ情報を取得
     let guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
-    let server_data = select_a_server_data(connection.as_ref(), guild_id).await?;
+    let server_data = select_own_server_data(connection.as_ref(), guild_id).await?;
 
     // 拡散可能サーバのリストを取得
     let other_master_webhooks = master_webhook_select_all(connection.as_ref()).await?;
@@ -278,13 +279,13 @@ pub async fn times_ubiqui_setting_recv(
 
     // a_member_id と紐づいているtimeswebhookを取得
     let member_times_data =
-        a_member_times_data::select_member_times(connection.as_ref(), src_member_id).await?;
+        own_server_times_data::select_own_times_data(connection.as_ref(), src_member_id).await?;
     let times_webhook_url = member_times_data.webhook_url;
     let times_channel_id = member_times_data.channel_id;
 
     // 自身のサーバ情報を取得
     let a_server_data =
-        a_server_data::select_a_server_data_without_guild_id(connection.as_ref()).await?;
+        own_server_data::select_own_server_data_without_guild_id(connection.as_ref()).await?;
 
     // データをTimesUbiquiSettingRecvに詰める
     let times_ubiqui_setting_recv = TimesUbiquiSettingRecv {

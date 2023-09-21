@@ -1,10 +1,8 @@
-use sqlx::Row;
-
-
 use super::*;
+use types::own_server_data::TimesData;
 
 // sqliteにmember自身のtimes情報をupsertする
-pub(crate) async fn upsert_member_times(
+pub(crate) async fn upsert_own_times_data(
     connection: &SqlitePool,
     member_id: u64,
     member_name: &str,
@@ -37,10 +35,10 @@ pub(crate) async fn upsert_member_times(
 }
 
 // 取得する
-pub(crate) async fn select_member_times(
+pub(crate) async fn select_own_times_data(
     connection: &SqlitePool,
     member_id: u64,
-) -> Result<MemberTimesData> {
+) -> Result<TimesData> {
     let member_id = member_id.to_string();
     let member_times_row = sqlx::query!(
         r#"
@@ -52,7 +50,7 @@ pub(crate) async fn select_member_times(
     .fetch_one(connection)
     .await?;
 
-    let member_times = MemberTimesData::from_row(
+    let member_times = TimesData::from_row(
         &member_times_row.member_id,
         &member_times_row.member_name,
         &member_times_row.channel_id,

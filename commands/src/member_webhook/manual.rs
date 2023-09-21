@@ -4,8 +4,9 @@ use poise::serenity_prelude::{Http, Webhook};
 
 use tracing::info;
 
-use crate::db_query::a_member_times_data;
 use crate::db_query::member_webhooks::*;
+use crate::db_query::own_server_times_data;
+use crate::types::webhook::MemberWebhook;
 use crate::*;
 
 // 自動でメンバーwebhookを登録できるようにしたい
@@ -148,8 +149,9 @@ pub async fn ut_times_release(
 
     let connection = ctx.data().connection.clone();
     // そのユーザのtimesデータを取得する
-    let times_data = a_member_times_data::select_member_times(connection.as_ref(), ctx.author().id.0)
-        .await?;
+    let times_data =
+        own_server_times_data::select_own_times_data(connection.as_ref(), ctx.author().id.0)
+            .await?;
 
     // webhookのusernameを設定する
 
@@ -216,7 +218,11 @@ async fn execute_ubiquitus(
     for webhook_url in webhooks.iter() {
         let webhook = Webhook::from_url(&http, webhook_url).await?;
         webhook
-            .execute(&http, false, |w| w.content(content).username(username).avatar_url(&avatar_url))
+            .execute(&http, false, |w| {
+                w.content(content)
+                    .username(username)
+                    .avatar_url(&avatar_url)
+            })
             .await?;
     }
     Ok(())
