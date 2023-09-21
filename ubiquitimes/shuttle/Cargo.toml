@@ -12,3 +12,5 @@ shuttle-runtime = "0.26.0"
 shuttle-secrets = "0.26.0"
 tracing = "0.1.37"
 tokio = "1.26.0"
+
+commands = { path = "../../commands" }
