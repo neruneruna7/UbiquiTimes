@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::path::PathBuf;
 
 use anyhow::{Context as _, Error};
 use poise::serenity_prelude as serenity;
@@ -36,7 +37,10 @@ async fn hello(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 #[shuttle_runtime::main]
-async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> ShuttlePoise<Data, Error> {
+async fn poise(
+    #[shuttle_secrets::Secrets] secret_store: SecretStore,
+    #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
+) -> ShuttlePoise<Data, Error> {
     // Get the discord token set in `Secrets.toml`
     let discord_token = secret_store
         .get("DISCORD_TOKEN")
