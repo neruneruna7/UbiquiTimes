@@ -23,7 +23,7 @@ use crate::types::botcom::*;
 ///
 /// 本サーバにおいて，このコマンドを実行したチャンネルがあなたのTimesであるとbotに登録します．
 /// 結果は実行するチャンネルに依存します．
-#[poise::command(prefix_command, track_edits, aliases("UTtimesSetting"), slash_command)]
+#[poise::command(prefix_command, track_edits, aliases("UtTimesSet"), slash_command)]
 pub async fn ut_times_set(
     ctx: Context<'_>,
     #[description = "拡散時に使う名前を入力してください"] name: String,
@@ -70,7 +70,7 @@ pub async fn ut_times_set(
 /// 本サーバにおいて，あなたの登録されているTimesを削除します.
 /// 結果は実行するチャンネルに依存しません．
 /// どのチャンネルから実行しても同じ内容が実行されます．
-#[poise::command(prefix_command, track_edits, aliases("UTtimesUnset"), slash_command)]
+#[poise::command(prefix_command, track_edits, aliases("UtTimesUnset"), slash_command)]
 pub async fn ut_times_unset(
     ctx: Context<'_>,
     #[description = "`untimes`と入力してください"] untimes: String,
@@ -97,7 +97,7 @@ pub async fn ut_times_unset(
 }
 
 /// デバッグ用に member_times_data を全て表示する
-#[poise::command(prefix_command, track_edits, aliases("UTtimesShow"), slash_command)]
+#[poise::command(prefix_command, track_edits, aliases("UtTimesShow"), slash_command)]
 pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
     let connection = ctx.data().connection.clone();
 
