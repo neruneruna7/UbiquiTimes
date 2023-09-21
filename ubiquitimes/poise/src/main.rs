@@ -9,18 +9,23 @@ use std::{
 };
 use tracing::info;
 
+// use commands::member_webhook::auto::{
+//     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
+// };
+// use commands::member_webhook::manual::{
+//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+// };
+use commands::master_webhook::manual::{
+    ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,
+};
 use commands::member_webhook::auto::{
     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
 };
 use commands::member_webhook::manual::{
     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 };
-use commands::{
-    master_webhook::manual::{ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook},
-    member_webhook::auto,
-};
 
-use commands::member_webhook::auto::*;
+use commands::member_webhook::auto;
 use commands::types::botcom::CmdKind;
 use commands::types::global_data::Data;
 
@@ -77,7 +82,7 @@ async fn event_handler(
             println!("msg recvd");
 
             // info!("Got a message from a bot: {:?}", new_message);
-            let bot_com_msg = match bot_com_msg_recv(new_message).await {
+            let bot_com_msg = match auto::bot_com_msg_recv(new_message).await {
                 Some(t) => t,
                 None => return Ok(()),
             };
@@ -143,13 +148,14 @@ async fn main() {
     // Every option can be omitted to use its default value
     // FrameworkOptions には、poise のすべての構成オプションが 1 つの構造体に含まれています
     // すべてのオプションを省略してデフォルト値を使用できます。by google translate
+
     let options = poise::FrameworkOptions {
         // ここでコマンドを登録する
         // コマンド名は1~32文字じゃないとダメみたい
         // どうやらスネークケースじゃないとだめのようだ
         commands: vec![
             help(),
-            ut_set_own_master_webhook(),
+            ut_set_own_masterhook(),
             ut_set_other_masterhook(),
             ut_serverlist(),
             // ut_get_master_hook(),
