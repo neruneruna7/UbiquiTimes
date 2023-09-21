@@ -3,9 +3,8 @@ use anyhow::Error;
 use poise::{serenity_prelude as serenity, Event};
 use sqlx::SqlitePool;
 use std::{
-    collections::HashMap,
     env::{self, var},
-    sync::{atomic::AtomicU32, Arc, Mutex},
+    sync::{Arc},
     time::Duration,
 };
 use tracing::info;

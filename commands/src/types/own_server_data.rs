@@ -1,4 +1,4 @@
-use anyhow::{Error, Result};
+use anyhow::{Result};
 
 pub struct ServerData {
     pub guild_id: u64,

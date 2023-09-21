@@ -1,4 +1,4 @@
-use anyhow::{Error, Result};
+use anyhow::{Result};
 
 use poise::serenity_prelude::{self as serenity};
 
