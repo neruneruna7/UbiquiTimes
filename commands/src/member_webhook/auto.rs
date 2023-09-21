@@ -17,6 +17,8 @@ use crate::db_query::{
     own_server_times_data,
 };
 
+use crate::types::botcom::*;
+
 /// そのサーバーでの自分のtimesであることをセットする
 ///
 /// 本サーバにおいて，このコマンドを実行したチャンネルがあなたのTimesであるとbotに登録します．
@@ -134,47 +136,6 @@ async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) ->
 //     ctx: Context<'_>,
 //     #[description = "`untimes`と入力してください"] untimes: String,
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct BotComMessage {
-    pub src: String,
-    pub dst: String,
-    pub cmd: CmdKind,
-    pub ttl: usize,
-}
-
-impl BotComMessage {
-    fn from(src: &str, dst: &str, cmd: CmdKind) -> BotComMessage {
-        let src = src.to_string();
-        let dst = dst.to_string();
-        let ttl = 4;
-        Self { src, dst, cmd, ttl }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum CmdKind {
-    TimesUbiquiSettingSend(TimesUbiquiSettingSend),
-    TimesUbiquiSettingRecv(TimesUbiquiSettingRecv),
-    None,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TimesUbiquiSettingSend {
-    src_member_id: u64,
-    src_master_webhook_url: String,
-    src_channel_id: u64,
-    src_member_webhook_url: String,
-}
-
-// 常にリクエストの送信側をsrcとする
-// AサーバがBサーバにリクエストを送信するとき，この構想体においてもAサーバがsrc，Bサーバがdstである
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TimesUbiquiSettingRecv {
-    pub src_member_id: u64,
-    pub dst_guild_id: u64,
-    pub dst_channel_id: u64,
-    pub dst_webhook_url: String,
-}
 
 /// あなたのTimesを拡散するための設定リクエストを送信します．
 ///

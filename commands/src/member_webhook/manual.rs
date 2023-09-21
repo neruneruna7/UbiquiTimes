@@ -37,10 +37,8 @@ use crate::*;
 //     Ok(())
 // }
 
-// 手動でメンバーwebhookを登録する
-// (prefix)UTregisterM server_name webhook_url
-
-#[poise::command(prefix_command, track_edits, aliases("UTregisterM"), slash_command)]
+/// 非推奨 手動でメンバーwebhookを登録します
+#[poise::command(prefix_command, track_edits, aliases("UTmanualRegister"), slash_command)]
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] b_server_name: String,
@@ -56,14 +54,6 @@ pub async fn ut_member_webhook_reg_manual(
     let b_guild_id = b_guild_id
         .parse::<u64>()
         .context("符号なし整数を入力してください")?;
-
-    // match channel_id {
-    //     Ok(channel_id) => channel_id,
-    //     Err(_) => {
-    //         ctx.say("符号なし整数を入力してください").await?;
-    //         return Ok(());
-    //     }
-    // };
 
     info!("a_member_id: {}", a_member_id);
 
@@ -87,6 +77,9 @@ pub async fn ut_member_webhook_reg_manual(
     Ok(())
 }
 
+/// あなたのメンバー拡散先リストを表示します
+/// 
+/// あなたのメンバーウェブフックを登録しているサーバー名を，一覧表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
 pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     let connection = ctx.data().connection.clone();
@@ -97,20 +90,21 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
         member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
 
     let mut response = String::new();
-    response.push_str("拡散先リスト\n --------- \n");
+    response.push_str("拡散先リスト\n --------- \n```");
 
     for member_webhook in member_webhooks {
         response.push_str(&format!("{}\n", member_webhook.dst_server_name));
     }
+    response.push_str("```");
 
     ctx.say(response).await?;
 
     Ok(())
 }
 
-/// メンバーwebhookを削除する
+/// メンバー拡散先を削除する
 ///
-/// サーバー名を指定して削除します
+/// サーバー名を指定してメンバーウェブフックを削除します
 #[poise::command(prefix_command, track_edits, aliases("UTdelete"), slash_command)]
 pub async fn ut_delete(
     ctx: Context<'_>,
