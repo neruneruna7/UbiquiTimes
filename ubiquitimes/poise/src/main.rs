@@ -6,7 +6,7 @@ use std::{
     collections::HashMap,
     env::{self, var},
     sync::{
-        atomic::{AtomicU32, Ordering},
+        atomic::{AtomicU32},
         Arc, Mutex,
     },
     time::Duration,
@@ -21,7 +21,7 @@ use commands::member_webhook::manual::{
 };
 use commands::{
     master_webhook::manual::{
-        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
+        ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
     },
     member_webhook::auto,
 };

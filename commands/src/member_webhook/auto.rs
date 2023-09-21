@@ -1,10 +1,10 @@
-use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result, SqlitePool};
-use crate::{member_webhook, Data, MemberWebhook};
+use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
+use crate::{Data, MemberWebhook};
 
 use anyhow::anyhow;
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Http;
-use poise::serenity_prelude::Member;
+
 use poise::serenity_prelude::Webhook;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
@@ -228,7 +228,7 @@ pub async fn ut_times_ubiqui_setting_send(
         let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
         webhook
-            .execute(&ctx, false, |w| w.content(format!("{}", &serialized_msg)))
+            .execute(&ctx, false, |w| w.content(serialized_msg.to_string()))
             .await?;
     }
 
@@ -306,7 +306,7 @@ pub async fn times_ubiqui_setting_recv(
 
     // データを送信
     recv_master_webhook
-        .execute(ctx, false, |w| w.content(format!("{}", &serialized_msg)))
+        .execute(ctx, false, |w| w.content(serialized_msg.to_string()))
         .await?;
 
     let my_webhook = Webhook::from_url(&http, &a_server_data.master_webhook_url).await?;
@@ -319,7 +319,7 @@ pub async fn times_ubiqui_setting_recv(
 
 /// 拡散設定返信を受信したときの処理
 pub async fn times_ubiqui_setting_set(
-    ctx: &serenity::Context,
+    _ctx: &serenity::Context,
     data: &Data,
     src_server_name: &str,
     times_ubiqui_setting: &TimesUbiquiSettingRecv,

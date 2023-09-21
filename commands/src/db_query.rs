@@ -5,8 +5,8 @@ pub(crate) mod member_webhooks;
 
 use crate::*;
 
-use anyhow::Context as anyhowContext;
-use anyhow::{anyhow, Result};
+
+use anyhow::{Result};
 
 use sqlx::SqlitePool;
 

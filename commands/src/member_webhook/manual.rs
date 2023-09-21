@@ -1,7 +1,7 @@
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
 use poise::serenity_prelude::{Http, Webhook};
-use sqlx::SqlitePool;
+
 use tracing::info;
 
 use crate::db_query::a_member_times_data;
@@ -144,7 +144,7 @@ pub async fn ut_times_release(
     ctx: Context<'_>,
     #[description = "拡散内容"] content: String,
 ) -> Result<()> {
-    let username = format!("UT-{}", ctx.author().name);
+    let _username = format!("UT-{}", ctx.author().name);
 
     let connection = ctx.data().connection.clone();
     // そのユーザのtimesデータを取得する
