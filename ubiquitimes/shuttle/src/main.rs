@@ -3,9 +3,25 @@ use poise::serenity_prelude as serenity;
 use shuttle_poise::ShuttlePoise;
 use shuttle_secrets::SecretStore;
 
-struct Data {} // User data, which is stored and accessible in all command invocations
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Context<'a> = poise::Context<'a, Data, Error>;
+use commands::member_webhook::auto::{
+    ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
+};
+use commands::member_webhook::manual::{
+    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+};
+use commands::{
+    master_webhook::manual::{
+        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
+    },
+    member_webhook::auto,
+};
+
+use commands::help;
+
+
+// struct Data {} // User data, which is stored and accessible in all command invocations
+// type Error = Box<dyn std::error::Error + Send + Sync>;
+// type Context<'a> = poise::Context<'a, Data, Error>;
 
 /// Responds with "world!"
 #[poise::command(slash_command)]
@@ -23,7 +39,22 @@ async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> Shuttle
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![hello()],
+            commands: vec![
+                hello(),
+                help(),
+                ut_set_own_master_webhook(),
+                ut_set_other_masterhook(),
+                ut_serverlist(),
+                // ut_get_master_hook(),
+                ut_member_webhook_reg_manual(),
+                ut_list(),
+                ut_delete(),
+                ut_times_release(),
+                ut_times_set(),
+                ut_times_unset(),
+                ut_times_show(),
+                ut_times_ubiqui_setting_send(),
+                ],
             ..Default::default()
         })
         .token(discord_token)
