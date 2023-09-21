@@ -1,4 +1,4 @@
-use anyhow::{Result};
+use anyhow::Result;
 
 // 相手サーバーに対して１つだけ存在するwebhook
 #[derive(Debug)]

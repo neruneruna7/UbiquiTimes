@@ -9,36 +9,13 @@ use crate::db_query::own_server_times_data;
 use crate::types::webhook::MemberWebhook;
 use crate::*;
 
-// 自動でメンバーwebhookを登録できるようにしたい
-// // メンバーwebhookを登録する
-//
-// #[poise::command(prefix_command, track_edits, slash_command)]
-// async fn UTregister(
-//     ctx: Context<'_>,
-//     #[description = "拡散先のサーバ名"] server_name: String,
-//     #[description = "拡散先のチャンネルID"] channel_id: i64,
-// ) -> Result<()> {
-//     // もしチャンネルにwebhookが存在していたら、それを使う
-//     // なければ、新規に作成する
-//     // チャンネルidから，存在しているwebhookを取得する
-//     let webhooks = msg.channel_id.webhooks(&ctx).await?;
-
-//     // UT- username という名前のwebhookがあるかどうか
-//     let webhook = if let Some(webhook) = webhooks.iter().find(|w| w.name == Some(format!("UT-{}", &msg.author.name))) {
-//         webhook.to_owned()
-//     } else {
-//         msg.channel_id.create_webhook(&ctx, format!("UT-{}", &msg.author.name)).await?
-//     };
-
-//     let my_webhook_url = webhook.url()?;
-
-//     // さらなる記述が必要
-
-//     Ok(())
-// }
-
 /// 非推奨 手動でメンバーwebhookを登録します
-#[poise::command(prefix_command, track_edits, aliases("UTmanualRegister"), slash_command)]
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UTmanualRegister"),
+    slash_command
+)]
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] b_server_name: String,
@@ -78,7 +55,7 @@ pub async fn ut_member_webhook_reg_manual(
 }
 
 /// あなたのメンバー拡散先リストを表示します
-/// 
+///
 /// あなたのメンバーウェブフックを登録しているサーバー名を，一覧表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
 pub async fn ut_list(ctx: Context<'_>) -> Result<()> {

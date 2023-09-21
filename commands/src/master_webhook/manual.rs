@@ -12,12 +12,7 @@ use tracing::info;
 /// bot導入後，最初に実行してください
 ///
 /// 自身のサーバのマスターwebhook，サーバ情報を登録します
-#[poise::command(
-    prefix_command,
-    track_edits,
-    aliases("UtOwnServerData"),
-    slash_command
-)]
+#[poise::command(prefix_command, track_edits, aliases("UtOwnServerData"), slash_command)]
 pub async fn ut_set_own_masterhook(
     ctx: Context<'_>,
     #[description = "本サーバのサーバ名"] server_name: String,
@@ -51,9 +46,8 @@ pub async fn ut_set_own_masterhook(
     Ok(())
 }
 
-
 /// 他サーバを，拡散可能先として登録する
-/// 
+///
 /// ここで他サーバを登録すると，メンバーはそのサーバに拡散するよう設定できるようになります．
 /// まだ拡散する先として登録されたわけではありません．
 #[poise::command(
@@ -111,7 +105,7 @@ pub async fn ut_set_other_masterhook(
 }
 
 /// 拡散可能なサーバ一覧
-/// 
+///
 /// 本サーバにおいて，拡散可能なサーバの一覧を表示します．
 #[poise::command(prefix_command, track_edits, aliases("UtServerlist"), slash_command)]
 pub async fn ut_serverlist(ctx: Context<'_>) -> Result<()> {

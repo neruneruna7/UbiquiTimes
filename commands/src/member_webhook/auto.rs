@@ -7,7 +7,7 @@ use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Http;
 
 use poise::serenity_prelude::Webhook;
-use serde::{Deserialize, Serialize};
+
 use tracing::debug;
 use tracing::info;
 
@@ -135,7 +135,6 @@ async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) ->
 // pub async fn ut_times_unset(
 //     ctx: Context<'_>,
 //     #[description = "`untimes`と入力してください"] untimes: String,
-
 
 /// あなたのTimesを拡散するための設定リクエストを送信します．
 ///

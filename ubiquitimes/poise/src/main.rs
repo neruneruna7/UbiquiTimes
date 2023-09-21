@@ -4,7 +4,7 @@ use poise::{serenity_prelude as serenity, Event};
 use sqlx::SqlitePool;
 use std::{
     env::{self, var},
-    sync::{Arc},
+    sync::Arc,
     time::Duration,
 };
 use tracing::info;
@@ -21,8 +21,8 @@ use commands::{
 };
 
 use commands::member_webhook::auto::*;
-use commands::types::global_data::Data;
 use commands::types::botcom::CmdKind;
+use commands::types::global_data::Data;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている

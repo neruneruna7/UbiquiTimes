@@ -1,4 +1,4 @@
-use anyhow::{Error};
+use anyhow::Error;
 
 use sqlx::SqlitePool;
 use std::sync::Arc;
