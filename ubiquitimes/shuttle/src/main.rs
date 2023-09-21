@@ -8,6 +8,8 @@ use shuttle_secrets::SecretStore;
 
 use sqlx::SqlitePool;
 
+use shuttle_static_folder::StaticFolder;
+
 use commands::member_webhook::auto::{
     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
 };
@@ -39,7 +41,7 @@ async fn hello(ctx: Context<'_>) -> Result<(), Error> {
 #[shuttle_runtime::main]
 async fn poise(
     #[shuttle_secrets::Secrets] secret_store: SecretStore,
-    #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
+    // #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
 ) -> ShuttlePoise<Data, Error> {
     // Get the discord token set in `Secrets.toml`
     let discord_token = secret_store
