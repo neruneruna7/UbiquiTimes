@@ -1,7 +1,14 @@
-use anyhow::Context as _;
+use std::sync::Arc;
+use std::path::PathBuf;
+
+use anyhow::{Context as _, Error};
 use poise::serenity_prelude as serenity;
 use shuttle_poise::ShuttlePoise;
 use shuttle_secrets::SecretStore;
+
+use sqlx::SqlitePool;
+
+use shuttle_static_folder::StaticFolder;
 
 use commands::member_webhook::auto::{
     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
@@ -11,13 +18,14 @@ use commands::member_webhook::manual::{
 };
 use commands::{
     master_webhook::manual::{
-        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_master_webhook,
+        ut_get_master_hook, ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,
     },
     member_webhook::auto,
 };
 
 use commands::help;
-
+use commands::types::global_data::{Context, Data};
+use tracing::info;
 
 // struct Data {} // User data, which is stored and accessible in all command invocations
 // type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -31,18 +39,26 @@ async fn hello(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 #[shuttle_runtime::main]
-async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> ShuttlePoise<Data, Error> {
+async fn poise(
+    #[shuttle_secrets::Secrets] secret_store: SecretStore,
+    // #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
+) -> ShuttlePoise<Data, Error> {
     // Get the discord token set in `Secrets.toml`
     let discord_token = secret_store
         .get("DISCORD_TOKEN")
         .context("'DISCORD_TOKEN' was not found")?;
+    let database_url = secret_store
+        .get("DATABASE_URL")
+        .context("'DATABASE_URL' was not found")?;
+
+    let pool = SqlitePool::connect(&database_url).await.unwrap();
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: vec![
                 hello(),
                 help(),
-                ut_set_own_master_webhook(),
+                ut_set_own_masterhook(),
                 ut_set_other_masterhook(),
                 ut_serverlist(),
                 // ut_get_master_hook(),
@@ -54,15 +70,18 @@ async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> Shuttle
                 ut_times_unset(),
                 ut_times_show(),
                 ut_times_ubiqui_setting_send(),
-                ],
+            ],
             ..Default::default()
         })
         .token(discord_token)
         .intents(serenity::GatewayIntents::non_privileged())
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
+                info!("Logged in as {}", _ready.user.name);
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data {})
+                Ok(Data {
+                    connection: Arc::new(pool),
+                })
             })
         })
         .build()

@@ -27,7 +27,7 @@ use commands::member_webhook::manual::{
 
 use commands::member_webhook::auto;
 use commands::types::botcom::CmdKind;
-use commands::types::global_data::Data;
+use commands::types::global_data::{Context, Data};
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
