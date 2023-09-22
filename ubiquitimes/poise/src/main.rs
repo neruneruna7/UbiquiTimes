@@ -35,7 +35,7 @@ use commands::types::global_data::Data;
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
 // type Error = Box<dyn std::error::Error + Send + Sync>;
-type Context<'a> = poise::Context<'a, Data, Error>;
+// type Context<'a> = poise::Context<'a, Data, Error>;
 
 // Custom user data passed to all command functions
 // すべてのコマンド関数に渡されるカスタム ユーザー データ

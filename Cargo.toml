@@ -1,7 +1,9 @@
 [workspace]
 members = [
     "commands",
+    "common",
     "ubiquitimes/poise",
+    "ubiquitimes/shuttle",
     # "sb/commands",
     # "sb/slcommands",
 ]
