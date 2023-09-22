@@ -1,45 +1,21 @@
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
 use poise::serenity_prelude::{Http, Webhook};
-use sqlx::SqlitePool;
+
 use tracing::info;
 
-use crate::db_query::a_member_times_data;
 use crate::db_query::member_webhooks::*;
+use crate::db_query::own_server_times_data;
+use crate::types::webhook::MemberWebhook;
 use crate::*;
 
-// 自動でメンバーwebhookを登録できるようにしたい
-// // メンバーwebhookを登録する
-//
-// #[poise::command(prefix_command, track_edits, slash_command)]
-// async fn UTregister(
-//     ctx: Context<'_>,
-//     #[description = "拡散先のサーバ名"] server_name: String,
-//     #[description = "拡散先のチャンネルID"] channel_id: i64,
-// ) -> Result<()> {
-//     // もしチャンネルにwebhookが存在していたら、それを使う
-//     // なければ、新規に作成する
-//     // チャンネルidから，存在しているwebhookを取得する
-//     let webhooks = msg.channel_id.webhooks(&ctx).await?;
-
-//     // UT- username という名前のwebhookがあるかどうか
-//     let webhook = if let Some(webhook) = webhooks.iter().find(|w| w.name == Some(format!("UT-{}", &msg.author.name))) {
-//         webhook.to_owned()
-//     } else {
-//         msg.channel_id.create_webhook(&ctx, format!("UT-{}", &msg.author.name)).await?
-//     };
-
-//     let my_webhook_url = webhook.url()?;
-
-//     // さらなる記述が必要
-
-//     Ok(())
-// }
-
-// 手動でメンバーwebhookを登録する
-// (prefix)UTregisterM server_name webhook_url
-
-#[poise::command(prefix_command, track_edits, aliases("UTregisterM"), slash_command)]
+/// 非推奨 手動でメンバーwebhookを登録します
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UTmanualRegister"),
+    slash_command
+)]
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] b_server_name: String,
@@ -55,14 +31,6 @@ pub async fn ut_member_webhook_reg_manual(
     let b_guild_id = b_guild_id
         .parse::<u64>()
         .context("符号なし整数を入力してください")?;
-
-    // match channel_id {
-    //     Ok(channel_id) => channel_id,
-    //     Err(_) => {
-    //         ctx.say("符号なし整数を入力してください").await?;
-    //         return Ok(());
-    //     }
-    // };
 
     info!("a_member_id: {}", a_member_id);
 
@@ -86,6 +54,9 @@ pub async fn ut_member_webhook_reg_manual(
     Ok(())
 }
 
+/// あなたのメンバー拡散先リストを表示します
+///
+/// あなたのメンバーウェブフックを登録しているサーバー名を，一覧表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
 pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     let connection = ctx.data().connection.clone();
@@ -96,20 +67,21 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
         member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
 
     let mut response = String::new();
-    response.push_str("拡散先リスト\n --------- \n");
+    response.push_str("拡散先リスト\n --------- \n```");
 
     for member_webhook in member_webhooks {
         response.push_str(&format!("{}\n", member_webhook.dst_server_name));
     }
+    response.push_str("```");
 
     ctx.say(response).await?;
 
     Ok(())
 }
 
-/// メンバーwebhookを削除する
+/// メンバー拡散先を削除する
 ///
-/// サーバー名を指定して削除します
+/// サーバー名を指定してメンバーウェブフックを削除します
 #[poise::command(prefix_command, track_edits, aliases("UTdelete"), slash_command)]
 pub async fn ut_delete(
     ctx: Context<'_>,
@@ -144,12 +116,13 @@ pub async fn ut_times_release(
     ctx: Context<'_>,
     #[description = "拡散内容"] content: String,
 ) -> Result<()> {
-    let username = format!("UT-{}", ctx.author().name);
+    let _username = format!("UT-{}", ctx.author().name);
 
     let connection = ctx.data().connection.clone();
     // そのユーザのtimesデータを取得する
-    let times_data = a_member_times_data::select_member_times(connection.as_ref(), ctx.author().id.0)
-        .await?;
+    let times_data =
+        own_server_times_data::select_own_times_data(connection.as_ref(), ctx.author().id.0)
+            .await?;
 
     // webhookのusernameを設定する
 
@@ -216,7 +189,11 @@ async fn execute_ubiquitus(
     for webhook_url in webhooks.iter() {
         let webhook = Webhook::from_url(&http, webhook_url).await?;
         webhook
-            .execute(&http, false, |w| w.content(content).username(username).avatar_url(&avatar_url))
+            .execute(&http, false, |w| {
+                w.content(content)
+                    .username(username)
+                    .avatar_url(&avatar_url)
+            })
             .await?;
     }
     Ok(())

@@ -1,26 +1,29 @@
-use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result, SqlitePool};
-use crate::{member_webhook, Data, MemberWebhook};
+use crate::types::global_data::Data;
+use crate::types::webhook::MemberWebhook;
+use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
 
 use anyhow::anyhow;
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Http;
-use poise::serenity_prelude::Member;
+
 use poise::serenity_prelude::Webhook;
-use serde::{Deserialize, Serialize};
+
 use tracing::debug;
 use tracing::info;
 
+use crate::db_query::{member_webhooks, own_server_times_data::*};
 use crate::db_query::{
-    a_member_times_data,
-    a_server_data::{self, *},
+    own_server_data::{self, *},
+    own_server_times_data,
 };
-use crate::db_query::{a_member_times_data::*, member_webhooks};
+
+use crate::types::botcom::*;
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
 /// 本サーバにおいて，このコマンドを実行したチャンネルがあなたのTimesであるとbotに登録します．
 /// 結果は実行するチャンネルに依存します．
-#[poise::command(prefix_command, track_edits, aliases("UTtimesSetting"), slash_command)]
+#[poise::command(prefix_command, track_edits, aliases("UtTimesSet"), slash_command)]
 pub async fn ut_times_set(
     ctx: Context<'_>,
     #[description = "拡散時に使う名前を入力してください"] name: String,
@@ -47,7 +50,7 @@ pub async fn ut_times_set(
 
     let connection = ctx.data().connection.clone();
 
-    upsert_member_times(
+    upsert_own_times_data(
         connection.as_ref(),
         member_id,
         &member_name,
@@ -67,7 +70,7 @@ pub async fn ut_times_set(
 /// 本サーバにおいて，あなたの登録されているTimesを削除します.
 /// 結果は実行するチャンネルに依存しません．
 /// どのチャンネルから実行しても同じ内容が実行されます．
-#[poise::command(prefix_command, track_edits, aliases("UTtimesUnset"), slash_command)]
+#[poise::command(prefix_command, track_edits, aliases("UtTimesUnset"), slash_command)]
 pub async fn ut_times_unset(
     ctx: Context<'_>,
     #[description = "`untimes`と入力してください"] untimes: String,
@@ -94,7 +97,7 @@ pub async fn ut_times_unset(
 }
 
 /// デバッグ用に member_times_data を全て表示する
-#[poise::command(prefix_command, track_edits, aliases("UTtimesShow"), slash_command)]
+#[poise::command(prefix_command, track_edits, aliases("UtTimesShow"), slash_command)]
 pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
     let connection = ctx.data().connection.clone();
 
@@ -133,48 +136,6 @@ async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) ->
 //     ctx: Context<'_>,
 //     #[description = "`untimes`と入力してください"] untimes: String,
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct BotComMessage {
-    pub src: String,
-    pub dst: String,
-    pub cmd: CmdKind,
-    pub ttl: usize,
-}
-
-impl BotComMessage {
-    fn from(src: &str, dst: &str, cmd: CmdKind) -> BotComMessage {
-        let src = src.to_string();
-        let dst = dst.to_string();
-        let ttl = 4;
-        Self { src, dst, cmd, ttl }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum CmdKind {
-    TimesUbiquiSettingSend(TimesUbiquiSettingSend),
-    TimesUbiquiSettingRecv(TimesUbiquiSettingRecv),
-    None,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TimesUbiquiSettingSend {
-    src_member_id: u64,
-    src_master_webhook_url: String,
-    src_channel_id: u64,
-    src_member_webhook_url: String,
-}
-
-// 常にリクエストの送信側をsrcとする
-// AサーバがBサーバにリクエストを送信するとき，この構想体においてもAサーバがsrc，Bサーバがdstである
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TimesUbiquiSettingRecv {
-    pub src_member_id: u64,
-    pub dst_guild_id: u64,
-    pub dst_channel_id: u64,
-    pub dst_webhook_url: String,
-}
-
 /// あなたのTimesを拡散するための設定リクエストを送信します．
 ///
 /// 拡散可能サーバすべてに対して，拡散設定するためのリクエストを送信します
@@ -192,11 +153,11 @@ pub async fn ut_times_ubiqui_setting_send(
 
     let connection = ctx.data().connection.clone();
     // 自身のtimesの情報を取得
-    let member_times = select_member_times(connection.as_ref(), ctx.author().id.0).await?;
+    let member_times = select_own_times_data(connection.as_ref(), ctx.author().id.0).await?;
 
     // 自身のサーバ情報を取得
     let guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
-    let server_data = select_a_server_data(connection.as_ref(), guild_id).await?;
+    let server_data = select_own_server_data(connection.as_ref(), guild_id).await?;
 
     // 拡散可能サーバのリストを取得
     let other_master_webhooks = master_webhook_select_all(connection.as_ref()).await?;
@@ -228,7 +189,7 @@ pub async fn ut_times_ubiqui_setting_send(
         let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
         webhook
-            .execute(&ctx, false, |w| w.content(format!("{}", &serialized_msg)))
+            .execute(&ctx, false, |w| w.content(serialized_msg.to_string()))
             .await?;
     }
 
@@ -278,13 +239,13 @@ pub async fn times_ubiqui_setting_recv(
 
     // a_member_id と紐づいているtimeswebhookを取得
     let member_times_data =
-        a_member_times_data::select_member_times(connection.as_ref(), src_member_id).await?;
+        own_server_times_data::select_own_times_data(connection.as_ref(), src_member_id).await?;
     let times_webhook_url = member_times_data.webhook_url;
     let times_channel_id = member_times_data.channel_id;
 
     // 自身のサーバ情報を取得
     let a_server_data =
-        a_server_data::select_a_server_data_without_guild_id(connection.as_ref()).await?;
+        own_server_data::select_own_server_data_without_guild_id(connection.as_ref()).await?;
 
     // データをTimesUbiquiSettingRecvに詰める
     let times_ubiqui_setting_recv = TimesUbiquiSettingRecv {
@@ -306,7 +267,7 @@ pub async fn times_ubiqui_setting_recv(
 
     // データを送信
     recv_master_webhook
-        .execute(ctx, false, |w| w.content(format!("{}", &serialized_msg)))
+        .execute(ctx, false, |w| w.content(serialized_msg.to_string()))
         .await?;
 
     let my_webhook = Webhook::from_url(&http, &a_server_data.master_webhook_url).await?;
@@ -319,7 +280,7 @@ pub async fn times_ubiqui_setting_recv(
 
 /// 拡散設定返信を受信したときの処理
 pub async fn times_ubiqui_setting_set(
-    ctx: &serenity::Context,
+    _ctx: &serenity::Context,
     data: &Data,
     src_server_name: &str,
     times_ubiqui_setting: &TimesUbiquiSettingRecv,

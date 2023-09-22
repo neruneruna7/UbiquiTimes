@@ -1,4 +1,5 @@
 use super::*;
+use types::webhook::MemberWebhook;
 
 // メンバーwebhookの登録
 // upsert
