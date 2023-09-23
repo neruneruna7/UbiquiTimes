@@ -302,6 +302,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "crypt"
+version = "0.1.0"
+dependencies = [
+ "base64ct",
+ "rand",
+ "rsa",
+ "spki",
+]
+
+[[package]]
 name = "crypto-common"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1417,6 +1427,7 @@ dependencies = [
  "pkcs1",
  "pkcs8",
  "rand_core",
+ "sha2",
  "signature",
  "spki",
  "subtle",

@@ -6,6 +6,7 @@ members = [
     # "ubiquitimes/shuttle",
     # "sb/commands",
     # "sb/slcommands",
+    "sb/crypt",
 ]
 
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none
