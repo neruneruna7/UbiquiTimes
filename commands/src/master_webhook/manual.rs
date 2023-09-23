@@ -12,6 +12,7 @@ use tracing::info;
 /// bot導入後，最初に実行してください
 ///
 /// 自身のサーバのマスターwebhook，サーバ情報を登録します
+/// 返信として，他のサーバが自身のサーバを拡散可能先として登録する際にコピペ可能なテキストを返します．
 #[poise::command(prefix_command, track_edits, aliases("UtOwnServerData"), slash_command)]
 pub async fn ut_set_own_masterhook(
     ctx: Context<'_>,
@@ -39,7 +40,12 @@ pub async fn ut_set_own_masterhook(
     )
     .await?;
 
-    ctx.say(format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)).await?;
+    let register_tmplate_str = format!(
+        "~UtOtherServerHook {} {} {}", server_name, master_webhook_url, guild_id
+    );
+    // format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)
+
+    ctx.say(register_tmplate_str).await?;
 
     loged(&ctx, "サーバ情報を登録しました").await?;
 
@@ -53,7 +59,7 @@ pub async fn ut_set_own_masterhook(
 #[poise::command(
     prefix_command,
     track_edits,
-    aliases("UtOtherServerData"),
+    aliases("UtOtherServerHook"),
     slash_command
 )]
 pub async fn ut_set_other_masterhook(
@@ -62,20 +68,6 @@ pub async fn ut_set_other_masterhook(
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
     #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: String,
 ) -> Result<()> {
-    // let guild_id_parsed = match guild_id {
-    //     Some(id) => {
-    //         let parse_result = id.parse::<u64>();
-    //         match parse_result {
-    //             Ok(id) => Some(id),
-    //             Err(_) => {
-    //                 ctx.say("guild_idは数字で指定してください。").await?;
-    //                 return Ok(());
-    //             }
-    //         }
-    //     }
-    //     None => None,
-    // };
-
     let guild_id = guild_id
         .parse::<u64>()
         .context("guild_idは数字で指定してください。")?;
@@ -102,6 +94,28 @@ pub async fn ut_set_other_masterhook(
     ctx.say(&response_msg).await?;
 
     loged(&ctx, format!("拡散可能サーバを登録しました\n{}", response_msg).as_ref()).await?;
+    Ok(())
+}
+
+/// 拡散可能なサーバを削除する
+/// 
+/// 本サーバにおいて，拡散可能なサーバを削除します．
+#[poise::command(prefix_command, track_edits, aliases("UtDeleteOtherServer"), slash_command)]
+pub async fn ut_delete_other_masterhook(
+    ctx: Context<'_>,
+    #[description = "削除するサーバ名"] server_name: String,
+) -> Result<()> {
+    // log
+    info!("server_name: {}", server_name);
+
+    // DBから削除する
+    let connection = ctx.data().connection.clone();
+
+    master_webhook_delete(connection.as_ref(), &server_name).await?;
+
+    ctx.say(format!("{}を削除しました", server_name)).await?;
+
+    loged(&ctx, format!("拡散可能サーバを削除しました\n{}", server_name).as_ref()).await?;
     Ok(())
 }
 
