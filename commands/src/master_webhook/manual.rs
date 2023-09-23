@@ -1,7 +1,7 @@
 use crate::*;
 
 use crate::db_query::master_webhooks::*;
-use crate::db_query::own_server_data::*;
+use crate::db_query::own_server_data::{};
 use crate::types::webhook::MasterWebhook;
 
 use anyhow::Context as anyhowContext;
@@ -33,7 +33,7 @@ pub async fn ut_set_own_masterhook(
     let connection = ctx.data().connection.clone();
 
     upsert_own_server_data(
-        &connection,
+        &ctx,
         &server_name,
         &guild_id,
         &master_channel_id,

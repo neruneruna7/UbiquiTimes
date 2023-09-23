@@ -4,9 +4,12 @@ use poise::{serenity_prelude as serenity, Event};
 use sqlx::SqlitePool;
 use std::{
     env::{self, var},
-    sync::Arc,
+    sync::{Arc},
     time::Duration,
 };
+
+use poise::serenity_prelude::RwLock;
+
 use tracing::info;
 
 // use commands::member_webhook::auto::{
@@ -241,6 +244,7 @@ async fn main() {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     connection: Arc::new(pool),
+                    master_webhook_url : RwLock::new(String::new()),
                 })
             })
         })
