@@ -10,6 +10,7 @@ pub mod types;
 
 mod db_query;
 
+use tracing::info;
 use types::global_data::Context;
 
 async fn create_webhook_from_channel(
@@ -52,6 +53,7 @@ async fn log_ut_bot(
 
     let webhook = Webhook::from_url(ctx, &master_webhook_url).await?;
 
+    info!(msg);
     webhook.execute(&ctx, false, |w| {
         w.content(msg)
     }).await?;
