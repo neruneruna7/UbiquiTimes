@@ -11,7 +11,7 @@ pub mod types;
 mod db_query;
 
 use tracing::info;
-use types::global_data::Context;
+use types::global_data::{Context, Data};
 
 async fn create_webhook_from_channel(
     ctx: Context<'_>,
@@ -31,21 +31,20 @@ async fn upsert_own_server_data(
 ) -> anyhow::Result<()> {
     let connection = ctx.data().connection.clone();
     db_query::own_server_data::upsert_own_server_data(&connection, server_name, guild_id, master_channel_id, master_webhook_url).await?;
-    register_masterhook_ctx_data(&connection, ctx, guild_id).await?;
+    register_masterhook_ctx_data(&connection, ctx.data()).await?;
     Ok(())
 }
 
 pub async fn register_masterhook_ctx_data(
     connection: &sqlx::SqlitePool,
-    ctx: &Context<'_>,
-    guild_id: &str,
+    data: &Data,
 ) -> anyhow::Result<()> {
-    let server_data = db_query::own_server_data::select_own_server_data(&connection, guild_id.parse::<u64>().unwrap()).await?;
-    *ctx.data().master_webhook_url.write().await = server_data.master_webhook_url;
+    let server_data = db_query::own_server_data::select_own_server_data_without_guild_id(&connection).await?;
+    *data.master_webhook_url.write().await = server_data.master_webhook_url;
     Ok(())
 }
 
-async fn log_ut_bot(
+async fn loged(
     ctx: &Context<'_>,
     msg: &str,
 ) -> Result<()> {

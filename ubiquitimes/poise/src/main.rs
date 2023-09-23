@@ -80,6 +80,9 @@ async fn event_handler(
     match event {
         Event::Ready { data_about_bot } => {
             println!("Logged in as {}", data_about_bot.user.name);
+
+            let connection = data.connection.clone();
+            commands::register_masterhook_ctx_data(&connection, data).await?;
         }
         Event::Message { new_message } => {
             println!("msg recvd");

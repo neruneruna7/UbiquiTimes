@@ -30,8 +30,6 @@ pub async fn ut_set_own_masterhook(
         .0
         .to_string();
 
-    let connection = ctx.data().connection.clone();
-
     upsert_own_server_data(
         &ctx,
         &server_name,
@@ -42,6 +40,8 @@ pub async fn ut_set_own_masterhook(
     .await?;
 
     ctx.say(format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)).await?;
+
+    loged(&ctx, "サーバ情報を登録しました").await?;
 
     Ok(())
 }
@@ -99,8 +99,9 @@ pub async fn ut_set_other_masterhook(
         "登録しました．```\nserver_name: {}, webhook_url: {}, guild_id: {}```",
         server_name, master_webhook_url, guild_id
     );
-    ctx.say(response_msg).await?;
+    ctx.say(&response_msg).await?;
 
+    loged(&ctx, format!("拡散可能サーバを登録しました\n{}", response_msg).as_ref()).await?;
     Ok(())
 }
 
