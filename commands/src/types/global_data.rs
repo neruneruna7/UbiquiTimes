@@ -1,5 +1,6 @@
 use anyhow::Error;
 
+use poise::serenity_prelude::RwLock;
 use sqlx::SqlitePool;
 use std::sync::Arc;
 
@@ -11,4 +12,5 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 // すべてのコマンド関数に渡されるカスタム ユーザー データ
 pub struct Data {
     pub connection: Arc<SqlitePool>,
+    pub master_webhook_url: RwLock<String>,
 }

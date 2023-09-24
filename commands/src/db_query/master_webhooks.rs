@@ -76,3 +76,19 @@ pub async fn master_webhook_select_all(
 
     Ok(master_webhooks)
 }
+
+pub async fn master_webhook_delete(
+    connection: &SqlitePool,
+    server_name: &str,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+        DELETE FROM master_webhooks WHERE server_name = ?;
+        "#,
+        server_name
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
+}

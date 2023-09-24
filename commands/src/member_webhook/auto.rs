@@ -1,3 +1,4 @@
+use crate::loged;
 use crate::types::global_data::Data;
 use crate::types::webhook::MemberWebhook;
 use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
@@ -176,7 +177,7 @@ pub async fn ut_times_ubiqui_setting_send(
 
     let mut bot_com_msg = BotComMessage::from(
         &server_data.server_name,
-        "次のすべての送信先サーバに送信するループ内にて，送信先のサーバ名を代入してください",
+        "",
         CmdKind::TimesUbiquiSettingSend(times_ubiqui_setting_send),
     );
 
@@ -194,6 +195,8 @@ pub async fn ut_times_ubiqui_setting_send(
     }
 
     ctx.say("拡散設定リクエストを送信しました").await?;
+
+    loged(&ctx, "拡散設定リクエストが送信されました").await?;
 
     Ok(())
 }
