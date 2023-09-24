@@ -4,7 +4,7 @@ use poise::{serenity_prelude as serenity, Event};
 use sqlx::SqlitePool;
 use std::{
     env::{self, var},
-    sync::{Arc},
+    sync::Arc,
     time::Duration,
 };
 
@@ -19,7 +19,7 @@ use tracing::info;
 //     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 // };
 use commands::master_webhook::manual::{
-    ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,ut_delete_other_masterhook
+    ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,
 };
 use commands::member_webhook::auto::{
     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
@@ -248,7 +248,7 @@ async fn main() {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     connection: Arc::new(pool),
-                    master_webhook_url : RwLock::new(String::new()),
+                    master_webhook_url: RwLock::new(String::new()),
                 })
             })
         })

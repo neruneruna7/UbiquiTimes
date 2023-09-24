@@ -1,7 +1,6 @@
 use crate::*;
 
 use crate::db_query::master_webhooks::*;
-use crate::db_query::own_server_data::{};
 use crate::types::webhook::MasterWebhook;
 
 use anyhow::Context as anyhowContext;
@@ -41,7 +40,8 @@ pub async fn ut_set_own_masterhook(
     .await?;
 
     let register_tmplate_str = format!(
-        "~UtOtherServerHook {} {} {}", server_name, master_webhook_url, guild_id
+        "~UtOtherServerHook {} {} {}",
+        server_name, master_webhook_url, guild_id
     );
     // format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)
 
@@ -93,14 +93,23 @@ pub async fn ut_set_other_masterhook(
     );
     ctx.say(&response_msg).await?;
 
-    loged(&ctx, format!("拡散可能サーバを登録しました\n{}", response_msg).as_ref()).await?;
+    loged(
+        &ctx,
+        format!("拡散可能サーバを登録しました\n{}", response_msg).as_ref(),
+    )
+    .await?;
     Ok(())
 }
 
 /// 拡散可能なサーバを削除する
-/// 
+///
 /// 本サーバにおいて，拡散可能なサーバを削除します．
-#[poise::command(prefix_command, track_edits, aliases("UtDeleteOtherServer"), slash_command)]
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UtDeleteOtherServer"),
+    slash_command
+)]
 pub async fn ut_delete_other_masterhook(
     ctx: Context<'_>,
     #[description = "削除するサーバ名"] server_name: String,
@@ -115,7 +124,11 @@ pub async fn ut_delete_other_masterhook(
 
     ctx.say(format!("{}を削除しました", server_name)).await?;
 
-    loged(&ctx, format!("拡散可能サーバを削除しました\n{}", server_name).as_ref()).await?;
+    loged(
+        &ctx,
+        format!("拡散可能サーバを削除しました\n{}", server_name).as_ref(),
+    )
+    .await?;
     Ok(())
 }
 
