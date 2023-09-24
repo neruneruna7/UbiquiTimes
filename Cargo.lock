@@ -305,10 +305,8 @@ dependencies = [
 name = "crypt"
 version = "0.1.0"
 dependencies = [
- "base64ct",
  "rand",
  "rsa",
- "spki",
 ]
 
 [[package]]
