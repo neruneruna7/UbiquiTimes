@@ -3,7 +3,7 @@ use crate::types::global_data::Data;
 use crate::types::webhook::MemberWebhook;
 use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context as _};
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Http;
 
@@ -35,22 +35,32 @@ pub async fn ut_times_set(
     let member_name = name;
     let channel_id = ctx.channel_id().0;
 
-    let webhook_name = format!("UT-{}", member_id);
-    let webhook = ctx.channel_id().create_webhook(&ctx, webhook_name).await;
+    let webhook_name = Some(format!("UT-{}", member_id));
+
+    // チャンネルに"UT-{メンバーid}"のwebhookがあるか確認
+    let webhooks = ctx.channel_id().webhooks(&ctx).await?;
+
+    let webhook_exists = webhooks.iter().any(|webhook| {
+        // webhook.name == webhook_name_option
+        webhook.name == webhook_name
+    });
+
+    // 存在するならそれを返す，無ければ作る
+    let webhook = if webhook_exists {
+        webhooks
+            .iter()
+            .find(|webhook| webhook.name == webhook_name)
+            .unwrap()
+            .clone()
+    } else {
+        ctx.channel_id().create_webhook(&ctx, webhook_name.unwrap()).await.context("webhookの作成に失敗しました")?
+    };
 
     info!("{:?}", webhook);
 
-    let webhook_url = match webhook {
-        Ok(t) => t.url()?,
-        Err(e) => {
-            let m = format!("webhookの作成に失敗しました: {}", e);
-            ctx.say(&m).await?;
-            return Err(anyhow::anyhow!(m));
-        }
-    };
-
+    let webhook_url = webhook.url()?;
     let connection = ctx.data().connection.clone();
-
+    
     upsert_own_times_data(
         connection.as_ref(),
         member_id,
