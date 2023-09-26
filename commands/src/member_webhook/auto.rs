@@ -55,14 +55,17 @@ pub async fn ut_times_set(
             .clone()
     } else {
         info!("member webhook not exists. create new webhook");
-        ctx.channel_id().create_webhook(&ctx, webhook_name.unwrap()).await.context("webhookの作成に失敗しました")?
+        ctx.channel_id()
+            .create_webhook(&ctx, webhook_name.unwrap())
+            .await
+            .context("webhookの作成に失敗しました")?
     };
 
     info!("{:?}", webhook);
 
     let webhook_url = webhook.url()?;
     let connection = ctx.data().connection.clone();
-    
+
     upsert_own_times_data(
         connection.as_ref(),
         member_id,

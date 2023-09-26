@@ -1,10 +1,10 @@
 // use rsa::sha2::Sha256;
-use serde::{Serialize, Deserialize};
-use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use serde::{Deserialize, Serialize};
 
 // use jsonwebtoken_rustcrypto::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
-use rsa::{RsaPrivateKey, RsaPublicKey};
-use rsa::pkcs8::{EncodePrivateKey, DecodePrivateKey, EncodePublicKey, DecodePublicKey, LineEnding};
+use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey, LineEnding};
+use rsa::RsaPrivateKey;
 // use rsa::pss::{SigningKey, VerifyingKey};
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
@@ -13,7 +13,7 @@ struct Claims {
     exp: usize,
 }
 
-fn main(){    
+fn main() {
     let mut rng = rand::thread_rng();
     let bits = 2048;
 
@@ -22,16 +22,26 @@ fn main(){
 
     let priv_key_pem = priv_key.to_pkcs8_pem(LineEnding::LF).unwrap();
     let pub_key_pem = pub_key.to_public_key_pem(LineEnding::LF).unwrap();
-    
+
     let my_claims = Claims {
         sub: "me".to_owned(),
         company: "ACME".to_owned(),
         exp: 10000000000,
     };
 
-    let token = encode(&Header::new(Algorithm::RS256), &my_claims, &EncodingKey::from_rsa_pem(priv_key_pem.as_bytes()).unwrap()).unwrap();
+    let token = encode(
+        &Header::new(Algorithm::RS256),
+        &my_claims,
+        &EncodingKey::from_rsa_pem(priv_key_pem.as_bytes()).unwrap(),
+    )
+    .unwrap();
     println!("Token: {}", token);
-    
-    let token = decode::<Claims>(&token, &DecodingKey::from_rsa_pem(pub_key_pem.as_bytes()).unwrap(), &Validation::new(Algorithm::RS256)).unwrap();
+
+    let token = decode::<Claims>(
+        &token,
+        &DecodingKey::from_rsa_pem(pub_key_pem.as_bytes()).unwrap(),
+        &Validation::new(Algorithm::RS256),
+    )
+    .unwrap();
     println!("Token: {:?}", token.claims);
 }

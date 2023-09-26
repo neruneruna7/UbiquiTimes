@@ -45,7 +45,7 @@ pub(crate) async fn select_own_server_data(
     .await?;
 
     let a_server_data = ServerData::from_row(
-        &row.guild_id.to_string(),
+        &row.guild_id,
         &row.server_name,
         &row.master_channel_id.to_string(),
         &row.master_webhook_url,
@@ -68,7 +68,7 @@ pub(crate) async fn select_own_server_data_without_guild_id(
     .await?;
 
     let a_server_data = ServerData::from_row(
-        &row.guild_id.to_string(),
+        &row.guild_id,
         &row.server_name,
         &row.master_channel_id.to_string(),
         &row.master_webhook_url,

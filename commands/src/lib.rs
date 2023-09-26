@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use poise::serenity_prelude::{self as serenity, connection};
+use poise::serenity_prelude::{self as serenity};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
@@ -47,7 +47,7 @@ pub async fn register_masterhook_ctx_data(
     data: &Data,
 ) -> anyhow::Result<()> {
     let server_data =
-        db_query::own_server_data::select_own_server_data_without_guild_id(&connection).await?;
+        db_query::own_server_data::select_own_server_data_without_guild_id(connection).await?;
     *data.master_webhook_url.write().await = server_data.master_webhook_url;
     Ok(())
 }
