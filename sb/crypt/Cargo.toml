@@ -10,15 +10,17 @@ rand = "*"
 # rsa = {version = "*", features = ["sha2"]}
 # jws = "*"
 
-hmac = "*"
+# hmac = "*"
 rsa = {version = "*", features = ["sha2"]}
-jwt = "*"
+# jwt = "*"
 sha2 = "*"
 
-josekit = "*"
-openssl = "*"
+# josekit = "*"
+# openssl = "*"
+rsa-oaep-pss = "*"
 
 jsonwebtoken = "*"
+# jsonwebtoken-rustcrypto = "1"
 
 serde = {version = "*", features = ["derive"]}
 serde_json = "*"

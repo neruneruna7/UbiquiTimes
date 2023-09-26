@@ -1,61 +1,49 @@
-use josekit::{jws::{JwsHeader, PS256}, jwt::{self, JwtPayload}};
-// use josekit::jwt::header;
+use serde::{Serialize, Deserialize};
+use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
 
-// use ::jwt::header;
-// use rsa::{RsaPrivateKey, RsaPublicKey};
-// use rsa::pkcs8::{EncodePrivateKey, DecodePrivateKey, EncodePublicKey, DecodePublicKey, LineEnding};
+// use jsonwebtoken_rustcrypto::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+use rsa::{RsaPrivateKey, RsaPublicKey};
+use rsa::pkcs8::{EncodePrivateKey, DecodePrivateKey, EncodePublicKey, DecodePublicKey, LineEnding};
 
-// const PRIVATE_KEY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "private.pem");
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,
+    company: String,
+    exp: usize,
+}
 
-// const PUBLIC_KEY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "public.pem");
+fn main(){    
+    let mut rng = rand::thread_rng();
+    let bits = 2048;
 
-const PRIVATE_KEY: &str = "private.pem";
-const PUBLIC_KEY: &str = "public.pem";
+    let priv_key = RsaPrivateKey::new(&mut rng, bits).unwrap();
+    let pub_key = priv_key.to_public_key();
 
-fn main(){
-    // // Generating RSA key pair by openssl
-    // let rsa = Rsa::generate(2048).unwrap();
-    // let private_key_pem = rsa.private_key_to_pem().unwrap();
-    // let public_key_pem = rsa.public_key_to_pem().unwrap();
-
-    // println!("private_key_pem: {:?}", private_key_pem);
-    // println!("public_key_pem: {:?}", public_key_pem);
-
-
-    // // Generating RSA key pair
-    // let mut rng = rand::thread_rng();
-    // let bits = 2048;
+    let priv_key_pem = priv_key.to_pkcs8_pem(LineEnding::LF).unwrap();
+    let pub_key_pem = pub_key.to_public_key_pem(LineEnding::LF).unwrap();
     
-    // let private_key = RsaPrivateKey::new(&mut rng, bits).unwrap();
-    // let public_key = RsaPublicKey::from(&private_key);
+    let my_claims = Claims {
+        sub: "me".to_owned(),
+        company: "ACME".to_owned(),
+        exp: 10000000000,
+    };
 
-    // // Encoding RSA key pair
-    // let private_key_pem = private_key.to_pkcs8_pem(LineEnding::LF).unwrap();
-    // let public_key_pem = public_key.to_public_key_pem(LineEnding::LF).unwrap();
-
-    // jwt
-    let mut header = JwsHeader::new();
-    header.set_token_type("JWT");
-
-    println!("header: {:?}", header);
-
-    let mut payload = JwtPayload::new();
-    payload.set_subject("subject");
-    println!("payload: {:?}", payload);
-
-    // Signing JWT
-    let private_key_pem = std::fs::read(PRIVATE_KEY).unwrap();
-    let signer = PS256.signer_from_pem(&private_key_pem).unwrap();
-    let jwt = jwt::encode_with_signer(&payload, &header, &signer).unwrap();
-
-    println!("jwt: {:?}", jwt);
-
-    // Verifying JWT
-    let public_key_pem = std::fs::read(PUBLIC_KEY).unwrap();
-    let verifier = PS256.verifier_from_pem(&public_key_pem).unwrap();
-    let (payload, header) = jwt::decode_with_verifier(&jwt, &verifier).unwrap();
-
-    println!("payload: {:?}, header: {:?}", payload, header);
+    let token = encode(&Header::new(Algorithm::RS256), &my_claims, &EncodingKey::from_rsa_pem(priv_key_pem.as_bytes()).unwrap()).unwrap();
+    println!("Token: {}", token);
+    
+    let token = decode::<Claims>(&token, &DecodingKey::from_rsa_pem(pub_key_pem.as_bytes()).unwrap(), &Validation::new(Algorithm::RS256)).unwrap();
+    println!("Token: {:?}", token.claims);
 
 
+    // let a = EncodingKey::from_rsa(a);
+
+
+    // let token = encode(&Header::new(
+    //     Algorithm::RS256),
+    //      "data", 
+    //      &EncodingKey::from_rsa(
+    //         rsa::RsaPrivateKey::new(
+    //             &mut rng, bits
+    //         ).unwrap()
+    //     ));
 }
