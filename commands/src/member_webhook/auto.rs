@@ -47,12 +47,14 @@ pub async fn ut_times_set(
 
     // 存在するならそれを返す，無ければ作る
     let webhook = if webhook_exists {
+        info!("member webhook exists");
         webhooks
             .iter()
             .find(|webhook| webhook.name == webhook_name)
             .unwrap()
             .clone()
     } else {
+        info!("member webhook not exists. create new webhook");
         ctx.channel_id().create_webhook(&ctx, webhook_name.unwrap()).await.context("webhookの作成に失敗しました")?
     };
 
