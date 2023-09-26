@@ -1,50 +1,61 @@
-use jws::compact::{decode_verify, encode_sign};
-use jws::hmac::{HmacVerifier, Hs512Signer};
-use jws::{JsonObject, JsonValue};
-// use rsa::pss
-// use serde::de;
+use josekit::{jws::{JwsHeader, PS256}, jwt::{self, JwtPayload}};
+// use josekit::jwt::header;
 
-fn main() {
-    // Add custom header parameters.
-    let mut header = JsonObject::new();
-    header.insert(String::from("typ"), JsonValue::from("text/plain"));
+// use ::jwt::header;
+// use rsa::{RsaPrivateKey, RsaPublicKey};
+// use rsa::pkcs8::{EncodePrivateKey, DecodePrivateKey, EncodePublicKey, DecodePublicKey, LineEnding};
 
-    // Encode and sign the message.
-    let encoded = encode_sign(header, "寿限無寿限無".as_bytes(), &Hs512Signer::new(b"secretkey")).unwrap();
+// const PRIVATE_KEY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "private.pem");
 
-    // println!("{:?}", &encoded.payload());
-    // println!("{:?}", &encoded.signature());
-    println!("encoded_data: {:?}", &encoded.data());
+// const PUBLIC_KEY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "public.pem");
 
-    let encoded_data_as_bytes = encoded.data().as_bytes();
+const PRIVATE_KEY: &str = "private.pem";
+const PUBLIC_KEY: &str = "public.pem";
 
-    let serialized = serde_json::to_string(encoded.data()).unwrap();
+fn main(){
+    // // Generating RSA key pair by openssl
+    // let rsa = Rsa::generate(2048).unwrap();
+    // let private_key_pem = rsa.private_key_to_pem().unwrap();
+    // let public_key_pem = rsa.public_key_to_pem().unwrap();
 
-    // println!("serialized: {:?}", &serialized);
-
-    let deserialized: JsonValue = serde_json::from_str(&serialized).unwrap();
+    // println!("private_key_pem: {:?}", private_key_pem);
+    // println!("public_key_pem: {:?}", public_key_pem);
 
 
-    // println!("deserialized: {:?}", &deserialized.as_str().unwrap());
+    // // Generating RSA key pair
+    // let mut rng = rand::thread_rng();
+    // let bits = 2048;
+    
+    // let private_key = RsaPrivateKey::new(&mut rng, bits).unwrap();
+    // let public_key = RsaPublicKey::from(&private_key);
 
-    // println!("encoded_data_as_bytes: {:?}", &encoded_data_as_bytes);
-    // println!("deserialized: {:?}", &deserialized.as_str().unwrap().as_bytes());
+    // // Encoding RSA key pair
+    // let private_key_pem = private_key.to_pkcs8_pem(LineEnding::LF).unwrap();
+    // let public_key_pem = public_key.to_public_key_pem(LineEnding::LF).unwrap();
 
-    assert_eq!(encoded_data_as_bytes, deserialized.as_str().unwrap().as_bytes());
+    // jwt
+    let mut header = JwsHeader::new();
+    header.set_token_type("JWT");
+
+    println!("header: {:?}", header);
+
+    let mut payload = JwtPayload::new();
+    payload.set_subject("subject");
+    println!("payload: {:?}", payload);
+
+    // Signing JWT
+    let private_key_pem = std::fs::read(PRIVATE_KEY).unwrap();
+    let signer = PS256.signer_from_pem(&private_key_pem).unwrap();
+    let jwt = jwt::encode_with_signer(&payload, &header, &signer).unwrap();
+
+    println!("jwt: {:?}", jwt);
+
+    // Verifying JWT
+    let public_key_pem = std::fs::read(PUBLIC_KEY).unwrap();
+    let verifier = PS256.verifier_from_pem(&public_key_pem).unwrap();
+    let (payload, header) = jwt::decode_with_verifier(&jwt, &verifier).unwrap();
+
+    println!("payload: {:?}, header: {:?}", payload, header);
 
 
-    // Decode and verify the message.
-    let decoded = decode_verify(deserialized.as_str().unwrap().as_bytes(), &HmacVerifier::new(b"secretkey")).unwrap();
-    println!("{:?}",     String::from_utf8_lossy(&decoded.payload));
-
-
-
-    // decoded.payload;
-
-
-    // assert_eq!(decoded.payload, b"payload");
-    // assert_eq!(
-    //     decoded.header.get("typ").and_then(|x| x.as_str()),
-    //     Some("text/plain")
-    // );
 }
