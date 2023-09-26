@@ -13,11 +13,11 @@ rand = "*"
 # hmac = "*"
 rsa = {version = "*", features = ["sha2"]}
 # jwt = "*"
-sha2 = "*"
+# sha2 = "*"
 
 # josekit = "*"
 # openssl = "*"
-rsa-oaep-pss = "*"
+# rsa-oaep-pss = "*"
 
 jsonwebtoken = "*"
 # jsonwebtoken-rustcrypto = "1"

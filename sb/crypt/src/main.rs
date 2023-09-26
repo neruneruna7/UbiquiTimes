@@ -1,10 +1,11 @@
+// use rsa::sha2::Sha256;
 use serde::{Serialize, Deserialize};
 use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
 
 // use jsonwebtoken_rustcrypto::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
 use rsa::{RsaPrivateKey, RsaPublicKey};
 use rsa::pkcs8::{EncodePrivateKey, DecodePrivateKey, EncodePublicKey, DecodePublicKey, LineEnding};
-
+// use rsa::pss::{SigningKey, VerifyingKey};
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
     sub: String,
@@ -33,17 +34,4 @@ fn main(){
     
     let token = decode::<Claims>(&token, &DecodingKey::from_rsa_pem(pub_key_pem.as_bytes()).unwrap(), &Validation::new(Algorithm::RS256)).unwrap();
     println!("Token: {:?}", token.claims);
-
-
-    // let a = EncodingKey::from_rsa(a);
-
-
-    // let token = encode(&Header::new(
-    //     Algorithm::RS256),
-    //      "data", 
-    //      &EncodingKey::from_rsa(
-    //         rsa::RsaPrivateKey::new(
-    //             &mut rng, bits
-    //         ).unwrap()
-    //     ));
 }
