@@ -12,12 +12,17 @@ use poise::serenity_prelude::Webhook;
 use tracing::debug;
 use tracing::info;
 
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use serde::{Deserialize, Serialize};
+
+
 use crate::db_query::{member_webhooks, own_server_times_data::*};
 use crate::db_query::{
     own_server_data::{self, *},
     own_server_times_data,
 };
 
+use crate::sign::claims::Claims;
 use crate::types::botcom::*;
 
 /// そのサーバーでの自分のtimesであることをセットする
@@ -175,6 +180,8 @@ pub async fn ut_times_ubiqui_setting_send(
     let guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
     let server_data = select_own_server_data(connection.as_ref(), guild_id).await?;
 
+    let private_key_pem = server_data.private_key_pem;
+
     // 拡散可能サーバのリストを取得
     let other_master_webhooks = master_webhook_select_all(connection.as_ref()).await?;
 
@@ -190,22 +197,42 @@ pub async fn ut_times_ubiqui_setting_send(
         &times_ubiqui_setting_send
     );
 
-    let mut bot_com_msg = BotComMessage::from(
+    let mut claims = Claims::new(
         &server_data.server_name,
-        "",
+        server_data.guild_id,
+        "ループ内で変更してください",
         CmdKind::TimesUbiquiSettingSend(times_ubiqui_setting_send),
     );
 
-    info!("bot_com_msg: {:?}", &bot_com_msg);
+    // let mut bot_com_msg = BotComMessage::from(
+    //     &server_data.server_name,
+    //     "",
+    //     CmdKind::TimesUbiquiSettingSend(times_ubiqui_setting_send),
+    // );
+
+    // let a = "er".to_string();
+
+    // let b = &a;
+
+    info!("craims: {:?}", &claims);
 
     // ここのhttpはどうするか，空白トークンのHttpをnewするか，ctxを使うか
     for other_master_webhook in other_master_webhooks.iter() {
         let webhook = Webhook::from_url(&ctx, &other_master_webhook.webhook_url).await?;
-        bot_com_msg.dst = other_master_webhook.server_name.clone();
-        let serialized_msg = serde_json::to_string(&bot_com_msg)?;
+        // bot_com_msg.dst = other_master_webhook.server_name.clone();
+        claims.aud = other_master_webhook.server_name.clone();
+
+        // ここでサインする
+        let token = encode(
+            &Header::new(Algorithm::RS256),
+            &claims,
+            &EncodingKey::from_rsa_pem(private_key_pem.as_bytes()).unwrap(),
+        ).context("署名に失敗")?;
+
+        // let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
         webhook
-            .execute(&ctx, false, |w| w.content(serialized_msg.to_string()))
+            .execute(&ctx, false, |w| w.content(token))
             .await?;
     }
 

@@ -10,11 +10,11 @@ pub struct Claims {
     // 送信先サーバ名
     pub aud: String,
     pub exp: usize,
-    pub cmdind: CmdKind,
+    pub cmdkind: CmdKind,
 }
 
 impl Claims {
-    pub fn new(iss: &str, sub: &str, aud: &str, cmdind: CmdKind) -> Claims {
+    pub fn new(iss: &str, sub: u64, aud: &str, cmdkind: CmdKind) -> Claims {
         let iss = iss.to_string();
         let sub = sub.to_string();
         let aud = aud.to_string();
@@ -24,7 +24,7 @@ impl Claims {
             sub,
             aud,
             exp,
-            cmdind,
+            cmdkind,
         }
     }
 }
