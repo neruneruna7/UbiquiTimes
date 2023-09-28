@@ -9,6 +9,7 @@ pub mod member_webhook;
 pub mod types;
 
 mod db_query;
+mod sign;
 
 use tracing::info;
 use types::global_data::{Context, Data};

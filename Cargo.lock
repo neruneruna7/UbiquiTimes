@@ -218,7 +218,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "jsonwebtoken",
  "poise",
+ "rand",
+ "rsa",
  "serde",
  "serde_json",
  "sqlx",

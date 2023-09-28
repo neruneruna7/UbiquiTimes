@@ -19,18 +19,19 @@ pub struct Claims {
 }
 
 impl Claims {
-    pub fn new(
-        iss: &str,
-        sub: &str,
-        aud: &str,
-        cmdind: &str,
-    ) -> Claims {
+    pub fn new(iss: &str, sub: &str, aud: &str, cmdind: &str) -> Claims {
         let iss = iss.to_string();
         let sub = sub.to_string();
         let aud = aud.to_string();
         let exp = 10000000000;
         let cmdind = cmdind.to_string();
-        Self { iss, sub, aud, exp, cmdind }
+        Self {
+            iss,
+            sub,
+            aud,
+            exp,
+            cmdind,
+        }
     }
 }
 
