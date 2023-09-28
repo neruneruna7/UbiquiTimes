@@ -1,4 +1,11 @@
-use crate::types::botcom::CmdKind;
+use crate::{
+    db_query,
+    types::{
+        botcom::CmdKind,
+        global_data::{Context, Data},
+        own_server_data::ServerData,
+    },
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,4 +34,13 @@ impl Claims {
             cmdkind,
         }
     }
+}
+
+pub(crate) async fn register_public_key_ctx_data(
+    server_data: ServerData,
+    ctx: &Context<'_>,
+) -> anyhow::Result<()> {
+    let mut public_key_pem = ctx.data().public_key_pem.write().await;
+    *public_key_pem = server_data.public_key_pem;
+    Ok(())
 }

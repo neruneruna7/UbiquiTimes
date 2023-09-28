@@ -26,26 +26,25 @@ pub async fn ut_set_own_masterhook(
     let master_channel_id = master_webhook
         .channel_id
         .ok_or(anyhow!("webhookからチャンネルidを取得できませんでした"))?
-        .to_string();
+        .0;
 
     let guild_id = ctx
         .guild_id()
         .ok_or(anyhow!("guild_idが取得できませんでした"))?
-        .0
-        .to_string();
+        .0;
 
     let keys_pem = get_keys_pem(ctx, is_new_key).await?;
 
-    upsert_own_server_data(
-        &ctx,
+    let server_data = ServerData::new(
+        guild_id,
         &server_name,
-        &guild_id,
-        &master_channel_id,
+        master_channel_id,
         &master_webhook_url,
         &keys_pem.private_key_pem,
         &keys_pem.public_key_pem,
-    )
-    .await?;
+    );
+
+    upsert_own_server_data(&ctx, server_data).await?;
 
     let register_tmplate_str = format!(
         "/ut_set_other_masterhook server_name:{} master_webhook_url:{} guild_id:{} public_key_pem:{}",

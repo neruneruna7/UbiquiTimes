@@ -12,9 +12,10 @@ use poise::serenity_prelude::Webhook;
 use tracing::debug;
 use tracing::info;
 
-use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{
+    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
+};
 use serde::{Deserialize, Serialize};
-
 
 use crate::db_query::{member_webhooks, own_server_times_data::*};
 use crate::db_query::{
@@ -227,13 +228,12 @@ pub async fn ut_times_ubiqui_setting_send(
             &Header::new(Algorithm::RS256),
             &claims,
             &EncodingKey::from_rsa_pem(private_key_pem.as_bytes()).unwrap(),
-        ).context("署名に失敗")?;
+        )
+        .context("署名に失敗")?;
 
         // let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
-        webhook
-            .execute(&ctx, false, |w| w.content(token))
-            .await?;
+        webhook.execute(&ctx, false, |w| w.content(token)).await?;
     }
 
     ctx.say("拡散設定リクエストを送信しました").await?;
@@ -246,23 +246,33 @@ pub async fn ut_times_ubiqui_setting_send(
 /// botからのメッセージを受け取ったときの処理
 pub async fn bot_com_msg_recv(
     new_message: &poise::serenity_prelude::Message,
-) -> Option<BotComMessage> {
+    public_key_pem: &str,
+) -> Option<TokenData<Claims>> {
     // botから以外のメッセージは無視
     if !new_message.author.bot {
         return None;
     }
 
-    // メッセージの内容をデシリアライズ. デシリアライズできない場合は無視
-    let bot_com_msg: BotComMessage = match serde_json::from_str(&new_message.content) {
-        Ok(t) => t,
-        Err(_) => {
-            return None;
-        }
-    };
+    // // メッセージの内容をデシリアライズ. デシリアライズできない場合は無視
+    // let bot_com_msg: BotComMessage = match serde_json::from_str(&new_message.content) {
+    //     Ok(t) => t,
+    //     Err(_) => {
+    //         return None;
+    //     }
+    // };
 
-    info!("bot_com_msg: {:?}", &bot_com_msg);
+    // メッセージの内容を検証．検証できない場合は無視
+    // 関係ないメッセージもこの関数を通るため，検証できなくてもそれはエラーではないと判断した
+    let token = decode::<Claims>(
+        &new_message.content,
+        &DecodingKey::from_rsa_pem(public_key_pem.as_bytes()).unwrap(),
+        &Validation::new(Algorithm::RS256),
+    )
+    .ok()?;
 
-    Some(bot_com_msg)
+    info!("token: {:?}", &token);
+
+    Some(token)
 }
 
 /// 拡散設定リクエストを受信したときの処理

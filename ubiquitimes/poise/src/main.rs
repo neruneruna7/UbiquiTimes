@@ -69,57 +69,6 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     }
 }
 
-// イベントハンドラ
-// serenityの，EventHadlerトレイトを実装して実現していたものと同等と推測
-async fn event_handler(
-    ctx: &serenity::Context,
-    event: &Event<'_>,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
-    data: &Data,
-) -> Result<(), Error> {
-    match event {
-        Event::Ready { data_about_bot } => {
-            println!("Logged in as {}", data_about_bot.user.name);
-
-            let connection = data.connection.clone();
-            commands::register_masterhook_ctx_data(&connection, data).await?;
-        }
-        Event::Message { new_message } => {
-            println!("msg recvd");
-
-            // info!("Got a message from a bot: {:?}", new_message);
-            let bot_com_msg = match auto::bot_com_msg_recv(new_message).await {
-                Some(t) => t,
-                None => return Ok(()),
-            };
-
-            let cmd_kind = &bot_com_msg.cmd;
-
-            match cmd_kind {
-                CmdKind::TimesUbiquiSettingSend(t) => {
-                    let src_server_name = bot_com_msg.src;
-                    auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
-                }
-                CmdKind::TimesUbiquiSettingRecv(t) => {
-                    let src_server_name = bot_com_msg.src;
-                    auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
-                }
-                CmdKind::None => {}
-            }
-
-            // if new_message.content.to_lowercase().contains("poise") {
-            //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
-            //     data.poise_mentions.store(mentions, Ordering::SeqCst);
-            //     new_message
-            //         .reply(ctx, format!("Poise has been mentioned {} times", mentions))
-            //         .await?;
-            // }
-        }
-        _ => {}
-    }
-    Ok(())
-}
-
 // ヘルプコマンドだけメインに記述してしまうことにした
 /// ヘルプを表示します
 #[poise::command(prefix_command, track_edits, slash_command)]
@@ -189,7 +138,7 @@ async fn main() {
 
         /// The global error handler for all error cases that may occur
         /// 発生する可能性のあるすべてのエラーケースに対応するグローバルエラーハンドラー
-        on_error: |error| Box::pin(on_error(error)),
+        on_error: |error| Box::pin(common::on_error(error)),
 
         /// This code is run before every command
         /// このコードはすべてのコマンドの前に実行されます
@@ -227,7 +176,8 @@ async fn main() {
         event_handler: |_ctx, event, _framework, _data| {
             Box::pin(async move {
                 info!("Got an event in event handler: {:?}", event.name());
-                event_handler(_ctx, event, _framework, _data).await
+                common::event_handler(_ctx, event, _framework, _data).await
+                // event_handler(_ctx, event, _framework, _data).await
             })
         },
         ..Default::default()
@@ -249,6 +199,7 @@ async fn main() {
                 Ok(Data {
                     connection: Arc::new(pool),
                     master_webhook_url: RwLock::new(String::new()),
+                    public_key_pem: RwLock::new(String::new()),
                 })
             })
         })

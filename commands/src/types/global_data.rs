@@ -13,4 +13,6 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 pub struct Data {
     pub connection: Arc<SqlitePool>,
     pub master_webhook_url: RwLock<String>,
+    // 秘密鍵はここにはのせない
+    pub public_key_pem: RwLock<String>,
 }

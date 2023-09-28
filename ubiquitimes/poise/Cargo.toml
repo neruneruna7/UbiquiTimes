@@ -19,3 +19,4 @@ tracing-subscriber = "*"
 sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
 
 commands = { path = "../../commands" }
+common = { path = "../../common" }

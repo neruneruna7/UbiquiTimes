@@ -2302,6 +2302,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "commands",
+ "common",
  "dotenvy",
  "poise",
  "sqlx",
