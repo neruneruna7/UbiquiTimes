@@ -7,10 +7,31 @@ use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey, LineEnding};
 use rsa::RsaPrivateKey;
 // use rsa::pss::{SigningKey, VerifyingKey};
 #[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    sub: String,
-    company: String,
-    exp: usize,
+pub struct Claims {
+    // 送信元サーバ名
+    pub iss: String,
+    // GUILD_ID
+    pub sub: String,
+    // 送信先サーバ名
+    pub aud: String,
+    pub exp: usize,
+    pub cmdind: String,
+}
+
+impl Claims {
+    pub fn new(
+        iss: &str,
+        sub: &str,
+        aud: &str,
+        cmdind: &str,
+    ) -> Claims {
+        let iss = iss.to_string();
+        let sub = sub.to_string();
+        let aud = aud.to_string();
+        let exp = 10000000000;
+        let cmdind = cmdind.to_string();
+        Self { iss, sub, aud, exp, cmdind }
+    }
 }
 
 fn main() {
@@ -23,11 +44,7 @@ fn main() {
     let priv_key_pem = priv_key.to_pkcs8_pem(LineEnding::LF).unwrap();
     let pub_key_pem = pub_key.to_public_key_pem(LineEnding::LF).unwrap();
 
-    let my_claims = Claims {
-        sub: "me".to_owned(),
-        company: "ACME".to_owned(),
-        exp: 10000000000,
-    };
+    let my_claims = Claims::new("nann", "22222222", "test", "cmdkind");
 
     let token = encode(
         &Header::new(Algorithm::RS256),
