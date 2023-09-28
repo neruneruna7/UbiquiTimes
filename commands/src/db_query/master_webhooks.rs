@@ -9,16 +9,18 @@ pub async fn master_webhook_upsert(
 
     sqlx::query!(
         r#"
-        INSERT INTO master_webhooks (server_name, guild_id, webhook_url)
-        VALUES(?, ?, ?)
-        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, webhook_url = ?
+        INSERT INTO master_webhooks (server_name, guild_id, webhook_url, public_key_pem)
+        VALUES(?, ?, ?, ?)
+        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, webhook_url = ?, public_key_pem = ?
         ;
         "#,
         master_webhook.server_name,
         guild_id,
         master_webhook.webhook_url,
+        master_webhook.public_key_pem,
         master_webhook.server_name,
-        master_webhook.webhook_url
+        master_webhook.webhook_url,
+        master_webhook.public_key_pem,
     )
     .execute(connection)
     .await?;

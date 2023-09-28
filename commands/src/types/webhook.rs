@@ -6,7 +6,7 @@ pub struct MasterWebhook {
     pub guild_id: u64,
     pub server_name: String,
     pub webhook_url: String,
-    pub private_key_pem: String,
+    pub public_key_pem: String,
 }
 
 impl MasterWebhook {
@@ -15,7 +15,7 @@ impl MasterWebhook {
             guild_id,
             server_name: server_name.to_string(),
             webhook_url: webhook_url.to_string(),
-            private_key_pem: public_key_pem.to_string(),
+            public_key_pem: public_key_pem.to_string(),
         }
     }
 
@@ -30,7 +30,7 @@ impl MasterWebhook {
             guild_id,
             server_name: server_name.to_string(),
             webhook_url: webhook_url.to_string(),
-            private_key_pem: public_key_pem.to_string(),
+            public_key_pem: public_key_pem.to_string(),
         })
     }
 }
