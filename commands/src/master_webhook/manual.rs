@@ -8,7 +8,7 @@ use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
 
 use rsa::pkcs8::der::zeroize::Zeroizing;
-use serde::de;
+
 use tracing::info;
 
 /// bot導入後，最初に実行してください
@@ -48,7 +48,7 @@ pub async fn ut_set_own_masterhook(
     .await?;
 
     let register_tmplate_str = format!(
-        "~UtOtherServerHook {} {} {} {}",
+        "/ut_set_other_masterhook server_name:{} master_webhook_url:{} guild_id:{} public_key_pem:{}",
         server_name, master_webhook_url, guild_id, keys_pem.public_key_pem
     );
     // format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)
