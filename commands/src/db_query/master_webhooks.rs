@@ -39,14 +39,14 @@ pub async fn master_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    let master_webhook = MasterWebhook::from(
-        Some(row.id),
+    let master_webhook = MasterWebhook::from_row(
+        &row.guild_id,
         &row.server_name,
-        row.guild_id.parse::<u64>()?,
         &row.webhook_url,
+        &row.public_key_pem,
     );
 
-    Ok(master_webhook)
+    master_webhook
 }
 
 // すべてのマスターwebhookを取得する
@@ -65,12 +65,12 @@ pub async fn master_webhook_select_all(
     let mut master_webhooks = Vec::new();
 
     for row in rows {
-        let master_webhook = MasterWebhook::from(
-            Some(row.id),
+        let master_webhook = MasterWebhook::from_row(
+            &row.guild_id,
             &row.server_name,
-            row.guild_id.parse::<u64>()?,
             &row.webhook_url,
-        );
+            &row.public_key_pem,
+        )?;
         master_webhooks.push(master_webhook);
     }
 

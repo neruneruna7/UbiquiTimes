@@ -8,6 +8,7 @@ use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
 
 use rsa::pkcs8::der::zeroize::Zeroizing;
+use serde::de;
 use tracing::info;
 
 /// bot導入後，最初に実行してください
@@ -96,6 +97,7 @@ pub async fn ut_set_other_masterhook(
     #[description = "拡散先のサーバ名"] server_name: String,
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
     #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: String,
+    #[description = "拡散先サーバの公開鍵"] public_key_pem: String,
 ) -> Result<()> {
     let guild_id = guild_id
         .parse::<u64>()
@@ -112,7 +114,7 @@ pub async fn ut_set_other_masterhook(
 
     master_webhook_upsert(
         connection.as_ref(),
-        MasterWebhook::from(None, &server_name, guild_id, &master_webhook_url),
+        MasterWebhook::new(guild_id, &server_name, &master_webhook_url, &public_key_pem),
     )
     .await?;
 
