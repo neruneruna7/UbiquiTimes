@@ -9,7 +9,7 @@ pub mod member_webhook;
 pub mod types;
 
 mod db_query;
-mod sign;
+pub mod sign;
 
 use tracing::info;
 use types::global_data::{Context, Data};
@@ -29,6 +29,8 @@ async fn upsert_own_server_data(
     guild_id: &str,
     master_channel_id: &str,
     master_webhook_url: &str,
+    private_key_pem: &str,
+    public_key_pem: &str,
 ) -> anyhow::Result<()> {
     let connection = ctx.data().connection.clone();
     db_query::own_server_data::upsert_own_server_data(
@@ -37,6 +39,8 @@ async fn upsert_own_server_data(
         guild_id,
         master_channel_id,
         master_webhook_url,
+        private_key_pem,
+        public_key_pem,
     )
     .await?;
     register_masterhook_ctx_data(&connection, ctx.data()).await?;

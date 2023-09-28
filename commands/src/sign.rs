@@ -1,2 +1,2 @@
-mod claims;
-mod key_gen;
+pub mod claims;
+pub mod key_gen;

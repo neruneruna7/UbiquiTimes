@@ -1,11 +1,13 @@
 use crate::*;
 
 use crate::db_query::master_webhooks::*;
+use crate::sign::key_gen::*;
 use crate::types::webhook::MasterWebhook;
 
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
 
+use rsa::pkcs8::der::zeroize::Zeroizing;
 use tracing::info;
 
 /// bot導入後，最初に実行してください
@@ -17,6 +19,7 @@ pub async fn ut_set_own_masterhook(
     ctx: Context<'_>,
     #[description = "本サーバのサーバ名"] server_name: String,
     #[description = "本サーバのマスターwebhook URL"] master_webhook_url: String,
+    #[description = "署名鍵を作り直しますか？（初回はTrueにしてください）"] is_new_key: bool,
 ) -> Result<()> {
     let master_webhook = Webhook::from_url(ctx, &master_webhook_url).await?;
     let master_channel_id = master_webhook
@@ -30,18 +33,22 @@ pub async fn ut_set_own_masterhook(
         .0
         .to_string();
 
+    let keys_pem = get_keys_pem(ctx, is_new_key).await?;
+
     upsert_own_server_data(
         &ctx,
         &server_name,
         &guild_id,
         &master_channel_id,
         &master_webhook_url,
+        &keys_pem.private_key_pem,
+        &keys_pem.public_key_pem,
     )
     .await?;
 
     let register_tmplate_str = format!(
-        "~UtOtherServerHook {} {} {}",
-        server_name, master_webhook_url, guild_id
+        "~UtOtherServerHook {} {} {} {}",
+        server_name, master_webhook_url, guild_id, keys_pem.public_key_pem
     );
     // format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)
 
@@ -50,6 +57,28 @@ pub async fn ut_set_own_masterhook(
     loged(&ctx, "サーバ情報を登録しました").await?;
 
     Ok(())
+}
+
+/// trueなら鍵を作り直す
+/// falseなら鍵をDBから取得する
+async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPair_pem> {
+    if is_new_key {
+        let (private_key, public_key) = generate_keypair();
+        Ok(keypair_to_pem(&private_key, &public_key))
+    } else {
+        let server_data = crate::db_query::own_server_data::select_own_server_data(
+            &ctx.data().connection,
+            ctx.guild_id()
+                .ok_or(anyhow!("guildidを取得できませんでした"))?
+                .0,
+        )
+        .await
+        .context("鍵を取得できません. trueを指定してください")?;
+        Ok(KeyPair_pem {
+            private_key_pem: Zeroizing::new(server_data.private_key_pem),
+            public_key_pem: server_data.public_key_pem,
+        })
+    }
 }
 
 /// 他サーバを，拡散可能先として登録する

@@ -15,8 +15,8 @@ pub fn generate_keypair() -> (RsaPrivateKey, RsaPublicKey) {
 
 /// キーペアをPEM形式を入れるための構造体
 pub struct KeyPair_pem {
-    private_key_pem: Zeroizing<String>,
-    public_key_pem: String,
+    pub private_key_pem: Zeroizing<String>,
+    pub public_key_pem: String,
 }
 
 /// キーペアをPEM形式に変換する

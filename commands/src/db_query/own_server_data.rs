@@ -8,20 +8,26 @@ pub(crate) async fn upsert_own_server_data(
     guild_id: &str,
     master_channel_id: &str,
     master_webhook_url: &str,
+    private_key_pem: &str,
+    public_key_pem: &str,
 ) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO a_server_data (server_name, guild_id, master_channel_id, master_webhook_url)
-        VALUES(?, ?, ?, ?)
-        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, master_channel_id = ?, master_webhook_url = ?;
+        INSERT INTO a_server_data (server_name, guild_id, master_channel_id, master_webhook_url, private_key_pem, public_key_pem)
+        VALUES(?, ?, ?, ?, ?, ?)
+        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, master_channel_id = ?, master_webhook_url = ?, private_key_pem = ?, public_key_pem = ?;
         "#,
         server_name,
         guild_id,
         master_channel_id,
         master_webhook_url,
+        private_key_pem,
+        public_key_pem,
         server_name,
         master_channel_id,
-        master_webhook_url
+        master_webhook_url,
+        private_key_pem,
+        public_key_pem,
     )
     .execute(connection)
     .await?;
@@ -49,6 +55,8 @@ pub(crate) async fn select_own_server_data(
         &row.server_name,
         &row.master_channel_id.to_string(),
         &row.master_webhook_url,
+        &row.private_key_pem,
+        &row.public_key_pem,
     )?;
 
     Ok(a_server_data)
@@ -72,6 +80,8 @@ pub(crate) async fn select_own_server_data_without_guild_id(
         &row.server_name,
         &row.master_channel_id.to_string(),
         &row.master_webhook_url,
+        &row.private_key_pem,
+        &row.public_key_pem,
     )?;
 
     Ok(a_server_data)
