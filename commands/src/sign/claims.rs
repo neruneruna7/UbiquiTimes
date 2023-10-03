@@ -1,5 +1,5 @@
 use crate::{
-    botcom::CmdKind,
+    bot_communicate::CmdKind,
     db_query,
     global_data::{Context, Data},
     master_webhook::MasterWebhook,

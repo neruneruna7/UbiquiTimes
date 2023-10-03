@@ -4,7 +4,7 @@ use poise::serenity_prelude::{self as serenity};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
-pub mod botcom;
+pub mod bot_communicate;
 pub mod global_data;
 pub mod master_webhook;
 pub mod member_webhook;
@@ -19,6 +19,16 @@ use tracing::info;
 use global_data::{Context, Data};
 use master_webhook::MasterWebhook;
 use own_server_data::ServerData;
+
+async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) -> Result<()> {
+    let err_text = format!("{}と入力してください", sign_str);
+    if enter_str != sign_str {
+        ctx.say(&err_text).await?;
+        return Err(anyhow::anyhow!(err_text));
+    }
+
+    Ok(())
+}
 
 async fn create_webhook_from_channel(
     ctx: Context<'_>,
