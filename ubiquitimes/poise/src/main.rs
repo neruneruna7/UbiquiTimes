@@ -19,17 +19,18 @@ use tracing::info;
 // use commands::member_webhook::manual::{
 //     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 // };
-use commands::master_webhook::manual::{
-    ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,
-};
-use commands::member_webhook::auto::{
-    ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
-};
+use commands::member_webhook::auto::{ut_times_set, ut_times_show, ut_times_unset};
 use commands::member_webhook::manual::{
     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 };
+use commands::{
+    bot_communicate::send::ut_times_ubiqui_setting_send,
+    master_webhook::manual::{
+        ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,
+    },
+};
 
-use commands::botcom::CmdKind;
+use commands::bot_communicate::CmdKind;
 use commands::global_data::{Context, Data};
 use commands::member_webhook::auto;
 

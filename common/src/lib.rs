@@ -1,7 +1,10 @@
 use anyhow::Error;
+use commands::bot_communicate::send::{
+    bot_com_msg_recv, times_ubiqui_setting_recv, times_ubiqui_setting_set,
+};
 use poise::{serenity_prelude as serenity, Event};
 
-use commands::botcom::CmdKind;
+use commands::bot_communicate::CmdKind;
 use commands::global_data::Data;
 use commands::member_webhook::auto;
 use commands::member_webhook::auto::*;
@@ -73,12 +76,11 @@ pub async fn event_handler(
                 CmdKind::TimesUbiquiSettingSend(t) => {
                     let src_guild_id = claims.sub;
                     let src_server_name = claims.iss;
-                    auto::times_ubiqui_setting_recv(ctx, data, src_guild_id, &src_server_name, t)
-                        .await?;
+                    times_ubiqui_setting_recv(ctx, data, src_guild_id, &src_server_name, t).await?;
                 }
                 CmdKind::TimesUbiquiSettingRecv(t) => {
                     let src_server_name = claims.iss;
-                    auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
+                    times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
                 }
                 CmdKind::None => {}
             }
