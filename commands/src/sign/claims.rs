@@ -1,9 +1,9 @@
 use crate::{
+    botcom::CmdKind,
     db_query,
     global_data::{Context, Data},
     master_webhook::MasterWebhook,
     own_server_data::ServerData,
-    types::botcom::CmdKind,
 };
 use serde::{Deserialize, Serialize};
 

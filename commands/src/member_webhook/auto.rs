@@ -24,8 +24,8 @@ use crate::db_query::{
     own_server_times_data,
 };
 
+use crate::botcom::*;
 use crate::sign::claims::Claims;
-use crate::types::botcom::*;
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///

@@ -4,11 +4,11 @@ use poise::serenity_prelude::{self as serenity};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
+pub mod botcom;
 pub mod global_data;
 pub mod master_webhook;
 pub mod member_webhook;
 pub mod own_server_data;
-pub mod types;
 
 mod db_query;
 pub mod sign;
