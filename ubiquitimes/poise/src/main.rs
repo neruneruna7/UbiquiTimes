@@ -29,9 +29,9 @@ use commands::member_webhook::manual::{
     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 };
 
+use commands::global_data::{Context, Data};
 use commands::member_webhook::auto;
 use commands::types::botcom::CmdKind;
-use commands::types::global_data::{Context, Data};
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている

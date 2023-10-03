@@ -1,5 +1,5 @@
 use super::*;
-use types::own_server_data::ServerData;
+use crate::own_server_data::ServerData;
 
 /// 自身のマスターwebhookを a_server_data テーブルにupsertする
 pub(crate) async fn upsert_own_server_data(

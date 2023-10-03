@@ -4,8 +4,10 @@ use poise::serenity_prelude::{self as serenity};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
+pub mod global_data;
 pub mod master_webhook;
 pub mod member_webhook;
+pub mod own_server_data;
 pub mod types;
 
 mod db_query;
@@ -13,11 +15,10 @@ pub mod sign;
 
 use sign::claims::register_public_key_ctx_data;
 use tracing::info;
-use types::{
-    global_data::{Context, Data},
-    own_server_data::ServerData,
-};
+
+use global_data::{Context, Data};
 use master_webhook::MasterWebhook;
+use own_server_data::ServerData;
 
 async fn create_webhook_from_channel(
     ctx: Context<'_>,

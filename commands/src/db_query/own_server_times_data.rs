@@ -1,5 +1,5 @@
 use super::*;
-use types::own_server_data::TimesData;
+use crate::own_server_data::TimesData;
 
 // sqliteにmember自身のtimes情報をupsertする
 pub(crate) async fn upsert_own_times_data(

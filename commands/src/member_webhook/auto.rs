@@ -1,7 +1,7 @@
 use super::*;
 
+use crate::global_data::Data;
 use crate::loged;
-use crate::types::global_data::Data;
 use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
 
 use anyhow::{anyhow, Context as _};
