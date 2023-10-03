@@ -205,17 +205,19 @@ pub async fn ut_times_ubiqui_setting_send(
         CmdKind::TimesUbiquiSettingSend(times_ubiqui_setting_send),
     );
 
-    // let mut bot_com_msg = BotComMessage::from(
-    //     &server_data.server_name,
-    //     "",
-    //     CmdKind::TimesUbiquiSettingSend(times_ubiqui_setting_send),
-    // );
-
-    // let a = "er".to_string();
-
-    // let b = &a;
+    // 送信するメッセージの内容を詰める
+    // ここでは,cmdkindはNoneのまま
+    // tokenはループ内で詰める
+    let mut bot_com_msg = BotComMessage::new(server_data.guild_id, 0, None, None);
 
     info!("craims: {:?}", &claims);
+
+    // claims作成
+    // botcommsg作成
+    // claims署名 tokenに
+    // botcommsgのdst_guild__idとtokenをループ内で書き換え
+    // botcommsgをシリアライズ
+    // 送信
 
     // ここのhttpはどうするか，空白トークンのHttpをnewするか，ctxを使うか
     for other_master_webhook in other_master_webhooks.iter() {
@@ -227,13 +229,19 @@ pub async fn ut_times_ubiqui_setting_send(
         let token = encode(
             &Header::new(Algorithm::RS256),
             &claims,
-            &EncodingKey::from_rsa_pem(private_key_pem.as_bytes()).unwrap(),
+            &EncodingKey::from_rsa_pem(private_key_pem.as_bytes())?,
         )
         .context("署名に失敗")?;
 
-        // let serialized_msg = serde_json::to_string(&bot_com_msg)?;
+        // 書き換えるべき値をここで書き換え
+        bot_com_msg.dst_guild_id = other_master_webhook.guild_id;
+        bot_com_msg.token = Some(token);
 
-        webhook.execute(&ctx, false, |w| w.content(token)).await?;
+        let serialized_msg = serde_json::to_string(&bot_com_msg)?;
+
+        webhook
+            .execute(&ctx, false, |w| w.content(serialized_msg))
+            .await?;
     }
 
     ctx.say("拡散設定リクエストを送信しました").await?;
@@ -246,20 +254,30 @@ pub async fn ut_times_ubiqui_setting_send(
 /// botからのメッセージを受け取ったときの処理
 pub async fn bot_com_msg_recv(
     new_message: &poise::serenity_prelude::Message,
-    public_key_pem: &str,
-) -> Option<TokenData<Claims>> {
+    data: &Data,
+) -> Result<Option<TokenData<Claims>>> {
     // botから以外のメッセージは無視
     if !new_message.author.bot {
-        return None;
+        return Ok(None);
     }
 
-    // // メッセージの内容をデシリアライズ. デシリアライズできない場合は無視
-    // let bot_com_msg: BotComMessage = match serde_json::from_str(&new_message.content) {
-    //     Ok(t) => t,
-    //     Err(_) => {
-    //         return None;
-    //     }
-    // };
+    // メッセージの内容をデシリアライズ. デシリアライズできない場合は無視
+    let bot_com_msg: BotComMessage = match serde_json::from_str(&new_message.content) {
+        Ok(t) => t,
+        Err(_) => {
+            return Ok(None);
+        }
+    };
+
+    let public_key_pem_hashmap = data.public_key_pem_hashmap.read().await;
+
+    let public_key_pem = public_key_pem_hashmap
+        .get(&bot_com_msg.src_guild_id)
+        .context("公開鍵が登録されていません")?;
+
+    // info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
+
+    // let a = new_message.content
 
     // メッセージの内容を検証．検証できない場合は無視
     // 関係ないメッセージもこの関数を通るため，検証できなくてもそれはエラーではないと判断した
@@ -268,17 +286,18 @@ pub async fn bot_com_msg_recv(
         &DecodingKey::from_rsa_pem(public_key_pem.as_bytes()).unwrap(),
         &Validation::new(Algorithm::RS256),
     )
-    .ok()?;
+    .ok();
 
     info!("token: {:?}", &token);
 
-    Some(token)
+    Ok(token)
 }
 
 /// 拡散設定リクエストを受信したときの処理
 pub async fn times_ubiqui_setting_recv(
     ctx: &serenity::Context,
     data: &Data,
+    src_guild_id: u64,
     src_server_name: &str,
     times_ubiqui_setting: &TimesUbiquiSettingSend,
 ) -> Result<()> {
@@ -299,25 +318,43 @@ pub async fn times_ubiqui_setting_recv(
     let times_channel_id = member_times_data.channel_id;
 
     // 自身のサーバ情報を取得
-    let a_server_data =
+    let own_server_data =
         own_server_data::select_own_server_data_without_guild_id(connection.as_ref()).await?;
 
     // データをTimesUbiquiSettingRecvに詰める
     let times_ubiqui_setting_recv = TimesUbiquiSettingRecv {
         src_member_id,
-        dst_guild_id: a_server_data.guild_id,
+        dst_guild_id: own_server_data.guild_id,
         dst_channel_id: times_channel_id,
         dst_webhook_url: times_webhook_url,
     };
 
+    // let claims = Claims::new(
+    //     src_server_name,
+    //     src_guild_id,
+    //     &own_server_data.server_name,
+    //     CmdKind::TimesUbiquiSettingRecv(times_ubiqui_setting_recv),
+    // );
+
+    // // 署名
+    // let token = encode(
+    //     &Header::new(Algorithm::RS256),
+    //     &claims,
+    //     &EncodingKey::from_rsa_pem(own_server_data.private_key_pem.as_bytes())?,
+    // )
+    // .context("署名に失敗")?;
+
     // データをシリアライズ
     // ここにおいては，srcとdstがそのほかの構造体と逆になる
     // つまり，自身のサーバがsrcである
-    let bot_com_msg = BotComMessage::from(
-        &a_server_data.server_name,
-        src_server_name,
-        CmdKind::TimesUbiquiSettingRecv(times_ubiqui_setting_recv),
+    // ここでは署名を使わないので，tokenはNone
+    let bot_com_msg = BotComMessage::new(
+        own_server_data.guild_id,
+        src_guild_id,
+        None,
+        Some(CmdKind::TimesUbiquiSettingRecv(times_ubiqui_setting_recv)),
     );
+
     let serialized_msg = serde_json::to_string(&bot_com_msg)?;
 
     // データを送信
@@ -325,7 +362,7 @@ pub async fn times_ubiqui_setting_recv(
         .execute(ctx, false, |w| w.content(serialized_msg.to_string()))
         .await?;
 
-    let my_webhook = Webhook::from_url(&http, &a_server_data.master_webhook_url).await?;
+    let my_webhook = Webhook::from_url(&http, &own_server_data.master_webhook_url).await?;
     my_webhook
         .execute(ctx, false, |w| w.content("拡散設定リクエスト 受信"))
         .await?;

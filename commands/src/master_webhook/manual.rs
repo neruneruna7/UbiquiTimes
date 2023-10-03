@@ -113,7 +113,7 @@ pub async fn ut_set_other_masterhook(
 
     master_webhook_upsert(
         connection.as_ref(),
-        MasterWebhook::new(guild_id, &server_name, &master_webhook_url, &public_key_pem),
+        &MasterWebhook::new(guild_id, &server_name, &master_webhook_url, &public_key_pem),
     )
     .await?;
 

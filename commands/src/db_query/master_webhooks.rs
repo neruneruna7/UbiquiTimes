@@ -3,7 +3,7 @@ use types::webhook::MasterWebhook;
 
 pub async fn master_webhook_upsert(
     connection: &SqlitePool,
-    master_webhook: MasterWebhook,
+    master_webhook: &MasterWebhook,
 ) -> anyhow::Result<()> {
     let guild_id = master_webhook.guild_id.to_string();
 

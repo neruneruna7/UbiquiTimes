@@ -58,11 +58,9 @@ pub async fn event_handler(
         }
         Event::Message { new_message } => {
             println!("msg recvd");
-            let public_key_pem = data.public_key_pem.read().await;
-            let public_key_pem = public_key_pem.as_str();
 
             // info!("Got a message from a bot: {:?}", new_message);
-            let token = match bot_com_msg_recv(new_message, public_key_pem).await {
+            let token = match bot_com_msg_recv(new_message, data).await? {
                 Some(t) => t,
                 None => return Ok(()),
             };
@@ -73,8 +71,10 @@ pub async fn event_handler(
 
             match cmd_kind {
                 CmdKind::TimesUbiquiSettingSend(t) => {
+                    let src_guild_id = claims.sub;
                     let src_server_name = claims.iss;
-                    auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
+                    auto::times_ubiqui_setting_recv(ctx, data, src_guild_id, &src_server_name, t)
+                        .await?;
                 }
                 CmdKind::TimesUbiquiSettingRecv(t) => {
                     let src_server_name = claims.iss;

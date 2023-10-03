@@ -1,57 +1,56 @@
+use crate::sign::claims::Claims;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BotComMessage {
-    pub src: String,
-    pub dst: String,
-    pub cmd: CmdKind,
-    pub ttl: usize,
+    pub src_guild_id: u64,
+    pub dst_guild_id: u64,
+    /// Claimsに署名したもの
+    pub token: Option<String>,
+    pub cmd_kind: Option<CmdKind>,
 }
 
-pub struct Claims {
-    // 送信元サーバ名
-    pub iss: String,
-    // GUILD_ID
-    pub sub: String,
-    // 送信先サーバ名
-    pub aud: String,
-    pub exp: usize,
-    pub cmdind: CmdKind,
-}
-
-impl Claims {
-    pub fn new(iss: &str, sub: &str, aud: &str, cmdind: CmdKind) -> Claims {
-        let iss = iss.to_string();
-        let sub = sub.to_string();
-        let aud = aud.to_string();
-        let exp = 10000000000;
+impl BotComMessage {
+    pub fn new(
+        src_guild_id: u64,
+        dst_guild_id: u64,
+        token: Option<String>,
+        cmd_kind: Option<CmdKind>,
+    ) -> BotComMessage {
         Self {
-            iss,
-            sub,
-            aud,
-            exp,
-            cmdind,
+            src_guild_id,
+            dst_guild_id,
+            token,
+            cmd_kind,
         }
     }
 }
 
-impl BotComMessage {
-    pub fn from(src: &str, dst: &str, cmd: CmdKind) -> BotComMessage {
-        let src = src.to_string();
-        let dst = dst.to_string();
-        let ttl = 4;
-        Self { src, dst, cmd, ttl }
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BotComMessage2 {
+    pub src_guild_id: u64,
+    pub dst_guild_id: u64,
+    pub cmd_kind: CmdKind,
+}
+
+impl BotComMessage2 {
+    pub fn new(src_guild_id: u64, dst_guild_id: u64, cmd_kind: CmdKind) -> BotComMessage2 {
+        Self {
+            src_guild_id,
+            dst_guild_id,
+            cmd_kind,
+        }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CmdKind {
     TimesUbiquiSettingSend(TimesUbiquiSettingSend),
     TimesUbiquiSettingRecv(TimesUbiquiSettingRecv),
     None,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimesUbiquiSettingSend {
     pub src_member_id: u64,
     pub src_master_webhook_url: String,
@@ -61,7 +60,7 @@ pub struct TimesUbiquiSettingSend {
 
 // 常にリクエストの送信側をsrcとする
 // AサーバがBサーバにリクエストを送信するとき，この構想体においてもAサーバがsrc，Bサーバがdstである
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimesUbiquiSettingRecv {
     pub src_member_id: u64,
     pub dst_guild_id: u64,

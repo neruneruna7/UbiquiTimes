@@ -16,6 +16,7 @@ use tracing::info;
 use types::{
     global_data::{Context, Data},
     own_server_data::ServerData,
+    webhook::MasterWebhook,
 };
 
 async fn create_webhook_from_channel(
@@ -31,8 +32,6 @@ async fn upsert_own_server_data(ctx: &Context<'_>, server_data: ServerData) -> a
     let connection = ctx.data().connection.clone();
     db_query::own_server_data::upsert_own_server_data(&connection, &server_data).await?;
     register_masterhook_ctx_data(&connection, ctx.data()).await?;
-    register_public_key_ctx_data(server_data, ctx).await?;
-
     Ok(())
 }
 
@@ -43,6 +42,16 @@ pub async fn register_masterhook_ctx_data(
     let server_data =
         db_query::own_server_data::select_own_server_data_without_guild_id(connection).await?;
     *data.master_webhook_url.write().await = server_data.master_webhook_url;
+    Ok(())
+}
+
+pub async fn upsert_master_webhook(
+    ctx: &Context<'_>,
+    master_webhook: MasterWebhook,
+) -> anyhow::Result<()> {
+    db_query::master_webhooks::master_webhook_upsert(&ctx.data().connection, &master_webhook)
+        .await?;
+    register_public_key_ctx_data(master_webhook.guild_id, master_webhook.public_key_pem, ctx);
     Ok(())
 }
 
