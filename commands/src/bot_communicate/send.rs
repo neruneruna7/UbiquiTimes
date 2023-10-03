@@ -18,7 +18,7 @@ use tracing::info;
 use jsonwebtoken::{
     decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
 };
-use serde::{Deserialize, Serialize};
+
 
 use crate::db_query::{member_webhooks, own_server_times_data::*};
 use crate::db_query::{
@@ -26,7 +26,7 @@ use crate::db_query::{
     own_server_times_data,
 };
 
-use crate::bot_communicate::*;
+
 use crate::sign::claims::Claims;
 
 /// botからのメッセージを受け取ったときの処理
@@ -169,7 +169,7 @@ pub async fn times_ubiqui_setting_recv(
     ctx: &serenity::Context,
     data: &Data,
     src_guild_id: u64,
-    src_server_name: &str,
+    _src_server_name: &str,
     times_ubiqui_setting: &TimesUbiquiSettingSend,
 ) -> Result<()> {
     info!("拡散設定リクエストを受信しました");

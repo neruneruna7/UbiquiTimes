@@ -1,6 +1,6 @@
 #![warn(clippy::str_to_string)]
 use anyhow::Error;
-use poise::{serenity_prelude as serenity, Event};
+use poise::{serenity_prelude as serenity};
 use sqlx::SqlitePool;
 use std::{
     collections::HashMap,
@@ -30,9 +30,9 @@ use commands::{
     },
 };
 
-use commands::bot_communicate::CmdKind;
+
 use commands::global_data::{Context, Data};
-use commands::member_webhook::auto;
+
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている

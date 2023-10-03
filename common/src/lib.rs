@@ -6,8 +6,8 @@ use poise::{serenity_prelude as serenity, Event};
 
 use commands::bot_communicate::CmdKind;
 use commands::global_data::Data;
-use commands::member_webhook::auto;
-use commands::member_webhook::auto::*;
+
+
 use tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造

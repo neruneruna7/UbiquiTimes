@@ -42,14 +42,14 @@ pub async fn master_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    let master_webhook = MasterWebhook::from_row(
+    
+
+    MasterWebhook::from_row(
         &row.guild_id,
         &row.server_name,
         &row.webhook_url,
         &row.public_key_pem,
-    );
-
-    master_webhook
+    )
 }
 
 // すべてのマスターwebhookを取得する

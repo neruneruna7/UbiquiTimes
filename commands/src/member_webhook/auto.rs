@@ -1,33 +1,28 @@
-use super::*;
+
 
 use crate::sign_str_command;
 
-use crate::global_data::Data;
-use crate::loged;
-use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
 
-use anyhow::{anyhow, Context as _};
-use poise::serenity_prelude as serenity;
-use poise::serenity_prelude::Http;
 
-use poise::serenity_prelude::Webhook;
+use crate::{Context, Result};
 
-use tracing::debug;
+use anyhow::{Context as _};
+
+
+
+
+
+
 use tracing::info;
 
-use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
-};
-use serde::{Deserialize, Serialize};
 
-use crate::db_query::{member_webhooks, own_server_times_data::*};
-use crate::db_query::{
-    own_server_data::{self, *},
-    own_server_times_data,
-};
 
-use crate::bot_communicate::*;
-use crate::sign::claims::Claims;
+
+use crate::db_query::{own_server_times_data::*};
+
+
+
+
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
