@@ -1,5 +1,6 @@
 use super::*;
-use types::webhook::MasterWebhook;
+
+use crate::master_webhook::MasterWebhook;
 
 pub async fn master_webhook_upsert(
     connection: &SqlitePool,

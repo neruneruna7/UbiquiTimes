@@ -1,5 +1,6 @@
 use super::*;
-use types::webhook::MemberWebhook;
+
+use crate::member_webhook::MemberWebhook;
 
 // メンバーwebhookの登録
 // upsert

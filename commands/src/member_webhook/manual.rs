@@ -4,9 +4,10 @@ use poise::serenity_prelude::{Http, Webhook};
 
 use tracing::info;
 
+use super::*;
+
 use crate::db_query::member_webhooks::*;
 use crate::db_query::own_server_times_data;
-use crate::types::webhook::MemberWebhook;
 use crate::*;
 
 /// 非推奨 手動でメンバーwebhookを登録します

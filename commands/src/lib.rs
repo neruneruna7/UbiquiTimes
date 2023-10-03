@@ -16,8 +16,8 @@ use tracing::info;
 use types::{
     global_data::{Context, Data},
     own_server_data::ServerData,
-    webhook::MasterWebhook,
 };
+use master_webhook::MasterWebhook;
 
 async fn create_webhook_from_channel(
     ctx: Context<'_>,

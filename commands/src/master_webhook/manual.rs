@@ -2,7 +2,6 @@ use crate::*;
 
 use crate::db_query::master_webhooks::*;
 use crate::sign::key_gen::*;
-use crate::types::webhook::MasterWebhook;
 
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
