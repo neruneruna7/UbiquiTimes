@@ -6,39 +6,36 @@ pub mod send;
 pub mod set;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BotComMessage {
+pub struct SendBotComMessage {
     pub src_guild_id: u64,
     pub dst_guild_id: u64,
     /// Claimsに署名したもの
-    pub token: Option<String>,
-    pub cmd_kind: Option<CmdKind>,
+    pub token: String,
 }
 
-impl BotComMessage {
+impl SendBotComMessage {
     pub fn new(
         src_guild_id: u64,
         dst_guild_id: u64,
-        token: Option<String>,
-        cmd_kind: Option<CmdKind>,
-    ) -> BotComMessage {
+        token: String,
+    ) -> SendBotComMessage {
         Self {
             src_guild_id,
             dst_guild_id,
             token,
-            cmd_kind,
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct BotComMessage2 {
+pub struct RecievedBotComMessage {
     pub src_guild_id: u64,
     pub dst_guild_id: u64,
     pub cmd_kind: CmdKind,
 }
 
-impl BotComMessage2 {
-    pub fn new(src_guild_id: u64, dst_guild_id: u64, cmd_kind: CmdKind) -> BotComMessage2 {
+impl RecievedBotComMessage {
+    pub fn new(src_guild_id: u64, dst_guild_id: u64, cmd_kind: CmdKind) -> RecievedBotComMessage {
         Self {
             src_guild_id,
             dst_guild_id,

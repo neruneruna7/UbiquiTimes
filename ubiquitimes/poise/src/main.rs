@@ -3,7 +3,7 @@ use anyhow::Error;
 use poise::{serenity_prelude as serenity};
 use sqlx::SqlitePool;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env::{self, var},
     sync::Arc,
     time::Duration,
@@ -202,6 +202,7 @@ async fn main() {
                     connection: Arc::new(pool),
                     master_webhook_url: RwLock::new(String::new()),
                     public_key_pem_hashmap: RwLock::new(HashMap::new()),
+                    botcom_sended: RwLock::new(HashMap::new()),
                 })
             })
         })

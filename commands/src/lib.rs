@@ -77,6 +77,21 @@ async fn loged(ctx: &Context<'_>, msg: &str) -> Result<()> {
     Ok(())
 }
 
+/// serenityのctxだとctx.sayが使えないので
+async fn loged_serenity_ctx(
+    ctx: &serenity::Context,
+    master_webhook_url: &str,
+    msg: &str
+) -> Result<()> {
+    let my_webhook = Webhook::from_url(&ctx, master_webhook_url).await?;
+
+    info!(msg);
+    my_webhook
+        .execute(ctx, false, |w| w.content(msg))
+        .await?;
+    Ok(())
+}
+
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]
 pub async fn help(
