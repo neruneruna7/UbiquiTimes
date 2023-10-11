@@ -10,7 +10,6 @@ use rsa::pkcs8::der::zeroize::Zeroizing;
 
 use tracing::info;
 
-
 use poise::serenity_prelude::{Http, Webhook};
 
 use super::*;

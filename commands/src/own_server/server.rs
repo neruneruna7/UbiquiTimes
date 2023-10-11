@@ -10,8 +10,6 @@ use rsa::pkcs8::der::zeroize::Zeroizing;
 
 use tracing::info;
 
-
-
 /// bot導入後，最初に実行してください
 ///
 /// 自身のサーバのマスターwebhook，サーバ情報を登録します

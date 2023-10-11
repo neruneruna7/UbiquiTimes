@@ -7,7 +7,6 @@ use poise::{serenity_prelude as serenity, Event};
 use commands::bot_communicate::CmdKind;
 use commands::global_data::Data;
 
-
 use tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造
@@ -69,7 +68,7 @@ pub async fn event_handler(
             };
 
             let claims = token.claims;
-            
+
             match &claims.cmdkind {
                 CmdKind::TimesUbiquiSettingSend(t) => {
                     let src_guild_id = claims.sub;

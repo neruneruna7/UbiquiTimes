@@ -19,5 +19,5 @@ pub struct Data {
     // 秘密鍵はここにはのせない
     pub public_key_pem_hashmap: RwLock<HashMap<u64, String>>,
     // ユーザidと送信先ギルドid
-    pub botcom_sended: RwLock<HashMap<u64, HashSet<u64>>>
+    pub botcom_sended: RwLock<HashMap<u64, HashSet<u64>>>,
 }

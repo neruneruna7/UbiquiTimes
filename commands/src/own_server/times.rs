@@ -1,14 +1,10 @@
-
 use crate::sign_str_command;
-
-
 
 // use crate::{Context, Result};
 
-use anyhow::{Context as _};
+use anyhow::Context as _;
 
-
-use crate::db_query::{own_server_times_data::*};
+use crate::db_query::own_server_times_data::*;
 
 use crate::*;
 
@@ -23,10 +19,6 @@ use rsa::pkcs8::der::zeroize::Zeroizing;
 use tracing::info;
 
 use super::OwnTimesData;
-
-
-
-
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
@@ -111,10 +103,7 @@ pub async fn ut_times_unset(
     Ok(())
 }
 
-async fn delete_own_times_data(
-    data: &Data,
-    member_id: u64,
-) -> anyhow::Result<()> {
+async fn delete_own_times_data(data: &Data, member_id: u64) -> anyhow::Result<()> {
     let connection = data.connection.clone();
     let member_id = member_id.to_string();
 
@@ -131,9 +120,7 @@ async fn delete_own_times_data(
     Ok(())
 }
 
-async fn select_own_times_data_all(
-    data: &Data,
-) -> anyhow::Result<Vec<OwnTimesData>> {
+async fn select_own_times_data_all(data: &Data) -> anyhow::Result<Vec<OwnTimesData>> {
     let connection = data.connection.clone();
 
     let rows = sqlx::query!(
@@ -161,7 +148,6 @@ async fn select_own_times_data_all(
 /// デバッグ用に member_times_data を全て表示する
 #[poise::command(prefix_command, track_edits, aliases("UtTimesShow"), slash_command)]
 pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
-
     let own_times_data = select_own_times_data_all(ctx.data()).await?;
 
     let mut response = String::new();

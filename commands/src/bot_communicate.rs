@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 pub mod recieved;
@@ -14,11 +13,7 @@ pub struct SendBotComMessage {
 }
 
 impl SendBotComMessage {
-    pub fn new(
-        src_guild_id: u64,
-        dst_guild_id: u64,
-        token: String,
-    ) -> SendBotComMessage {
+    pub fn new(src_guild_id: u64, dst_guild_id: u64, token: String) -> SendBotComMessage {
         Self {
             src_guild_id,
             dst_guild_id,

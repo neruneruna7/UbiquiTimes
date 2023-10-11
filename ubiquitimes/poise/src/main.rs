@@ -1,6 +1,6 @@
 #![warn(clippy::str_to_string)]
 use anyhow::Error;
-use poise::{serenity_prelude as serenity};
+use poise::serenity_prelude as serenity;
 use sqlx::SqlitePool;
 use std::{
     collections::{HashMap, HashSet},
@@ -30,9 +30,7 @@ use commands::{
     },
 };
 
-
 use commands::global_data::{Context, Data};
-
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている

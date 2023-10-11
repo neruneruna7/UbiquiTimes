@@ -1,7 +1,4 @@
-use crate::{
-    bot_communicate::CmdKind,
-    global_data::{Context},
-};
+use crate::{bot_communicate::CmdKind, global_data::Context};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

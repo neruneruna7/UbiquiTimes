@@ -42,8 +42,6 @@ pub async fn master_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    
-
     OtherServerData::from_row(
         &row.guild_id,
         &row.server_name,

@@ -38,7 +38,10 @@ async fn create_webhook_from_channel(
     Ok(webhook)
 }
 
-async fn upsert_own_server_data(ctx: &Context<'_>, own_server_data: OwnServerData) -> anyhow::Result<()> {
+async fn upsert_own_server_data(
+    ctx: &Context<'_>,
+    own_server_data: OwnServerData,
+) -> anyhow::Result<()> {
     let connection = ctx.data().connection.clone();
     db_query::own_server_data::upsert_own_server_data(&connection, &own_server_data).await?;
     register_masterhook_ctx_data(&connection, ctx.data()).await?;
@@ -80,14 +83,12 @@ async fn loged(ctx: &Context<'_>, msg: &str) -> Result<()> {
 async fn loged_serenity_ctx(
     ctx: &serenity::Context,
     master_webhook_url: &str,
-    msg: &str
+    msg: &str,
 ) -> Result<()> {
     let my_webhook = Webhook::from_url(&ctx, master_webhook_url).await?;
 
     info!(msg);
-    my_webhook
-        .execute(ctx, false, |w| w.content(msg))
-        .await?;
+    my_webhook.execute(ctx, false, |w| w.content(msg)).await?;
     Ok(())
 }
 

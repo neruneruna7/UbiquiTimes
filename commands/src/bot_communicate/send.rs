@@ -1,10 +1,10 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 
 use super::*;
 use crate::other_server::OtherServerData;
 use crate::other_server::OtherTimesData;
-use crate::own_server::{OwnTimesData, OwnServerData};
-use crate::{sign_str_command, loged_serenity_ctx};
+use crate::own_server::{OwnServerData, OwnTimesData};
+use crate::{loged_serenity_ctx, sign_str_command};
 
 use crate::global_data::Data;
 use crate::loged;
@@ -23,13 +23,11 @@ use jsonwebtoken::{
     decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
 };
 
-
 use crate::db_query::{other_server_times_data, own_server_times_data::*};
 use crate::db_query::{
     own_server_data::{self, *},
     own_server_times_data,
 };
-
 
 use crate::sign::claims::Claims;
 
@@ -102,7 +100,7 @@ async fn times_ubiqui_setting_send_sender(
     server_data: &OwnServerData,
     other_master_webhooks: &Vec<OtherServerData>,
     botcom_sended: &mut HashMap<u64, HashSet<u64>>,
-) -> Result<()>{
+) -> Result<()> {
     let mut sended_guild_id = HashSet::new();
     // ここのhttpはどうするか，空白トークンのHttpをnewするか，ctxを使うか
     for other_master_webhook in other_master_webhooks.iter() {
@@ -131,7 +129,7 @@ async fn times_ubiqui_setting_send_sender(
             .await?;
     }
 
-    botcom_sended.insert(member_times.member_id ,sended_guild_id);
+    botcom_sended.insert(member_times.member_id, sended_guild_id);
 
     Ok(())
 }
@@ -199,7 +197,8 @@ pub async fn ut_times_ubiqui_setting_send(
         &server_data,
         &other_master_webhooks,
         &mut botcom_sended,
-    ).await?;
+    )
+    .await?;
 
     ctx.say("拡散設定リクエストを送信しました").await?;
     loged(&ctx, "拡散設定リクエストが送信されました").await?;
@@ -230,11 +229,7 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
     let own_server_data =
         own_server_data::select_own_server_data_without_guild_id(connection.as_ref()).await?;
 
-    Ok((
-        recv_master_webhook,
-        member_times_data,
-        own_server_data,
-    ))
+    Ok((recv_master_webhook, member_times_data, own_server_data))
 }
 
 /// 拡散設定リクエストを受信したときの処理
@@ -262,7 +257,6 @@ pub async fn times_ubiqui_setting_recv(
         dst_webhook_url: times_webhook_url,
     };
 
-
     // データをシリアライズ
     // ここにおいては，srcとdstがそのほかの構造体と逆になる
     // つまり，自身のサーバがsrcである
@@ -280,7 +274,12 @@ pub async fn times_ubiqui_setting_recv(
         .execute(ctx, false, |w| w.content(serialized_msg.to_string()))
         .await?;
 
-    loged_serenity_ctx(ctx, &own_server_data.master_webhook_url, "拡散設定リクエスト 受信").await?;
+    loged_serenity_ctx(
+        ctx,
+        &own_server_data.master_webhook_url,
+        "拡散設定リクエスト 受信",
+    )
+    .await?;
 
     Ok(())
 }

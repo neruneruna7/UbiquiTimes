@@ -10,7 +10,6 @@ use rsa::pkcs8::der::zeroize::Zeroizing;
 
 use tracing::info;
 
-
 /// 他サーバを，拡散可能先として登録する
 ///
 /// ここで他サーバを登録すると，メンバーはそのサーバに拡散するよう設定できるようになります．
