@@ -1,10 +1,10 @@
 use super::*;
 
-use crate::master_webhook::MasterWebhook;
+use crate::other_server::OtherServerData;
 
 pub async fn master_webhook_upsert(
     connection: &SqlitePool,
-    master_webhook: &MasterWebhook,
+    master_webhook: &OtherServerData,
 ) -> anyhow::Result<()> {
     let guild_id = master_webhook.guild_id.to_string();
 
@@ -32,7 +32,7 @@ pub async fn master_webhook_upsert(
 pub async fn master_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
-) -> anyhow::Result<MasterWebhook> {
+) -> anyhow::Result<OtherServerData> {
     let row = sqlx::query!(
         r#"
         SELECT * FROM master_webhooks WHERE server_name = ?;
@@ -44,7 +44,7 @@ pub async fn master_webhook_select(
 
     
 
-    MasterWebhook::from_row(
+    OtherServerData::from_row(
         &row.guild_id,
         &row.server_name,
         &row.webhook_url,
@@ -56,7 +56,7 @@ pub async fn master_webhook_select(
 // 複数の行がとれるので、Vecに格納して返す
 pub async fn master_webhook_select_all(
     connection: &SqlitePool,
-) -> anyhow::Result<Vec<MasterWebhook>> {
+) -> anyhow::Result<Vec<OtherServerData>> {
     let rows = sqlx::query!(
         r#"
         SELECT * FROM master_webhooks;
@@ -68,7 +68,7 @@ pub async fn master_webhook_select_all(
     let mut master_webhooks = Vec::new();
 
     for row in rows {
-        let master_webhook = MasterWebhook::from_row(
+        let master_webhook = OtherServerData::from_row(
             &row.guild_id,
             &row.server_name,
             &row.webhook_url,

@@ -1,14 +1,14 @@
 use std::collections::{HashSet, HashMap};
 
 use super::*;
-use crate::master_webhook::MasterWebhook;
-use crate::member_webhook::MemberWebhook;
-use crate::own_server_data::{TimesData, ServerData};
+use crate::other_server::OtherServerData;
+use crate::other_server::OtherTimesData;
+use crate::own_server::{OwnTimesData, OwnServerData};
 use crate::{sign_str_command, loged_serenity_ctx};
 
 use crate::global_data::Data;
 use crate::loged;
-use crate::{db_query::master_webhooks::master_webhook_select_all, Context, Result};
+use crate::{db_query::other_server_data::master_webhook_select_all, Context, Result};
 
 use anyhow::{anyhow, Context as _};
 use poise::serenity_prelude as serenity;
@@ -24,7 +24,7 @@ use jsonwebtoken::{
 };
 
 
-use crate::db_query::{member_webhooks, own_server_times_data::*};
+use crate::db_query::{other_server_times_data, own_server_times_data::*};
 use crate::db_query::{
     own_server_data::{self, *},
     own_server_times_data,
@@ -78,7 +78,7 @@ pub async fn bot_com_msg_recv(
 /// ut_times_ubiqui_setting_sendのために必要なデータを詰める関数
 async fn get_data_for_ut_times_ubiqui_setting_send(
     ctx: &Context<'_>,
-) -> Result<(TimesData, ServerData, Vec<MasterWebhook>)> {
+) -> Result<(OwnTimesData, OwnServerData, Vec<OtherServerData>)> {
     let connection = ctx.data().connection.clone();
     // 自身のtimesの情報を取得
     let member_times = select_own_times_data(connection.as_ref(), ctx.author().id.0).await?;
@@ -98,9 +98,9 @@ async fn times_ubiqui_setting_send_sender(
     ctx: &Context<'_>,
     claims: &mut Claims,
     send_bot_com_msg: &mut SendBotComMessage,
-    member_times: &TimesData,
-    server_data: &ServerData,
-    other_master_webhooks: &Vec<MasterWebhook>,
+    member_times: &OwnTimesData,
+    server_data: &OwnServerData,
+    other_master_webhooks: &Vec<OtherServerData>,
     botcom_sended: &mut HashMap<u64, HashSet<u64>>,
 ) -> Result<()>{
     let mut sended_guild_id = HashSet::new();
@@ -212,12 +212,12 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
     ctx: &serenity::Context,
     data: &Data,
     times_ubiqui_setting: &TimesUbiquiSettingSend,
-) -> Result<(Webhook, TimesData, ServerData)> {
+) -> Result<(Webhook, OwnTimesData, OwnServerData)> {
     let src_member_id = times_ubiqui_setting.src_member_id;
 
     let connection = data.connection.clone();
 
-    // 返送先のmasterwebhook
+    // 返送先のOtherServerData
     let recv_master_webhook_url = times_ubiqui_setting.src_master_webhook_url.clone();
     let http = Http::new("");
     let recv_master_webhook = Webhook::from_url(&http, &recv_master_webhook_url).await?;
@@ -295,8 +295,8 @@ pub async fn times_ubiqui_setting_set(
     info!("拡散設定リクエストを受信しました");
     let src_member_id = times_ubiqui_setting.src_member_id;
 
-    // 必要なデータをMemberWebhookに詰める
-    let member_webhook = MemberWebhook::from(
+    // 必要なデータをOtherTimesDataに詰める
+    let member_webhook = OtherTimesData::from(
         src_member_id,
         src_server_name,
         times_ubiqui_setting.dst_guild_id,
@@ -307,7 +307,7 @@ pub async fn times_ubiqui_setting_set(
     let connection = data.connection.clone();
 
     info!("times_ubiqui_setting_set: DB処理 到達");
-    member_webhooks::member_webhook_upsert(connection.as_ref(), member_webhook).await?;
+    other_server_times_data::member_webhook_upsert(connection.as_ref(), member_webhook).await?;
 
     Ok(())
 }

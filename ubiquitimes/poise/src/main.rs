@@ -25,7 +25,7 @@ use commands::member_webhook::manual::{
 };
 use commands::{
     bot_communicate::send::ut_times_ubiqui_setting_send,
-    master_webhook::manual::{
+    other_server::manual::{
         ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,
     },
 };

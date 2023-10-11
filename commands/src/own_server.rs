@@ -1,6 +1,10 @@
 use anyhow::Result;
 
-pub struct ServerData {
+// pub mod command;
+pub mod server;
+pub mod times;
+
+pub struct OwnServerData {
     pub guild_id: u64,
     pub server_name: String,
     pub master_channel_id: u64,
@@ -9,7 +13,7 @@ pub struct ServerData {
     pub public_key_pem: String,
 }
 
-impl ServerData {
+impl OwnServerData {
     pub fn new(
         guild_id: u64,
         server_name: &str,
@@ -51,14 +55,14 @@ impl ServerData {
 }
 
 #[derive(Debug)]
-pub struct TimesData {
+pub struct OwnTimesData {
     pub member_id: u64,
     pub member_name: String,
     pub channel_id: u64,
     pub webhook_url: String,
 }
 
-impl TimesData {
+impl OwnTimesData {
     pub fn from(member_id: u64, member_name: &str, channel_id: u64, webhook_url: &str) -> Self {
         Self {
             member_id,

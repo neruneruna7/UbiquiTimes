@@ -69,10 +69,8 @@ pub async fn event_handler(
             };
 
             let claims = token.claims;
-
-            let cmd_kind = &claims.cmdkind;
-
-            match cmd_kind {
+            
+            match &claims.cmdkind {
                 CmdKind::TimesUbiquiSettingSend(t) => {
                     let src_guild_id = claims.sub;
                     let src_server_name = claims.iss;

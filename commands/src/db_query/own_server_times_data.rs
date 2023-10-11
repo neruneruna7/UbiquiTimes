@@ -1,5 +1,5 @@
 use super::*;
-use crate::own_server_data::TimesData;
+use crate::own_server::OwnTimesData;
 
 // sqliteにmember自身のtimes情報をupsertする
 pub(crate) async fn upsert_own_times_data(
@@ -38,7 +38,7 @@ pub(crate) async fn upsert_own_times_data(
 pub(crate) async fn select_own_times_data(
     connection: &SqlitePool,
     member_id: u64,
-) -> Result<TimesData> {
+) -> Result<OwnTimesData> {
     let member_id = member_id.to_string();
     let member_times_row = sqlx::query!(
         r#"
@@ -50,7 +50,7 @@ pub(crate) async fn select_own_times_data(
     .fetch_one(connection)
     .await?;
 
-    let member_times = TimesData::from_row(
+    let member_times = OwnTimesData::from_row(
         &member_times_row.member_id,
         &member_times_row.member_name,
         &member_times_row.channel_id,
