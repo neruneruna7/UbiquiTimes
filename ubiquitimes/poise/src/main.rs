@@ -1,5 +1,5 @@
 #![warn(clippy::str_to_string)]
-use anyhow::Error;
+
 use common::commands_vec;
 use poise::serenity_prelude as serenity;
 use sqlx::SqlitePool;
@@ -20,22 +20,16 @@ use tracing::info;
 // use commands::member_webhook::manual::{
 //     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 // };
-use commands::own_server::times::{ut_times_set, ut_times_show, ut_times_unset};
+
 // use commands::member_webhook::manual::{
 //     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 // };
 
-use commands::other_server::times::{
-    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-};
 
-use commands::{
-    bot_communicate::send::ut_times_ubiqui_setting_send,
-    other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook},
-    own_server::server::ut_set_own_masterhook,
-};
 
-use commands::global_data::{Context, Data};
+
+
+use commands::global_data::{Data};
 
 // poise公式リポジトリのサンプルコードの改造
 // コメントをグーグル翻訳にかけている
