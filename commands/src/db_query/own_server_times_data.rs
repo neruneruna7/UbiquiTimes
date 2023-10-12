@@ -75,3 +75,45 @@ pub(crate) async fn is_exist_member_times(connection: &SqlitePool, member_id: u6
 
     Ok(member_times_row.is_some())
 }
+
+pub(crate) async fn delete_own_times_data(data: &Data, member_id: u64) -> anyhow::Result<()> {
+    let connection = data.connection.clone();
+    let member_id = member_id.to_string();
+
+    sqlx::query!(
+        r#"
+        DELETE FROM a_member_times_data
+        WHERE member_id = ?
+        "#,
+        member_id,
+    )
+    .execute(connection.as_ref())
+    .await?;
+
+    Ok(())
+}
+
+pub(crate) async fn select_own_times_data_all(data: &Data) -> anyhow::Result<Vec<OwnTimesData>> {
+    let connection = data.connection.clone();
+
+    let rows = sqlx::query!(
+        r#"
+        SELECT * FROM a_member_times_data
+        "#,
+    )
+    .fetch_all(connection.as_ref())
+    .await?;
+
+    let mut own_times_data = Vec::new();
+
+    for row in rows {
+        own_times_data.push(OwnTimesData {
+            member_id: row.member_id.parse::<u64>()?,
+            member_name: row.member_name,
+            channel_id: row.channel_id.parse::<u64>()?,
+            webhook_url: row.webhook_url,
+        });
+    }
+
+    Ok(own_times_data)
+}
