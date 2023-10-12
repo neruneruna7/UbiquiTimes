@@ -155,6 +155,7 @@ pub async fn ut_times_ubiqui_setting_send(
 
     // どのサーバに対して送信したかを記録する
     let mut botcom_sended = ctx.data().botcom_sended.write().await;
+    // *botcom_sended.insert(member_times.member_id, HashSet::new());
     *botcom_sended = HashMap::new();
 
     let times_ubiqui_setting_send = TimesUbiquiSettingSend {
