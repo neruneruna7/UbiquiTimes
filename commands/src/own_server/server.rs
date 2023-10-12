@@ -1,14 +1,11 @@
 use crate::*;
 
-
 use crate::sign::key_gen::*;
 
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
 
 use rsa::pkcs8::der::zeroize::Zeroizing;
-
-
 
 /// bot導入後，最初に実行してください
 ///

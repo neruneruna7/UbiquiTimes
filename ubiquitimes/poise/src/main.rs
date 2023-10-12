@@ -1,9 +1,10 @@
 #![warn(clippy::str_to_string)]
 use anyhow::Error;
+use common::commands_vec;
 use poise::serenity_prelude as serenity;
 use sqlx::SqlitePool;
 use std::{
-    collections::{HashMap},
+    collections::HashMap,
     env::{self, var},
     sync::Arc,
     time::Duration,
@@ -36,8 +37,8 @@ use commands::{
 
 use commands::global_data::{Context, Data};
 
-/// poise公式リポジトリのサンプルコードの改造
-/// コメントをグーグル翻訳にかけている
+// poise公式リポジトリのサンプルコードの改造
+// コメントをグーグル翻訳にかけている
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -51,48 +52,6 @@ use commands::global_data::{Context, Data};
 //     poise_mentions: AtomicU32,
 //     connection: Arc<SqlitePool>,
 // }
-
-async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
-    // This is our custom error handler
-    // They are many errors that can occur, so we only handle the ones we want to customize
-    // and forward the rest to the default handler
-    // これはカスタム エラー ハンドラーです
-    // 多くのエラーが発生する可能性があるため、カスタマイズしたいエラーのみを処理します
-    // そして残りをデフォルトのハンドラーに転送します
-    match error {
-        poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
-        poise::FrameworkError::Command { error, ctx } => {
-            info!("Error in command `{}`: {:?}", ctx.command().name, error,);
-            ctx.say(error.to_string()).await.ok();
-        }
-        error => {
-            if let Err(e) = poise::builtins::on_error(error).await {
-                info!("Error while handling error: {}", e)
-            }
-        }
-    }
-}
-
-// ヘルプコマンドだけメインに記述してしまうことにした
-/// ヘルプを表示します
-#[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn help(
-    ctx: Context<'_>,
-    #[description = "Specific command to show help about"]
-    #[autocomplete = "poise::builtins::autocomplete_command"]
-    command: Option<String>,
-) -> anyhow::Result<()> {
-    poise::builtins::help(
-        ctx,
-        command.as_deref(),
-        poise::builtins::HelpConfiguration {
-            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
-            ..Default::default()
-        },
-    )
-    .await?;
-    Ok(())
-}
 
 #[tokio::main]
 async fn main() {
@@ -112,22 +71,7 @@ async fn main() {
         // ここでコマンドを登録する
         // コマンド名は1~32文字じゃないとダメみたい
         // どうやらスネークケースじゃないとだめのようだ
-        commands: vec![
-            help(),
-            ut_set_own_masterhook(),
-            ut_set_other_masterhook(),
-            ut_serverlist(),
-            ut_delete_other_masterhook(),
-            // ut_get_master_hook(),
-            ut_member_webhook_reg_manual(),
-            ut_list(),
-            ut_delete(),
-            ut_times_release(),
-            ut_times_set(),
-            ut_times_unset(),
-            ut_times_show(),
-            ut_times_ubiqui_setting_send(),
-        ],
+        commands: commands_vec(),
 
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {

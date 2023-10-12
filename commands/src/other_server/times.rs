@@ -1,12 +1,7 @@
 use crate::*;
 
-
-
-
 use anyhow::Context as anyhowContext;
-use anyhow::{Result};
-
-
+use anyhow::Result;
 
 use tracing::info;
 
@@ -16,7 +11,6 @@ use super::*;
 
 use crate::db_query::other_server_times_data::*;
 use crate::db_query::own_server_times_data;
-
 
 /// 非推奨 手動でメンバーwebhookを登録します
 #[poise::command(

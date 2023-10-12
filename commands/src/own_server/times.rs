@@ -8,17 +8,10 @@ use crate::db_query::own_server_times_data::*;
 
 use crate::*;
 
-
-
-
 use anyhow::Context as anyhowContext;
-use anyhow::{Result};
-
-
+use anyhow::Result;
 
 use tracing::info;
-
-
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///

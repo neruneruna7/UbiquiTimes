@@ -9,6 +9,36 @@ use commands::global_data::Data;
 
 use tracing::info;
 
+use std::{
+    collections::HashMap,
+    env::{self, var},
+    sync::Arc,
+    time::Duration,
+};
+
+use poise::serenity_prelude::RwLock;
+
+// use commands::member_webhook::auto::{
+//     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
+// };
+// use commands::member_webhook::manual::{
+//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+// };
+use commands::own_server::times::{ut_times_set, ut_times_show, ut_times_unset};
+// use commands::member_webhook::manual::{
+//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+// };
+
+use commands::other_server::times::{
+    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+};
+
+use commands::{
+    bot_communicate::send::ut_times_ubiqui_setting_send,
+    other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook},
+    own_server::server::ut_set_own_masterhook,
+};
+
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
 
@@ -24,6 +54,27 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 //     poise_mentions: AtomicU32,
 //     connection: Arc<SqlitePool>,
 // }
+
+// ヘルプコマンドだけメインに記述してしまうことにした
+/// ヘルプを表示します
+#[poise::command(prefix_command, track_edits, slash_command)]
+pub async fn help(
+    ctx: Context<'_>,
+    #[description = "Specific command to show help about"]
+    #[autocomplete = "poise::builtins::autocomplete_command"]
+    command: Option<String>,
+) -> anyhow::Result<()> {
+    poise::builtins::help(
+        ctx,
+        command.as_deref(),
+        poise::builtins::HelpConfiguration {
+            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
+            ..Default::default()
+        },
+    )
+    .await?;
+    Ok(())
+}
 
 pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     // This is our custom error handler
@@ -93,4 +144,24 @@ pub async fn event_handler(
         _ => {}
     }
     Ok(())
+}
+
+// Shuttleとセルフホストの両方で使えるようにするため，切り出している
+pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
+    vec![
+        help(),
+        ut_set_own_masterhook(),
+        ut_set_other_masterhook(),
+        ut_serverlist(),
+        ut_delete_other_masterhook(),
+        // ut_get_master_hook(),
+        ut_member_webhook_reg_manual(),
+        ut_list(),
+        ut_delete(),
+        ut_times_release(),
+        ut_times_set(),
+        ut_times_unset(),
+        ut_times_show(),
+        ut_times_ubiqui_setting_send(),
+    ]
 }
