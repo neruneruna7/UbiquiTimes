@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use poise::serenity_prelude::RwLock;
 use sqlx::SqlitePool;
-use std::hash::Hash;
+
 use std::sync::Arc;
 
 use std::collections::{HashMap, HashSet};

@@ -8,17 +8,17 @@ use crate::db_query::own_server_times_data::*;
 
 use crate::*;
 
-use crate::db_query::other_server_data::*;
-use crate::sign::key_gen::*;
+
+
 
 use anyhow::Context as anyhowContext;
-use anyhow::{anyhow, Result};
+use anyhow::{Result};
 
-use rsa::pkcs8::der::zeroize::Zeroizing;
+
 
 use tracing::info;
 
-use super::OwnTimesData;
+
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///

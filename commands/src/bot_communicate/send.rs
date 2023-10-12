@@ -208,7 +208,7 @@ pub async fn ut_times_ubiqui_setting_send(
 
 /// ut_times_ubiqui_setting_recvのために必要なデータを詰める関数
 async fn get_data_for_ut_times_ubiqui_setting_recv(
-    ctx: &serenity::Context,
+    _ctx: &serenity::Context,
     data: &Data,
     times_ubiqui_setting: &TimesUbiquiSettingSend,
 ) -> Result<(Webhook, OwnTimesData, OwnServerData)> {

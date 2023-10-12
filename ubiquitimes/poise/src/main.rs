@@ -3,7 +3,7 @@ use anyhow::Error;
 use poise::serenity_prelude as serenity;
 use sqlx::SqlitePool;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap},
     env::{self, var},
     sync::Arc,
     time::Duration,
