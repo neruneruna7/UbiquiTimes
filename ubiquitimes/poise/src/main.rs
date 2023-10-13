@@ -80,7 +80,7 @@ async fn main() {
 
         /// This code is run before every command
         /// このコードはすべてのコマンドの前に実行されます
-        /// serenityでフレームワークに.bafore()を登録するみたいな感じと推測
+        /// serenityでフレームワークに.before()を登録するみたいな感じと推測
         pre_command: |ctx| {
             Box::pin(async move {
                 info!("Executing command {}...", ctx.command().qualified_name);

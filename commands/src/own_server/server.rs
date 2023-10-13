@@ -50,7 +50,7 @@ pub async fn ut_set_own_masterhook(
 
     ctx.say(register_tmplate_str).await?;
 
-    loged(&ctx, "サーバ情報を登録しました").await?;
+    logged(&ctx, "サーバ情報を登録しました").await?;
 
     Ok(())
 }

@@ -39,7 +39,7 @@ pub async fn ut_member_webhook_reg_manual(
 
     let connection = ctx.data().connection.clone();
 
-    let menber_webhook = OtherTimesData::from(
+    let member_webhook = OtherTimesData::from(
         a_member_id,
         &b_server_name,
         b_guild_id,
@@ -47,7 +47,7 @@ pub async fn ut_member_webhook_reg_manual(
         &b_webhook_url,
     );
 
-    member_webhook_upsert(connection.as_ref(), menber_webhook).await?;
+    member_webhook_upsert(connection.as_ref(), member_webhook).await?;
 
     let text = "member webhook inserted";
     info!(text);

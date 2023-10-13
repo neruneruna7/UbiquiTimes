@@ -49,7 +49,7 @@ pub async fn ut_set_other_masterhook(
     );
     ctx.say(&response_msg).await?;
 
-    loged(
+    logged(
         &ctx,
         format!("拡散可能サーバを登録しました\n{}", response_msg).as_ref(),
     )
@@ -80,7 +80,7 @@ pub async fn ut_delete_other_masterhook(
 
     ctx.say(format!("{}を削除しました", server_name)).await?;
 
-    loged(
+    logged(
         &ctx,
         format!("拡散可能サーバを削除しました\n{}", server_name).as_ref(),
     )

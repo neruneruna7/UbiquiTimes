@@ -68,7 +68,7 @@ pub async fn upsert_master_webhook(
     Ok(())
 }
 
-async fn loged(ctx: &Context<'_>, msg: &str) -> Result<()> {
+async fn logged(ctx: &Context<'_>, msg: &str) -> Result<()> {
     let master_webhook_url = ctx.data().master_webhook_url.read().await;
 
     let webhook = Webhook::from_url(ctx, &master_webhook_url).await?;
@@ -80,7 +80,7 @@ async fn loged(ctx: &Context<'_>, msg: &str) -> Result<()> {
 }
 
 /// serenityのctxだとctx.sayが使えないので
-async fn loged_serenity_ctx(
+async fn logged_serenity_ctx(
     ctx: &serenity::Context,
     master_webhook_url: &str,
     msg: &str,

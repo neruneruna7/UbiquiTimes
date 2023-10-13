@@ -4,10 +4,10 @@ use super::*;
 use crate::other_server::OtherServerData;
 use crate::other_server::OtherTimesData;
 use crate::own_server::{OwnServerData, OwnTimesData};
-use crate::{loged_serenity_ctx, sign_str_command};
+use crate::{logged_serenity_ctx, sign_str_command};
 
 use crate::global_data::Data;
-use crate::loged;
+use crate::logged;
 use crate::{db_query::other_server_data::master_webhook_select_all, Context, Result};
 
 use anyhow::{anyhow, Context as _};
@@ -173,7 +173,7 @@ pub async fn ut_times_ubiqui_setting_send(
     .await?;
 
     ctx.say("拡散設定リクエストを送信しました").await?;
-    loged(&ctx, "拡散設定リクエストが送信されました").await?;
+    logged(&ctx, "拡散設定リクエストが送信されました").await?;
 
     Ok(())
 }
@@ -282,7 +282,7 @@ pub async fn times_ubiqui_setting_recv(
         .execute(ctx, false, |w| w.content(serialized_msg.to_string()))
         .await?;
 
-    loged_serenity_ctx(
+    logged_serenity_ctx(
         ctx,
         &own_server_data.master_webhook_url,
         "拡散設定リクエスト 受信",
