@@ -7,10 +7,25 @@ use anyhow::{anyhow, Result};
 
 use rsa::pkcs8::der::zeroize::Zeroizing;
 
+///他のサーバが自身のサーバを拡散可能先として登録する際にコピペ可能なテキストを返す関数．
+fn get_register_tmplate_str(
+    server_name: &str,
+    master_webhook_url: &str,
+    guild_id: u64,
+    public_key_pem: &str,
+) -> String {
+    format!(
+        "/ut_set_other_server_data server_name:{} master_webhook_url:{} guild_id:{} public_key_pem:{}",
+        server_name, master_webhook_url, guild_id, public_key_pem
+    )
+}
+
 /// bot導入後，最初に実行してください
 ///
 /// 自身のサーバのマスターwebhook，サーバ情報を登録します
 /// 返信として，他のサーバが自身のサーバを拡散可能先として登録する際にコピペ可能なテキストを返します．
+/// デバッグビルドだと鍵作成の処理時間が長いため，返信が来ないことがあります
+// おそらくどこかに時間を設定するところがあるはず...
 #[poise::command(prefix_command, track_edits, aliases("UtOwnServerData"), slash_command)]
 pub async fn ut_set_own_server_data(
     ctx: Context<'_>,
@@ -55,19 +70,6 @@ pub async fn ut_set_own_server_data(
     logged(&ctx, "サーバ情報を登録しました").await?;
 
     Ok(())
-}
-
-///他のサーバが自身のサーバを拡散可能先として登録する際にコピペ可能なテキストを返す関数．
-fn get_register_tmplate_str(
-    server_name: &str,
-    master_webhook_url: &str,
-    guild_id: u64,
-    public_key_pem: &str,
-) -> String {
-    format!(
-        "/ut_set_other_masterhook server_name:{} master_webhook_url:{} guild_id:{} public_key_pem:{}",
-        server_name, master_webhook_url, guild_id, public_key_pem
-    )
 }
 
 /// このサーバの情報を返します

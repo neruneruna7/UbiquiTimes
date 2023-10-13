@@ -65,7 +65,7 @@ pub async fn upsert_master_webhook(
 ) -> anyhow::Result<()> {
     db_query::other_server_data::master_webhook_upsert(&ctx.data().connection, &master_webhook)
         .await?;
-    register_public_key_ctx_data(master_webhook.guild_id, master_webhook.public_key_pem, ctx);
+    register_public_key_ctx_data(master_webhook.guild_id, master_webhook.public_key_pem, ctx).await?;
     Ok(())
 }
 
