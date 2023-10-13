@@ -15,6 +15,7 @@ use anyhow::{anyhow, Context as _};
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Http;
 
+use poise::serenity_prelude::User;
 use poise::serenity_prelude::Webhook;
 
 use tracing::debug;
@@ -177,7 +178,7 @@ pub async fn ut_times_ubiqui_setting_send(
     .await?;
 
     ctx.say("拡散設定リクエストを送信しました").await?;
-    logged(&ctx, "拡散設定リクエストが送信されました").await?;
+    logged(&ctx, "拡散設定リクエストを送信しました").await?;
 
     Ok(())
 }
@@ -243,8 +244,6 @@ pub async fn times_ubiqui_setting_recv(
     signed_token: &str,
     bot_com_msg: &BotComMessage,
 ) -> Result<()> {
-    info!("拡散設定リクエストを受信しました");
-
     // 検証してClaimを取り出す
     let claim = velify(signed_token, bot_com_msg.src_guild_id, data).await?;
 
@@ -286,7 +285,7 @@ pub async fn times_ubiqui_setting_recv(
     logged_serenity_ctx(
         ctx,
         &own_server_data.master_webhook_url,
-        "拡散設定リクエスト 受信",
+        "拡散設定リクエスト 受信 返信を送信",
     )
     .await?;
 
@@ -304,12 +303,11 @@ async fn get_data_for_ut_times_ubiqui_setting_set(data: &Data) -> Result<OwnServ
 
 /// 拡散設定返信を受信したときの処理
 pub async fn times_ubiqui_setting_set(
-    _ctx: &serenity::Context,
+    ctx: &serenity::Context,
     data: &Data,
     times_ubiqui_setting_recv: &TimesUbiquiSettingRecv,
     _bot_com_msg: &BotComMessage,
 ) -> Result<()> {
-    info!("拡散設定リクエストを受信しました");
 
     let own_server_data = get_data_for_ut_times_ubiqui_setting_set(data).await?;
 
@@ -339,6 +337,15 @@ pub async fn times_ubiqui_setting_set(
 
     info!("times_ubiqui_setting_set: DB処理 到達");
     other_server_times_data::member_webhook_upsert(connection.as_ref(), member_webhook).await?;
+
+    let msg = format!(
+        "拡散設定リクエスト返信 受信\n サーバ名: {} サーバid: {} をメンバーid: {} の拡散先に設定しました",
+        &src_server_data.server_name,
+        &src_server_data.guild_id,
+        &src_member_id
+    );
+
+    logged_serenity_ctx(&ctx, &own_server_data.master_webhook_url, &msg).await?;
 
     Ok(())
 }
