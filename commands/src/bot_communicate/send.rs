@@ -220,7 +220,7 @@ pub async fn velify(signed_token: &str, src_guild_id: u64, data: &Data) -> Resul
 
     let public_key_pem = public_key_pem_hashmap
         .get(&src_guild_id)
-        .context("公開鍵が登録されていません")?;
+        .context(format!("公開鍵が登録されていません. src_guild_id:{}", src_guild_id))?;
 
     // info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
 
