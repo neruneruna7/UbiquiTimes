@@ -320,11 +320,16 @@ pub async fn times_ubiqui_setting_set(
     // sended_servers.remove(times_ubiqui_setting_send.)
 
     let src_member_id = times_ubiqui_setting_recv.src_member_id;
+    // other_server_dataを取得
+    let src_server_data = master_webhook_select_from_guild_id(
+        &data.connection,
+        times_ubiqui_setting_recv.dst_guild_id,
+    ).await?;
 
     // 必要なデータをOtherTimesDataに詰める
     let member_webhook = OtherTimesData::from(
         src_member_id,
-        &own_server_data.server_name,
+        &src_server_data.server_name,
         times_ubiqui_setting_recv.dst_guild_id,
         times_ubiqui_setting_recv.dst_channel_id,
         &times_ubiqui_setting_recv.dst_webhook_url,
