@@ -6,6 +6,7 @@ use poise::{serenity_prelude as serenity, Event};
 
 use commands::bot_communicate::CmdKind;
 use commands::global_data::Data;
+use commands::register_masterhook_ctx_data;
 
 use tracing::info;
 
@@ -99,6 +100,7 @@ pub async fn event_handler(
     match event {
         Event::Ready { data_about_bot } => {
             println!("Logged in as {}", data_about_bot.user.name);
+            register_masterhook_ctx_data(&data.connection, data).await?;
         }
         Event::Message { new_message } => {
             println!("msg recvd");
@@ -151,3 +153,5 @@ pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
         ut_times_ubiqui_setting_send(),
     ]
 }
+
+

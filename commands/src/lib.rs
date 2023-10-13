@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, Context as _};
 
 use poise::serenity_prelude::{self as serenity};
 
@@ -48,6 +48,7 @@ async fn upsert_own_server_data(
     Ok(())
 }
 
+/// master_webhookをdbから取得しDataに登録する
 pub async fn register_masterhook_ctx_data(
     connection: &sqlx::SqlitePool,
     data: &Data,
@@ -68,10 +69,11 @@ pub async fn upsert_master_webhook(
     Ok(())
 }
 
+/// 現在エラー発生中 master_webhook_urlがdataに無いと予測
 async fn logged(ctx: &Context<'_>, msg: &str) -> Result<()> {
     let master_webhook_url = ctx.data().master_webhook_url.read().await;
 
-    let webhook = Webhook::from_url(ctx, &master_webhook_url).await?;
+    let webhook = Webhook::from_url(ctx, &master_webhook_url).await.context(format!("globaldataのmaster_webhook_urlに異常があるか，登録されていません． url: {}", &master_webhook_url))?;
 
     info!(msg);
     webhook.execute(&ctx, false, |w| w.content(msg)).await?;
@@ -91,6 +93,7 @@ async fn logged_serenity_ctx(
     my_webhook.execute(ctx, false, |w| w.content(msg)).await?;
     Ok(())
 }
+
 
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]

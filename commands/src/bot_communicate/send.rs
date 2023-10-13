@@ -75,7 +75,10 @@ async fn times_ubiqui_setting_send_sender(
     let mut sended_guild_id = HashSet::new();
     // ここのhttpはどうするか，空白トークンのHttpをnewするか，ctxを使うか
     for other_master_webhook in other_master_webhooks.iter() {
-        let webhook = Webhook::from_url(&ctx, &other_master_webhook.webhook_url).await?;
+        info!("url is :{} {}", &other_master_webhook.webhook_url, &other_master_webhook.server_name);
+        
+        let http = Http::new("");
+        let webhook = Webhook::from_url(http, &other_master_webhook.webhook_url).await?;
         // bot_com_msg.dst = other_master_webhook.server_name.clone();
         claims.aud = other_master_webhook.server_name.clone();
 
