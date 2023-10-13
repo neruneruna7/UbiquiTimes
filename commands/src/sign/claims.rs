@@ -1,4 +1,8 @@
-use crate::{bot_communicate::CmdKind, global_data::Context};
+use crate::{
+    bot_communicate::{CmdKind, TimesUbiquiSettingSend},
+    global_data::Context,
+};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -10,11 +14,16 @@ pub struct Claims {
     // 送信先サーバ名
     pub aud: String,
     pub exp: usize,
-    pub cmdkind: CmdKind,
+    pub times_ubiqui_setting_send: TimesUbiquiSettingSend,
 }
 
 impl Claims {
-    pub fn new(iss: &str, sub: u64, aud: &str, cmdkind: CmdKind) -> Claims {
+    pub fn new(
+        iss: &str,
+        sub: u64,
+        aud: &str,
+        times_ubiqui_setting_send: TimesUbiquiSettingSend,
+    ) -> Claims {
         let iss = iss.to_string();
         let aud = aud.to_string();
         let exp = 10000000000;
@@ -23,7 +32,7 @@ impl Claims {
             sub,
             aud,
             exp,
-            cmdkind,
+            times_ubiqui_setting_send,
         }
     }
 }

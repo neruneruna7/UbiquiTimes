@@ -25,11 +25,7 @@ use tracing::info;
 //     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 // };
 
-
-
-
-
-use commands::global_data::{Data};
+use commands::global_data::Data;
 
 // poise公式リポジトリのサンプルコードの改造
 // コメントをグーグル翻訳にかけている

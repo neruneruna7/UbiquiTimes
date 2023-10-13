@@ -9,10 +9,6 @@ use commands::global_data::Data;
 
 use tracing::info;
 
-
-
-
-
 // use commands::member_webhook::auto::{
 //     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
 // };
@@ -108,22 +104,17 @@ pub async fn event_handler(
             println!("msg recvd");
 
             // info!("Got a message from a bot: {:?}", new_message);
-            let token = match bot_com_msg_recv(new_message, data).await? {
+            let bot_com_msg = match bot_com_msg_recv(new_message, data).await {
                 Some(t) => t,
                 None => return Ok(()),
             };
 
-            let claims = token.claims;
-
-            match &claims.cmdkind {
-                CmdKind::TimesUbiquiSettingSend(t) => {
-                    let src_guild_id = claims.sub;
-                    let src_server_name = claims.iss;
-                    times_ubiqui_setting_recv(ctx, data, src_guild_id, &src_server_name, t).await?;
+            match &bot_com_msg.cmd_kind {
+                CmdKind::TimesUbiquiSettingSendToken(t) => {
+                    times_ubiqui_setting_recv(ctx, data, t, &bot_com_msg).await?;
                 }
                 CmdKind::TimesUbiquiSettingRecv(t) => {
-                    let src_server_name = claims.iss;
-                    times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
+                    times_ubiqui_setting_set(ctx, data, t, &bot_com_msg).await?;
                 }
                 CmdKind::None => {}
             }

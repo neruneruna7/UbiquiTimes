@@ -5,32 +5,15 @@ pub mod send;
 pub mod set;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SendBotComMessage {
+pub struct BotComMessage {
     pub src_guild_id: u64,
     pub dst_guild_id: u64,
     /// Claimsに署名したもの
-    pub token: String,
-}
-
-impl SendBotComMessage {
-    pub fn new(src_guild_id: u64, dst_guild_id: u64, token: String) -> SendBotComMessage {
-        Self {
-            src_guild_id,
-            dst_guild_id,
-            token,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct RecievedBotComMessage {
-    pub src_guild_id: u64,
-    pub dst_guild_id: u64,
     pub cmd_kind: CmdKind,
 }
 
-impl RecievedBotComMessage {
-    pub fn new(src_guild_id: u64, dst_guild_id: u64, cmd_kind: CmdKind) -> RecievedBotComMessage {
+impl BotComMessage {
+    pub fn new(src_guild_id: u64, dst_guild_id: u64, cmd_kind: CmdKind) -> Self {
         Self {
             src_guild_id,
             dst_guild_id,
@@ -39,9 +22,26 @@ impl RecievedBotComMessage {
     }
 }
 
+// #[derive(Debug, Serialize, Deserialize, Clone)]
+// pub struct RecievedBotComMessage {
+//     pub src_guild_id: u64,
+//     pub dst_guild_id: u64,
+//     pub cmd_kind: CmdKind,
+// }
+
+// impl RecievedBotComMessage {
+//     pub fn new(src_guild_id: u64, dst_guild_id: u64, cmd_kind: CmdKind) -> RecievedBotComMessage {
+//         Self {
+//             src_guild_id,
+//             dst_guild_id,
+//             cmd_kind,
+//         }
+//     }
+// }
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CmdKind {
-    TimesUbiquiSettingSend(TimesUbiquiSettingSend),
+    TimesUbiquiSettingSendToken(String),
     TimesUbiquiSettingRecv(TimesUbiquiSettingRecv),
     None,
 }
