@@ -1,5 +1,5 @@
 use crate::{
-    bot_communicate::{CmdKind, TimesUbiquiSettingSend},
+    bot_communicate::{TimesUbiquiSettingSend},
     global_data::Context,
 };
 

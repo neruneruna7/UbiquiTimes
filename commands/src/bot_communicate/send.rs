@@ -20,7 +20,7 @@ use tracing::debug;
 use tracing::info;
 
 use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
+    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
 
 use crate::db_query::{other_server_times_data, own_server_times_data::*};
@@ -34,7 +34,7 @@ use crate::sign::claims::Claims;
 /// botからのメッセージを受け取ったときの処理
 pub async fn bot_com_msg_recv(
     new_message: &poise::serenity_prelude::Message,
-    data: &Data,
+    _data: &Data,
 ) -> Option<BotComMessage> {
     //Result<Option<TokenData<Claims>>>
     // botから以外のメッセージは無視
@@ -306,15 +306,15 @@ pub async fn times_ubiqui_setting_set(
     _ctx: &serenity::Context,
     data: &Data,
     times_ubiqui_setting_recv: &TimesUbiquiSettingRecv,
-    bot_com_msg: &BotComMessage,
+    _bot_com_msg: &BotComMessage,
 ) -> Result<()> {
     info!("拡散設定リクエストを受信しました");
 
     let own_server_data = get_data_for_ut_times_ubiqui_setting_set(data).await?;
 
     // リクエストを送信した先以外からメッセージが来ている場合はエラーとして処理する
-    let mut botcom_sended = data.botcom_sended.write().await;
-    let mut sended_servers = botcom_sended.get(&times_ubiqui_setting_recv.src_member_id).ok_or(anyhow!("invalid botcom ubiquitous setting request reply 無効な拡散設定リクエスト返信です. そのユーザidからは，そのguild_idに対してリクエストを送信していません"))?;
+    let botcom_sended = data.botcom_sended.write().await;
+    let _sended_servers = botcom_sended.get(&times_ubiqui_setting_recv.src_member_id).ok_or(anyhow!("invalid botcom ubiquitous setting request reply 無効な拡散設定リクエスト返信です. そのユーザidからは，そのguild_idに対してリクエストを送信していません"))?;
 
     // sended_servers.remove(times_ubiqui_setting_send.)
 
