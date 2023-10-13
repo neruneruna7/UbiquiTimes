@@ -28,7 +28,7 @@ use commands::other_server::times::{
 use commands::{
     bot_communicate::send::ut_times_ubiqui_setting_send,
     other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_server_data},
-    own_server::server::{ut_set_own_server_data, ut_get_own_server_data},
+    own_server::server::{ut_get_own_server_data, ut_set_own_server_data},
 };
 
 /// poise公式リポジトリのサンプルコードの改造
@@ -154,5 +154,3 @@ pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
         ut_times_ubiqui_setting_send(),
     ]
 }
-
-

@@ -15,15 +15,13 @@ use anyhow::{anyhow, Context as _};
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Http;
 
-use poise::serenity_prelude::User;
+
 use poise::serenity_prelude::Webhook;
 
 use tracing::debug;
 use tracing::info;
 
-use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation,
-};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 
 use crate::db_query::{other_server_times_data, own_server_times_data::*};
 use crate::db_query::{
@@ -77,8 +75,11 @@ async fn times_ubiqui_setting_send_sender(
     let mut sended_guild_id = HashSet::new();
     // ここのhttpはどうするか，空白トークンのHttpをnewするか，ctxを使うか
     for other_master_webhook in other_master_webhooks.iter() {
-        info!("url is :{} {}", &other_master_webhook.webhook_url, &other_master_webhook.server_name);
-        
+        info!(
+            "url is :{} {}",
+            &other_master_webhook.webhook_url, &other_master_webhook.server_name
+        );
+
         let http = Http::new("");
         let webhook = Webhook::from_url(http, &other_master_webhook.webhook_url).await?;
         // bot_com_msg.dst = other_master_webhook.server_name.clone();
@@ -212,7 +213,8 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
 pub async fn velify(signed_token: &str, src_guild_id: u64, data: &Data) -> Result<Claims> {
     // dbから対象サーバの情報を取得
     let connection = data.connection.clone();
-    let other_master_webhooks = master_webhook_select_from_guild_id(&connection, src_guild_id).await?;
+    let other_master_webhooks =
+        master_webhook_select_from_guild_id(&connection, src_guild_id).await?;
 
     // info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
     // let public_key_pem = public_key_pem_hashmap
@@ -308,7 +310,6 @@ pub async fn times_ubiqui_setting_set(
     times_ubiqui_setting_recv: &TimesUbiquiSettingRecv,
     _bot_com_msg: &BotComMessage,
 ) -> Result<()> {
-
     let own_server_data = get_data_for_ut_times_ubiqui_setting_set(data).await?;
 
     // リクエストを送信した先以外からメッセージが来ている場合はエラーとして処理する
@@ -322,7 +323,8 @@ pub async fn times_ubiqui_setting_set(
     let src_server_data = master_webhook_select_from_guild_id(
         &data.connection,
         times_ubiqui_setting_recv.dst_guild_id,
-    ).await?;
+    )
+    .await?;
 
     // 必要なデータをOtherTimesDataに詰める
     let member_webhook = OtherTimesData::from(
@@ -345,7 +347,7 @@ pub async fn times_ubiqui_setting_set(
         &src_member_id
     );
 
-    logged_serenity_ctx(&ctx, &own_server_data.master_webhook_url, &msg).await?;
+    logged_serenity_ctx(ctx, &own_server_data.master_webhook_url, &msg).await?;
 
     Ok(())
 }

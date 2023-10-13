@@ -75,17 +75,21 @@ pub async fn ut_set_own_server_data(
 /// このサーバの情報を返します
 ///
 /// 他のサーバが自身のサーバを拡散可能先として登録する際にコピペ可能なテキストを返します．
-#[poise::command(prefix_command, track_edits, aliases("UtGetOwnServerData"), slash_command)]
-pub async fn ut_get_own_server_data(
-    ctx: Context<'_>,
-) -> Result<()> {
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UtGetOwnServerData"),
+    slash_command
+)]
+pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
     // dbから取得
     let server_data = crate::db_query::own_server_data::select_own_server_data(
         &ctx.data().connection,
         ctx.guild_id()
             .ok_or(anyhow!("guildidを取得できませんでした"))?
             .0,
-    ).await?;
+    )
+    .await?;
 
     // テンプレート文字列を作成
     let register_tmplate_str = get_register_tmplate_str(

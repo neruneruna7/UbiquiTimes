@@ -1,4 +1,4 @@
-use anyhow::{Result, Context as _};
+use anyhow::{Context as _, Result};
 
 use poise::serenity_prelude::{self as serenity};
 
@@ -65,7 +65,8 @@ pub async fn upsert_master_webhook(
 ) -> anyhow::Result<()> {
     db_query::other_server_data::master_webhook_upsert(&ctx.data().connection, &master_webhook)
         .await?;
-    register_public_key_ctx_data(master_webhook.guild_id, master_webhook.public_key_pem, ctx).await?;
+    register_public_key_ctx_data(master_webhook.guild_id, master_webhook.public_key_pem, ctx)
+        .await?;
     Ok(())
 }
 
@@ -73,7 +74,12 @@ pub async fn upsert_master_webhook(
 async fn logged(ctx: &Context<'_>, msg: &str) -> Result<()> {
     let master_webhook_url = ctx.data().master_webhook_url.read().await;
 
-    let webhook = Webhook::from_url(ctx, &master_webhook_url).await.context(format!("globaldataのmaster_webhook_urlに異常があるか，登録されていません． url: {}", &master_webhook_url))?;
+    let webhook = Webhook::from_url(ctx, &master_webhook_url)
+        .await
+        .context(format!(
+            "globaldataのmaster_webhook_urlに異常があるか，登録されていません． url: {}",
+            &master_webhook_url
+        ))?;
 
     info!(msg);
     webhook.execute(&ctx, false, |w| w.content(msg)).await?;
@@ -93,7 +99,6 @@ async fn logged_serenity_ctx(
     my_webhook.execute(ctx, false, |w| w.content(msg)).await?;
     Ok(())
 }
-
 
 /// Show this help menu
 #[poise::command(prefix_command, track_edits, slash_command)]

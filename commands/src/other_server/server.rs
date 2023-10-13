@@ -119,7 +119,8 @@ pub async fn ut_get_master_hook(
     // DBから取得する
     let connection = ctx.data().connection.clone();
 
-    let master_webhook = master_webhook_select_from_servername(connection.as_ref(), &server_name).await?;
+    let master_webhook =
+        master_webhook_select_from_servername(connection.as_ref(), &server_name).await?;
 
     ctx.say(format!("master_webhook: {:?}", master_webhook))
         .await?;
