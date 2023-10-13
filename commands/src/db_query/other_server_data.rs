@@ -29,7 +29,7 @@ pub async fn master_webhook_upsert(
     Ok(())
 }
 
-pub async fn master_webhook_select(
+pub async fn master_webhook_select_from_servername(
     connection: &SqlitePool,
     server_name: &str,
 ) -> anyhow::Result<OtherServerData> {
@@ -38,6 +38,29 @@ pub async fn master_webhook_select(
         SELECT * FROM master_webhooks WHERE server_name = ?;
         "#,
         server_name
+    )
+    .fetch_one(connection)
+    .await?;
+
+    OtherServerData::from_row(
+        &row.guild_id,
+        &row.server_name,
+        &row.webhook_url,
+        &row.public_key_pem,
+    )
+}
+
+// guild_idを指定して取得する
+pub async fn master_webhook_select_from_guild_id(
+    connection: &SqlitePool,
+    guild_id: u64,
+) -> anyhow::Result<OtherServerData> {
+    let guild_id = guild_id.to_string();
+    let row = sqlx::query!(
+        r#"
+        SELECT * FROM master_webhooks WHERE guild_id = ?;
+        "#,
+        guild_id
     )
     .fetch_one(connection)
     .await?;

@@ -17,7 +17,7 @@ use tracing::info;
     aliases("UtOtherServerHook"),
     slash_command
 )]
-pub async fn ut_set_other_masterhook(
+pub async fn ut_set_other_server_data(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
@@ -119,7 +119,7 @@ pub async fn ut_get_master_hook(
     // DBから取得する
     let connection = ctx.data().connection.clone();
 
-    let master_webhook = master_webhook_select(connection.as_ref(), &server_name).await?;
+    let master_webhook = master_webhook_select_from_servername(connection.as_ref(), &server_name).await?;
 
     ctx.say(format!("master_webhook: {:?}", master_webhook))
         .await?;

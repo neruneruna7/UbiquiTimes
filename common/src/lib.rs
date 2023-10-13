@@ -27,7 +27,7 @@ use commands::other_server::times::{
 
 use commands::{
     bot_communicate::send::ut_times_ubiqui_setting_send,
-    other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook},
+    other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_server_data},
     own_server::server::{ut_set_own_server_data, ut_get_own_server_data},
 };
 
@@ -140,7 +140,7 @@ pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
         help(),
         ut_set_own_server_data(),
         ut_get_own_server_data(),
-        ut_set_other_masterhook(),
+        ut_set_other_server_data(),
         ut_serverlist(),
         ut_delete_other_masterhook(),
         // ut_get_master_hook(),

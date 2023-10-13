@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use super::*;
+use crate::db_query::other_server_data::master_webhook_select_from_guild_id;
 use crate::other_server::OtherServerData;
 use crate::other_server::OtherTimesData;
 use crate::own_server::{OwnServerData, OwnTimesData};
@@ -208,12 +209,16 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
 }
 
 pub async fn velify(signed_token: &str, src_guild_id: u64, data: &Data) -> Result<Claims> {
-    let public_key_pem_hashmap = data.public_key_pem_hashmap.read().await;
+    // dbから対象サーバの情報を取得
+    let connection = data.connection.clone();
+    let other_master_webhooks = master_webhook_select_from_guild_id(&connection, src_guild_id).await?;
 
-    info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
-    let public_key_pem = public_key_pem_hashmap
-        .get(&src_guild_id)
-        .context(format!("公開鍵が登録されていません. src_guild_id:{}", src_guild_id))?;
+    // info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
+    // let public_key_pem = public_key_pem_hashmap
+    //     .get(&src_guild_id)
+    //     .context(format!("公開鍵が登録されていません. src_guild_id:{}", src_guild_id))?;
+
+    let public_key_pem = other_master_webhooks.public_key_pem;
 
     // info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
 
