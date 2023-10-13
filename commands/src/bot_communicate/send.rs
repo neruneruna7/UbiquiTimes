@@ -208,16 +208,9 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
 }
 
 pub async fn velify(signed_token: &str, src_guild_id: u64, data: &Data) -> Result<Claims> {
-    // // メッセージの内容をデシリアライズ. デシリアライズできない場合は無視
-    // let bot_com_msg: BotComMessage = match serde_json::from_str(&new_message.content) {
-    //     Ok(t) => t,
-    //     Err(_) => {
-    //         return Ok(None);
-    //     }
-    // };
-
     let public_key_pem_hashmap = data.public_key_pem_hashmap.read().await;
 
+    info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
     let public_key_pem = public_key_pem_hashmap
         .get(&src_guild_id)
         .context(format!("公開鍵が登録されていません. src_guild_id:{}", src_guild_id))?;
