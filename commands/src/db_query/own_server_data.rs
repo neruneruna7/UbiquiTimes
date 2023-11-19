@@ -1,5 +1,7 @@
 use super::*;
 use crate::own_server::OwnServerData;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
 
 /// 自身のマスターwebhookを a_server_data テーブルにupsertする
 pub(crate) async fn upsert_own_server_data(

@@ -39,7 +39,7 @@ pub async fn ut_member_webhook_reg_manual(
 
     let connection = ctx.data().connection.clone();
 
-    let member_webhook = OtherTimesData::from(
+    let member_webhook = OtherTimesData::new(
         a_member_id,
         &b_server_name,
         b_guild_id,

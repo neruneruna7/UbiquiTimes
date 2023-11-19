@@ -327,7 +327,7 @@ pub async fn times_ubiqui_setting_set(
     .await?;
 
     // 必要なデータをOtherTimesDataに詰める
-    let member_webhook = OtherTimesData::from(
+    let member_webhook = OtherTimesData::new(
         src_member_id,
         &src_server_data.server_name,
         times_ubiqui_setting_recv.dst_guild_id,

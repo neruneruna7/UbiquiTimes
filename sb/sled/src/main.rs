@@ -1,17 +1,20 @@
-use crate::*;
-use sqlx::SqlitePool;
-use tracing::info;
 use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sled::Db;
 
-pub(crate) mod other_server_data;
-pub(crate) mod other_server_times_data;
-pub(crate) mod own_server_data;
-pub(crate) mod own_server_times_data;
+fn main() -> Result<()> {
+    let db = sled::open("my_database")?;
+    let my_table = MyTable::new(&db);
+    let key = "my_key".to_string();
+    let value = MyValue::new("my_id".to_string(), "some_name".to_string(), 1);
+    my_table.upsert(&key, &value)?;
+    let retrieved_value = my_table.read(&key)?.unwrap();
+    assert_eq!(value, retrieved_value);
 
-
-pub trait SledTable {
+    println!("{:?}, {:?}", value, retrieved_value);
+    Ok(())
+}
+trait SledTable {
     const TABLE_NAME: &'static str;
     type SledKey: AsRef<[u8]>;
     type SledValue: Serialize + DeserializeOwned;
@@ -71,3 +74,10 @@ impl<'a> SledTable for MyTable<'a> {
         self.db
     }
 }
+
+// [dependencies]
+// serde = { version = "1.0", features = ["derive"] }
+// serde_json = "1"
+// serde_urlencoded = "0.7.0"
+// sled = "0.34"
+// anyhow = "1.0"

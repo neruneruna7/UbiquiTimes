@@ -1,9 +1,14 @@
 use anyhow::Result;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use crate::db_query::SledTable;
+use sqlx::FromRow;
 
 // pub mod command;
 pub mod server;
 pub mod times;
 
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow)]
 pub struct OwnServerData {
     pub guild_id: u64,
     pub server_name: String,
@@ -31,30 +36,31 @@ impl OwnServerData {
             public_key_pem: public_key_pem.to_string(),
         }
     }
+}
 
-    pub fn from_row(
-        guild_id: &str,
-        server_name: &str,
-        master_channel_id: &str,
-        master_webhook_url: &str,
-        private_key_pem: &str,
-        public_key_pem: &str,
-    ) -> anyhow::Result<Self> {
-        let guild_id = guild_id.parse::<u64>()?;
-        let master_channel_id = master_channel_id.parse::<u64>()?;
+pub struct OwnServerDataTable<'a> {
+    db: &'a sled::Db,
+}
 
-        Ok(Self {
-            guild_id,
-            server_name: server_name.to_string(),
-            master_channel_id,
-            master_webhook_url: master_webhook_url.to_string(),
-            private_key_pem: private_key_pem.to_string(),
-            public_key_pem: public_key_pem.to_string(),
-        })
+impl<'a> OwnServerDataTable<'a> {
+    pub fn new(db: &'a sled::Db) -> Self {
+        Self { db }
     }
 }
 
-#[derive(Debug)]
+impl<'a> SledTable for OwnServerDataTable<'a> {
+    const TABLE_NAME: &'static str = "OwnServerDataTable";
+
+    type SledKey = String;
+
+    type SledValue = OwnServerData;
+
+    fn get_db(&self) -> &sled::Db {
+        self.db
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow)]
 pub struct OwnTimesData {
     pub member_id: u64,
     pub member_name: String,
@@ -63,7 +69,7 @@ pub struct OwnTimesData {
 }
 
 impl OwnTimesData {
-    pub fn from(member_id: u64, member_name: &str, channel_id: u64, webhook_url: &str) -> Self {
+    pub fn new(member_id: u64, member_name: &str, channel_id: u64, webhook_url: &str) -> Self {
         Self {
             member_id,
             member_name: member_name.to_string(),
@@ -71,18 +77,26 @@ impl OwnTimesData {
             webhook_url: webhook_url.to_string(),
         }
     }
+}
 
-    pub fn from_row(
-        member_id: &str,
-        member_name: &str,
-        channel_id: &str,
-        webhook_url: &str,
-    ) -> Result<Self> {
-        Ok(Self {
-            member_id: member_id.parse::<u64>()?,
-            member_name: member_name.to_string(),
-            channel_id: channel_id.parse::<u64>()?,
-            webhook_url: webhook_url.to_string(),
-        })
+pub struct OwnTimesDataTable<'a> {
+    db: &'a sled::Db,
+}
+
+impl<'a> OwnTimesDataTable<'a> {
+    pub fn new(db: &'a sled::Db) -> Self {
+        Self { db }
+    }
+}
+
+impl<'a> SledTable for OwnTimesDataTable<'a> {
+    const TABLE_NAME: &'static str = "OwnTimesDataTable";
+
+    type SledKey = String;
+
+    type SledValue = OwnTimesData;
+
+    fn get_db(&self) -> &sled::Db {
+        self.db
     }
 }
