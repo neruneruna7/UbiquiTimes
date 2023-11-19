@@ -18,6 +18,9 @@ tracing-subscriber = "0.3"
 
 sqlx = { version = "0.7", features = ["sqlite", "migrate", "runtime-tokio"] }
 
+async-trait = "0.1.74"
+sled = "0.34.7"
+
 chrono = "0.4"
 
 serde = { version = "1.0", features = ["derive"] }
