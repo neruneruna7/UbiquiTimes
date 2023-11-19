@@ -37,7 +37,7 @@ impl EventHandler for Handler {
     //         return;
     //     }
 
-    //     info!("new Message Comming!: {}", new_msg.content);
+    //     info!("new Message Coming!: {}", new_msg.content);
     //     new_msg.reply(&_ctx, "hello!").await.unwrap();
     // }
 
@@ -55,7 +55,7 @@ impl EventHandler for Handler {
     }
 }
 
-// このbeforの使い方がわからない
+// このbeforeの使い方がわからない
 //
 // この関数はコマンドが実行される前に実行される
 // この関数の戻り値がtrueの場合、コマンドが実行される

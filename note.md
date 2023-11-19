@@ -217,3 +217,7 @@ object file .git/objects/ad/10d7e89c9a717582ff5c6dca6ef8582db494d2 is empty
 
 # 発生しているエラー
 2回送信される
+
+
+# 署名スキーム
+RSASSA-PKCS1-v1_5 using SHA-256

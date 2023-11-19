@@ -106,14 +106,14 @@ async fn UTregisterM(ctx: &Context, msg: &Message) -> CommandResult {
 
     let db = get_db(ctx).await.unwrap();
 
-    let menber_webhook = MemberWebhook::from(
+    let member_webhook = MemberWebhook::from(
         None,
         &server_name,
         msg.author.id.0 as i64,
         &webhook_url,
     );
 
-    member_webhook_insert(db.as_ref(), menber_webhook).await?;
+    member_webhook_insert(db.as_ref(), member_webhook).await?;
 
     info!("member webhook inserted");
     msg.reply(ctx, "member webhook registed").await?;

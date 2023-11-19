@@ -1,11 +1,35 @@
 use anyhow::Error;
+use commands::bot_communicate::send::{
+    bot_com_msg_recv, times_ubiqui_setting_recv, times_ubiqui_setting_set,
+};
 use poise::{serenity_prelude as serenity, Event};
 
-use commands::member_webhook::auto;
-use commands::member_webhook::auto::*;
-use commands::types::botcom::CmdKind;
-use commands::types::global_data::Data;
+use commands::bot_communicate::CmdKind;
+use commands::global_data::Data;
+use commands::register_masterhook_ctx_data;
+
 use tracing::info;
+
+// use commands::member_webhook::auto::{
+//     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
+// };
+// use commands::member_webhook::manual::{
+//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+// };
+use commands::own_server::times::{ut_times_set, ut_times_show, ut_times_unset};
+// use commands::member_webhook::manual::{
+//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+// };
+
+use commands::other_server::times::{
+    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+};
+
+use commands::{
+    bot_communicate::send::ut_times_ubiqui_setting_send,
+    other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_server_data},
+    own_server::server::{ut_get_own_server_data, ut_set_own_server_data},
+};
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -22,6 +46,27 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 //     poise_mentions: AtomicU32,
 //     connection: Arc<SqlitePool>,
 // }
+
+// ヘルプコマンドだけメインに記述してしまうことにした
+/// ヘルプを表示します
+#[poise::command(prefix_command, track_edits, slash_command)]
+pub async fn help(
+    ctx: Context<'_>,
+    #[description = "Specific command to show help about"]
+    #[autocomplete = "poise::builtins::autocomplete_command"]
+    command: Option<String>,
+) -> anyhow::Result<()> {
+    poise::builtins::help(
+        ctx,
+        command.as_deref(),
+        poise::builtins::HelpConfiguration {
+            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
+            ..Default::default()
+        },
+    )
+    .await?;
+    Ok(())
+}
 
 pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     // This is our custom error handler
@@ -55,26 +100,23 @@ pub async fn event_handler(
     match event {
         Event::Ready { data_about_bot } => {
             println!("Logged in as {}", data_about_bot.user.name);
+            register_masterhook_ctx_data(&data.connection, data).await?;
         }
         Event::Message { new_message } => {
             println!("msg recvd");
 
             // info!("Got a message from a bot: {:?}", new_message);
-            let bot_com_msg = match bot_com_msg_recv(new_message).await {
+            let bot_com_msg = match bot_com_msg_recv(new_message, data).await {
                 Some(t) => t,
                 None => return Ok(()),
             };
 
-            let cmd_kind = &bot_com_msg.cmd;
-
-            match cmd_kind {
-                CmdKind::TimesUbiquiSettingSend(t) => {
-                    let src_server_name = bot_com_msg.src;
-                    auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
+            match &bot_com_msg.cmd_kind {
+                CmdKind::TimesUbiquiSettingSendToken(t) => {
+                    times_ubiqui_setting_recv(ctx, data, t, &bot_com_msg).await?;
                 }
                 CmdKind::TimesUbiquiSettingRecv(t) => {
-                    let src_server_name = bot_com_msg.src;
-                    auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
+                    times_ubiqui_setting_set(ctx, data, t, &bot_com_msg).await?;
                 }
                 CmdKind::None => {}
             }
@@ -90,4 +132,25 @@ pub async fn event_handler(
         _ => {}
     }
     Ok(())
+}
+
+// Shuttleとセルフホストの両方で使えるようにするため，切り出している
+pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
+    vec![
+        help(),
+        ut_set_own_server_data(),
+        ut_get_own_server_data(),
+        ut_set_other_server_data(),
+        ut_serverlist(),
+        ut_delete_other_masterhook(),
+        // ut_get_master_hook(),
+        ut_member_webhook_reg_manual(),
+        ut_list(),
+        ut_delete(),
+        ut_times_release(),
+        ut_times_set(),
+        ut_times_unset(),
+        ut_times_show(),
+        ut_times_ubiqui_setting_send(),
+    ]
 }

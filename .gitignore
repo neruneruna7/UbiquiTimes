@@ -3,3 +3,5 @@
 .env
 .env.local
 .idea
+private.pem
+public.pem

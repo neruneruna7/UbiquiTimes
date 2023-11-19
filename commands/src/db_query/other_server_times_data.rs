@@ -1,11 +1,12 @@
 use super::*;
-use types::webhook::MemberWebhook;
+
+use crate::other_server::OtherTimesData;
 
 // メンバーwebhookの登録
 // upsert
 pub(crate) async fn member_webhook_upsert(
     connection: &SqlitePool,
-    member_webhook: MemberWebhook,
+    member_webhook: OtherTimesData,
 ) -> anyhow::Result<()> {
     let member_id = member_webhook.src_member_id.to_string();
     let channel_id = member_webhook.dst_channel_id.to_string();
@@ -40,7 +41,7 @@ pub(crate) async fn member_webhook_select(
     connection: &SqlitePool,
     server_name: &str,
     member_id: u64,
-) -> Result<MemberWebhook> {
+) -> Result<OtherTimesData> {
     let member_id = member_id.to_string();
     let row = sqlx::query!(
         r#"
@@ -52,7 +53,7 @@ pub(crate) async fn member_webhook_select(
     .fetch_one(connection)
     .await?;
 
-    let member_webhook = MemberWebhook::from_row(
+    let member_webhook = OtherTimesData::from_row(
         &row.a_member_id,
         &row.b_server_name,
         &row.b_guild_id,
@@ -68,7 +69,7 @@ pub(crate) async fn member_webhook_select(
 pub(crate) async fn member_webhook_select_from_member_id(
     connection: &SqlitePool,
     member_id: u64,
-) -> Result<Vec<MemberWebhook>> {
+) -> Result<Vec<OtherTimesData>> {
     let member_id = member_id.to_string();
     let rows = sqlx::query!(
         r#"
@@ -81,7 +82,7 @@ pub(crate) async fn member_webhook_select_from_member_id(
 
     let mut member_webhook_list = Vec::new();
     for row in rows {
-        let member_webhook = MemberWebhook::from_row(
+        let member_webhook = OtherTimesData::from_row(
             &row.a_member_id,
             &row.b_server_name,
             &row.b_guild_id,
@@ -96,7 +97,7 @@ pub(crate) async fn member_webhook_select_from_member_id(
 
 pub(crate) async fn member_webhook_select_all(
     connection: &SqlitePool,
-) -> Result<Vec<MemberWebhook>> {
+) -> Result<Vec<OtherTimesData>> {
     let rows = sqlx::query!(
         r#"
         SELECT * FROM member_webhooks;
@@ -107,7 +108,7 @@ pub(crate) async fn member_webhook_select_all(
 
     let mut member_webhook_list = Vec::new();
     for row in rows {
-        let member_webhook = MemberWebhook::from_row(
+        let member_webhook = OtherTimesData::from_row(
             &row.a_member_id,
             &row.b_server_name,
             &row.b_guild_id,

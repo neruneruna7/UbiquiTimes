@@ -1,56 +1,11 @@
 use crate::*;
 
-use crate::db_query::master_webhooks::*;
-use crate::types::webhook::MasterWebhook;
+use crate::db_query::other_server_data::*;
 
 use anyhow::Context as anyhowContext;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 use tracing::info;
-
-/// bot導入後，最初に実行してください
-///
-/// 自身のサーバのマスターwebhook，サーバ情報を登録します
-/// 返信として，他のサーバが自身のサーバを拡散可能先として登録する際にコピペ可能なテキストを返します．
-#[poise::command(prefix_command, track_edits, aliases("UtOwnServerData"), slash_command)]
-pub async fn ut_set_own_masterhook(
-    ctx: Context<'_>,
-    #[description = "本サーバのサーバ名"] server_name: String,
-    #[description = "本サーバのマスターwebhook URL"] master_webhook_url: String,
-) -> Result<()> {
-    let master_webhook = Webhook::from_url(ctx, &master_webhook_url).await?;
-    let master_channel_id = master_webhook
-        .channel_id
-        .ok_or(anyhow!("webhookからチャンネルidを取得できませんでした"))?
-        .to_string();
-
-    let guild_id = ctx
-        .guild_id()
-        .ok_or(anyhow!("guild_idが取得できませんでした"))?
-        .0
-        .to_string();
-
-    upsert_own_server_data(
-        &ctx,
-        &server_name,
-        &guild_id,
-        &master_channel_id,
-        &master_webhook_url,
-    )
-    .await?;
-
-    let register_tmplate_str = format!(
-        "~UtOtherServerHook {} {} {}",
-        server_name, master_webhook_url, guild_id
-    );
-    // format!("server_data: ```\n server_name: {},\n guild_id: {},\n master_channel_id: {},\n master_webhook_url: {}```", server_name, guild_id, master_channel_id, master_webhook_url)
-
-    ctx.say(register_tmplate_str).await?;
-
-    loged(&ctx, "サーバ情報を登録しました").await?;
-
-    Ok(())
-}
 
 /// 他サーバを，拡散可能先として登録する
 ///
@@ -62,11 +17,12 @@ pub async fn ut_set_own_masterhook(
     aliases("UtOtherServerHook"),
     slash_command
 )]
-pub async fn ut_set_other_masterhook(
+pub async fn ut_set_other_server_data(
     ctx: Context<'_>,
     #[description = "拡散先のサーバ名"] server_name: String,
     #[description = "拡散先サーバのマスターwebhook URL"] master_webhook_url: String,
     #[description = "拡散先サーバのギルド（サーバー）ID"] guild_id: String,
+    #[description = "拡散先サーバの公開鍵"] public_key_pem: String,
 ) -> Result<()> {
     let guild_id = guild_id
         .parse::<u64>()
@@ -83,7 +39,7 @@ pub async fn ut_set_other_masterhook(
 
     master_webhook_upsert(
         connection.as_ref(),
-        MasterWebhook::from(None, &server_name, guild_id, &master_webhook_url),
+        &OtherServerData::new(guild_id, &server_name, &master_webhook_url, &public_key_pem),
     )
     .await?;
 
@@ -93,7 +49,7 @@ pub async fn ut_set_other_masterhook(
     );
     ctx.say(&response_msg).await?;
 
-    loged(
+    logged(
         &ctx,
         format!("拡散可能サーバを登録しました\n{}", response_msg).as_ref(),
     )
@@ -124,7 +80,7 @@ pub async fn ut_delete_other_masterhook(
 
     ctx.say(format!("{}を削除しました", server_name)).await?;
 
-    loged(
+    logged(
         &ctx,
         format!("拡散可能サーバを削除しました\n{}", server_name).as_ref(),
     )
@@ -163,7 +119,8 @@ pub async fn ut_get_master_hook(
     // DBから取得する
     let connection = ctx.data().connection.clone();
 
-    let master_webhook = master_webhook_select(connection.as_ref(), &server_name).await?;
+    let master_webhook =
+        master_webhook_select_from_servername(connection.as_ref(), &server_name).await?;
 
     ctx.say(format!("master_webhook: {:?}", master_webhook))
         .await?;

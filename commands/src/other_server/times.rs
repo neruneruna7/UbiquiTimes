@@ -1,13 +1,16 @@
+use crate::*;
+
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
-use poise::serenity_prelude::{Http, Webhook};
 
 use tracing::info;
 
-use crate::db_query::member_webhooks::*;
+use poise::serenity_prelude::{Http, Webhook};
+
+use super::*;
+
+use crate::db_query::other_server_times_data::*;
 use crate::db_query::own_server_times_data;
-use crate::types::webhook::MemberWebhook;
-use crate::*;
 
 /// 非推奨 手動でメンバーwebhookを登録します
 #[poise::command(
@@ -36,7 +39,7 @@ pub async fn ut_member_webhook_reg_manual(
 
     let connection = ctx.data().connection.clone();
 
-    let menber_webhook = MemberWebhook::from(
+    let member_webhook = OtherTimesData::from(
         a_member_id,
         &b_server_name,
         b_guild_id,
@@ -44,7 +47,7 @@ pub async fn ut_member_webhook_reg_manual(
         &b_webhook_url,
     );
 
-    member_webhook_upsert(connection.as_ref(), menber_webhook).await?;
+    member_webhook_upsert(connection.as_ref(), member_webhook).await?;
 
     let text = "member webhook inserted";
     info!(text);

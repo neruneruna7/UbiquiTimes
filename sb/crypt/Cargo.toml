@@ -7,7 +7,20 @@ edition = "2021"
 
 [dependencies]
 rand = "*"
+# rsa = {version = "*", features = ["sha2"]}
+# jws = "*"
+
+# hmac = "*"
 rsa = {version = "*", features = ["sha2"]}
+# jwt = "*"
+# sha2 = "*"
+
+# josekit = "*"
+# openssl = "*"
+# rsa-oaep-pss = "*"
+
+jsonwebtoken = "*"
+# jsonwebtoken-rustcrypto = "1"
 
 serde = {version = "*", features = ["derive"]}
 serde_json = "*"

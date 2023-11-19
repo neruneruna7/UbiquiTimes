@@ -1,8 +1,10 @@
 #![warn(clippy::str_to_string)]
-use anyhow::Error;
-use poise::{serenity_prelude as serenity, Event};
+
+use common::commands_vec;
+use poise::serenity_prelude as serenity;
 use sqlx::SqlitePool;
 use std::{
+    collections::HashMap,
     env::{self, var},
     sync::Arc,
     time::Duration,
@@ -18,22 +20,15 @@ use tracing::info;
 // use commands::member_webhook::manual::{
 //     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
 // };
-use commands::master_webhook::manual::{
-    ut_delete_other_masterhook, ut_serverlist, ut_set_other_masterhook, ut_set_own_masterhook,
-};
-use commands::member_webhook::auto::{
-    ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
-};
-use commands::member_webhook::manual::{
-    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-};
 
-use commands::member_webhook::auto;
-use commands::types::botcom::CmdKind;
-use commands::types::global_data::{Context, Data};
+// use commands::member_webhook::manual::{
+//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
+// };
 
-/// poise公式リポジトリのサンプルコードの改造
-/// コメントをグーグル翻訳にかけている
+use commands::global_data::Data;
+
+// poise公式リポジトリのサンプルコードの改造
+// コメントをグーグル翻訳にかけている
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -47,99 +42,6 @@ use commands::types::global_data::{Context, Data};
 //     poise_mentions: AtomicU32,
 //     connection: Arc<SqlitePool>,
 // }
-
-async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
-    // This is our custom error handler
-    // They are many errors that can occur, so we only handle the ones we want to customize
-    // and forward the rest to the default handler
-    // これはカスタム エラー ハンドラーです
-    // 多くのエラーが発生する可能性があるため、カスタマイズしたいエラーのみを処理します
-    // そして残りをデフォルトのハンドラーに転送します
-    match error {
-        poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
-        poise::FrameworkError::Command { error, ctx } => {
-            info!("Error in command `{}`: {:?}", ctx.command().name, error,);
-            ctx.say(error.to_string()).await.ok();
-        }
-        error => {
-            if let Err(e) = poise::builtins::on_error(error).await {
-                info!("Error while handling error: {}", e)
-            }
-        }
-    }
-}
-
-// イベントハンドラ
-// serenityの，EventHadlerトレイトを実装して実現していたものと同等と推測
-async fn event_handler(
-    ctx: &serenity::Context,
-    event: &Event<'_>,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
-    data: &Data,
-) -> Result<(), Error> {
-    match event {
-        Event::Ready { data_about_bot } => {
-            println!("Logged in as {}", data_about_bot.user.name);
-
-            let connection = data.connection.clone();
-            commands::register_masterhook_ctx_data(&connection, data).await?;
-        }
-        Event::Message { new_message } => {
-            println!("msg recvd");
-
-            // info!("Got a message from a bot: {:?}", new_message);
-            let bot_com_msg = match auto::bot_com_msg_recv(new_message).await {
-                Some(t) => t,
-                None => return Ok(()),
-            };
-
-            let cmd_kind = &bot_com_msg.cmd;
-
-            match cmd_kind {
-                CmdKind::TimesUbiquiSettingSend(t) => {
-                    let src_server_name = bot_com_msg.src;
-                    auto::times_ubiqui_setting_recv(ctx, data, &src_server_name, t).await?;
-                }
-                CmdKind::TimesUbiquiSettingRecv(t) => {
-                    let src_server_name = bot_com_msg.src;
-                    auto::times_ubiqui_setting_set(ctx, data, &src_server_name, t).await?;
-                }
-                CmdKind::None => {}
-            }
-
-            // if new_message.content.to_lowercase().contains("poise") {
-            //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
-            //     data.poise_mentions.store(mentions, Ordering::SeqCst);
-            //     new_message
-            //         .reply(ctx, format!("Poise has been mentioned {} times", mentions))
-            //         .await?;
-            // }
-        }
-        _ => {}
-    }
-    Ok(())
-}
-
-// ヘルプコマンドだけメインに記述してしまうことにした
-/// ヘルプを表示します
-#[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn help(
-    ctx: Context<'_>,
-    #[description = "Specific command to show help about"]
-    #[autocomplete = "poise::builtins::autocomplete_command"]
-    command: Option<String>,
-) -> anyhow::Result<()> {
-    poise::builtins::help(
-        ctx,
-        command.as_deref(),
-        poise::builtins::HelpConfiguration {
-            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
-            ..Default::default()
-        },
-    )
-    .await?;
-    Ok(())
-}
 
 #[tokio::main]
 async fn main() {
@@ -159,22 +61,7 @@ async fn main() {
         // ここでコマンドを登録する
         // コマンド名は1~32文字じゃないとダメみたい
         // どうやらスネークケースじゃないとだめのようだ
-        commands: vec![
-            help(),
-            ut_set_own_masterhook(),
-            ut_set_other_masterhook(),
-            ut_serverlist(),
-            ut_delete_other_masterhook(),
-            // ut_get_master_hook(),
-            ut_member_webhook_reg_manual(),
-            ut_list(),
-            ut_delete(),
-            ut_times_release(),
-            ut_times_set(),
-            ut_times_unset(),
-            ut_times_show(),
-            ut_times_ubiqui_setting_send(),
-        ],
+        commands: commands_vec(),
 
         // ここでprefixを設定する
         prefix_options: poise::PrefixFrameworkOptions {
@@ -189,11 +76,11 @@ async fn main() {
 
         /// The global error handler for all error cases that may occur
         /// 発生する可能性のあるすべてのエラーケースに対応するグローバルエラーハンドラー
-        on_error: |error| Box::pin(on_error(error)),
+        on_error: |error| Box::pin(common::on_error(error)),
 
         /// This code is run before every command
         /// このコードはすべてのコマンドの前に実行されます
-        /// serenityでフレームワークに.bafore()を登録するみたいな感じと推測
+        /// serenityでフレームワークに.before()を登録するみたいな感じと推測
         pre_command: |ctx| {
             Box::pin(async move {
                 info!("Executing command {}...", ctx.command().qualified_name);
@@ -227,7 +114,8 @@ async fn main() {
         event_handler: |_ctx, event, _framework, _data| {
             Box::pin(async move {
                 info!("Got an event in event handler: {:?}", event.name());
-                event_handler(_ctx, event, _framework, _data).await
+                common::event_handler(_ctx, event, _framework, _data).await
+                // event_handler(_ctx, event, _framework, _data).await
             })
         },
         ..Default::default()
@@ -249,6 +137,8 @@ async fn main() {
                 Ok(Data {
                     connection: Arc::new(pool),
                     master_webhook_url: RwLock::new(String::new()),
+                    public_key_pem_hashmap: RwLock::new(HashMap::new()),
+                    botcom_sended: RwLock::new(HashMap::new()),
                 })
             })
         })

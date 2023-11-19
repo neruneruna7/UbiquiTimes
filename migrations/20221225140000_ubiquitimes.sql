@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS master_webhooks
 (
-    id      INTEGER PRIMARY KEY NOT NULL,
+    guild_id     TEXT    PRIMARY KEY     NOT NULL,
     server_name    TEXT          NOT NULL,
-    guild_id     TEXT    UNIQUE     NOT NULL,
-    webhook_url     TEXT                NOT NULL
+    webhook_url     TEXT                NOT NULL,
+    public_key_pem     TEXT                NOT NULL
 );
 
 
@@ -32,5 +32,7 @@ CREATE TABLE IF NOT EXISTS a_server_data
     guild_id TEXT PRIMARY KEY NOT NULL,
     server_name TEXT  NOT NULL,
     master_channel_id TEXT NOT NULL,
-    master_webhook_url TEXT NOT NULL
+    master_webhook_url TEXT NOT NULL,
+    private_key_pem TEXT NOT NULL,
+    public_key_pem TEXT NOT NULL
 );
