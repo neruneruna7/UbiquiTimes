@@ -1,4 +1,6 @@
 use crate::*;
+use crate::own_server::OwnTimesData;
+use crate::own_server::OwnTimesDataTable;
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
@@ -140,25 +142,27 @@ pub async fn ut_times_release(
     let _username = format!("UT-{}", ctx.author().name);
 
     let db = ctx.data().connection.clone();
-
-    // そのユーザのtimesデータを取得する
-    let times_data =
-        own_server_times_data::select_own_times_data(connection.as_ref(), ctx.author().id.0)
-            .await?;
+    let times_data = {
+        let own_server_times_table = OwnTimesDataTable::new(db.as_ref());
+        own_server_times_table
+            .read(&ctx.author().id.0.to_string())
+            .context("own_server_times_dataの読み込みに失敗しました")?
+            .context("own_server_times_dataが存在しません")?
+    };
 
     // webhookのusernameを設定する
-
     let username = format!("UT-{}", times_data.member_name);
 
     // DBからそのユーザのwebhookをすべて取得する
 
-    // SqliteのINTEGER型はi64になる都合で，i64に変換する
-    // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
     let member_id = ctx.author().id.0;
-    let member_webhooks =
-        member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
 
-    let member_webhooks = member_webhooks
+    let other_times_data_vec = {
+        let other_times_table =  OtherTimesDataTable::new(db.as_ref());
+        other_times_table.read_all()?
+    };
+
+    let member_webhooks = other_times_data_vec
         .iter()
         .map(|m| m.dst_webhook_url.to_owned())
         .collect::<Vec<String>>();
