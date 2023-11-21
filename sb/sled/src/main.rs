@@ -8,10 +8,18 @@ fn main() -> Result<()> {
     let key = "my_key".to_string();
     let value = MyValue::new("my_id".to_string(), "some_name".to_string(), 1);
     my_table.upsert(&key, &value)?;
+
+    let key = "my_key2".to_string();
+    my_table.upsert(&key, &value)?;
     let retrieved_value = my_table.read(&key)?.unwrap();
     assert_eq!(value, retrieved_value);
 
+    let all_values = my_table.read_all()?;
+
+
     println!("{:?}, {:?}", value, retrieved_value);
+
+    println!("{:?}", all_values);
     Ok(())
 }
 trait SledTable {
@@ -40,6 +48,26 @@ trait SledTable {
             }
             None => Ok(None),
         }
+    }
+
+    fn read_all(&self) -> Result<Vec<Self::SledValue>> {
+        let db = self.get_db();
+        let mut ret = Vec::new();
+        let tree = db.open_tree(Self::TABLE_NAME)?;
+        for item in tree.iter() {
+            let (key, value) = item?;
+            let string = String::from_utf8(value.to_vec())?;
+            let value = serde_json::from_str::<Self::SledValue>(&string)?;
+            ret.push(value);
+        }
+        Ok(ret)
+    }
+
+    fn delete(&self, key: &Self::SledKey) -> Result<()> {
+        let db = self.get_db();
+        let byte_key = key.as_ref();
+        db.open_tree(Self::TABLE_NAME)?.remove(byte_key)?;
+        Ok(())
     }
 }
 

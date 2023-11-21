@@ -38,6 +38,26 @@ pub trait SledTable {
             None => Ok(None),
         }
     }
+
+    fn read_all(&self) -> Result<Vec<Self::SledValue>> {
+        let db = self.get_db();
+        let mut ret = Vec::new();
+        let tree = db.open_tree(Self::TABLE_NAME)?;
+        for item in tree.iter() {
+            let (key, value) = item?;
+            let string = String::from_utf8(value.to_vec())?;
+            let value = serde_json::from_str::<Self::SledValue>(&string)?;
+            ret.push(value);
+        }
+        Ok(ret)
+    }
+
+    fn delete(&self, key: &Self::SledKey) -> Result<()> {
+        let db = self.get_db();
+        let byte_key = key.as_ref();
+        db.open_tree(Self::TABLE_NAME)?.remove(byte_key)?;
+        Ok(())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
