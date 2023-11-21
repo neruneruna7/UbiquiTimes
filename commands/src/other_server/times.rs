@@ -9,8 +9,7 @@ use poise::serenity_prelude::{Http, Webhook};
 
 use super::*;
 
-use crate::db_query::other_server_times_data::*;
-use crate::db_query::own_server_times_data;
+use crate::db_query::SledTable;
 
 /// 非推奨 手動でメンバーwebhookを登録します
 #[poise::command(
@@ -36,18 +35,20 @@ pub async fn ut_member_webhook_reg_manual(
         .context("符号なし整数を入力してください")?;
 
     info!("a_member_id: {}", a_member_id);
+    
+        let other_times_data = OtherTimesData::new(
+            a_member_id,
+            &b_server_name,
+            b_guild_id,
+            b_channel_id,
+            &b_webhook_url,
+        );
 
-    let connection = ctx.data().connection.clone();
+    let db = ctx.data().connection.clone();
 
-    let member_webhook = OtherTimesData::new(
-        a_member_id,
-        &b_server_name,
-        b_guild_id,
-        b_channel_id,
-        &b_webhook_url,
-    );
+    let other_times_table = OtherTimesDataTable::new(db.as_ref());
 
-    member_webhook_upsert(connection.as_ref(), member_webhook).await?;
+    other_times_table.upsert(&other_times_data.dst_guild_id.to_string(), &other_times_data);
 
     let text = "member webhook inserted";
     info!(text);
@@ -61,13 +62,20 @@ pub async fn ut_member_webhook_reg_manual(
 ///
 /// あなたのメンバーウェブフックを登録しているサーバー名を，一覧表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
-pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
-    let connection = ctx.data().connection.clone();
-
+pub async fn ut_list(ctx: Context<'_>) -> Result<()> {    
     let member_id = ctx.author().id.0;
 
-    let member_webhooks =
-        member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
+    let other_times_data_vec =  {
+        let db = ctx.data().connection.clone();
+        let other_times_table = OtherTimesDataTable::new(db.as_ref());
+        other_times_table.read_all()?
+    };
+
+    // 自身のmember_idと一致するものを抽出する
+    let member_webhooks = other_times_data_vec
+        .into_iter()
+        .filter(|m| m.src_member_id == member_id)
+        .collect::<Vec<OtherTimesData>>();
 
     let mut response = String::new();
     response.push_str("拡散先リスト\n --------- \n```");
@@ -90,12 +98,22 @@ pub async fn ut_delete(
     ctx: Context<'_>,
     #[description = "拡散先のから削除するサーバ名"] server_name: String,
 ) -> Result<()> {
-    let connection = ctx.data().connection.clone();
-    // SqliteのINTEGER型はi64になる都合で，i64に変換する
-    // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
     let member_id = ctx.author().id.0;
+    
+    let db = ctx.data().connection.clone();
 
-    member_webhook_delete(connection.as_ref(), &server_name, member_id).await?;
+    let other_times_table = OtherTimesDataTable::new(db.as_ref());
+    // サーバ名をもとにguild_idを取得
+    let guild_id = {
+        let other_times_data = other_times_table
+            .read(&server_name)
+            .context("other_times_dataの読み込みに失敗しました")?
+            .context("other_times_dataが存在しません")?;
+        other_times_data.dst_guild_id
+    };
+
+    other_times_table.delete(&guild_id.to_string())?;
+
 
     info!("member webhook deleted");
     ctx.say("member webhook deleted").await?;
@@ -121,7 +139,8 @@ pub async fn ut_times_release(
 ) -> Result<()> {
     let _username = format!("UT-{}", ctx.author().name);
 
-    let connection = ctx.data().connection.clone();
+    let db = ctx.data().connection.clone();
+
     // そのユーザのtimesデータを取得する
     let times_data =
         own_server_times_data::select_own_times_data(connection.as_ref(), ctx.author().id.0)
