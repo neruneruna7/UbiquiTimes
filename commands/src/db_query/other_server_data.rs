@@ -1,119 +1,41 @@
 use super::*;
 
-use crate::other_server::OtherServerData;
+use crate::other_server::{OtherServerData, OtherServerDataTable};
 
+use sled::Db;
+use anyhow::{Result};
 
-pub async fn master_webhook_upsert(
-    connection: &SqlitePool,
-    master_webhook: &OtherServerData,
-) -> anyhow::Result<()> {
-    let guild_id = master_webhook.guild_id.to_string();
-
-    sqlx::query!(
-        r#"
-        INSERT INTO master_webhooks (server_name, guild_id, webhook_url, public_key_pem)
-        VALUES(?, ?, ?, ?)
-        ON CONFLICT(guild_id) DO UPDATE SET server_name = ?, webhook_url = ?, public_key_pem = ?
-        ;
-        "#,
-        master_webhook.server_name,
-        guild_id,
-        master_webhook.webhook_url,
-        master_webhook.public_key_pem,
-        master_webhook.server_name,
-        master_webhook.webhook_url,
-        master_webhook.public_key_pem,
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
-}
-
-pub async fn master_webhook_select_from_servername(
-    connection: &SqlitePool,
-    server_name: &str,
-) -> anyhow::Result<OtherServerData> {
-    let row = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks WHERE server_name = ?;
-        "#,
-        server_name
-    )
-    .fetch_one(connection)
-    .await?;
-
-    OtherServerData::from_row(
-        &row.guild_id,
-        &row.server_name,
-        &row.webhook_url,
-        &row.public_key_pem,
-    )
-}
-
-// guild_idを指定して取得する
-pub async fn master_webhook_select_from_guild_id(
-    connection: &SqlitePool,
-    guild_id: u64,
-) -> anyhow::Result<OtherServerData> {
-    let guild_id = guild_id.to_string();
-    let row = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks WHERE guild_id = ?;
-        "#,
-        guild_id
-    )
-    .fetch_one(connection)
-    .await?;
-
-    OtherServerData::from_row(
-        &row.guild_id,
-        &row.server_name,
-        &row.webhook_url,
-        &row.public_key_pem,
-    )
-}
-
-// すべてのマスターwebhookを取得する
-// 複数の行がとれるので、Vecに格納して返す
-pub async fn master_webhook_select_all(
-    connection: &SqlitePool,
-) -> anyhow::Result<Vec<OtherServerData>> {
-    let rows = sqlx::query!(
-        r#"
-        SELECT * FROM master_webhooks;
-        "#,
-    )
-    .fetch_all(connection)
-    .await?;
-
-    let mut master_webhooks = Vec::new();
-
-    for row in rows {
-        let master_webhook = OtherServerData::from_row(
-            &row.guild_id,
-            &row.server_name,
-            &row.webhook_url,
-            &row.public_key_pem,
-        )?;
-        master_webhooks.push(master_webhook);
+impl OtherServerData {
+    // server_nameを一意にするために，keyをserver_nameにする
+    pub fn db_upsert(&self, db: &Db) -> Result<()> {
+        let other_server_table = OtherServerDataTable::new(db);
+        let _ = other_server_table.upsert(&self.server_name, self)?;
+        Ok(())
     }
 
-    Ok(master_webhooks)
-}
+    pub fn db_read(db: &Db, server_name: &str) -> Result<Option<Self>> {
+        let other_server_table = OtherServerDataTable::new(db);
+        let data = other_server_table.read(&server_name.to_owned())?;
+        Ok(data)
+    }
 
-pub async fn master_webhook_delete(
-    connection: &SqlitePool,
-    server_name: &str,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-        DELETE FROM master_webhooks WHERE server_name = ?;
-        "#,
-        server_name
-    )
-    .execute(connection)
-    .await?;
+    pub fn db_read_all(db: &Db) -> Result<Vec<Self>> {
+        let other_server_table = OtherServerDataTable::new(db);
+        let data = other_server_table.read_all()?;
+        Ok(data)
+    }
 
-    Ok(())
+    pub fn db_read_from_guild_id(db: &Db, guild_id: u64) -> Result<Vec<Self>> {
+        let other_server_table = OtherServerDataTable::new(db);
+        let data = other_server_table.read_all()?;
+        // guild_idが一致するものを抽出する
+        let filtered_data: Vec<Self> = data.into_iter().filter(|x| x.guild_id == guild_id).collect();
+        Ok(filtered_data)
+    }
+
+    pub fn db_delete(db: &Db, server_name: &str) -> Result<()> {
+        let other_server_table = OtherServerDataTable::new(db);
+        let _ = other_server_table.delete(&server_name.to_owned())?;
+        Ok(())
+    }
 }
