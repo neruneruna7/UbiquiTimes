@@ -75,7 +75,6 @@ impl<'a> SledTable for OwnServerDataTable<'a> {
     }
 }
 
-
 impl OwnServerData {
     // 必ず1つしか存在しないデータなので，keyはなんでもいい
     // traitの方でkeyは固定している
