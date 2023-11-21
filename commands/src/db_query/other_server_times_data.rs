@@ -75,14 +75,21 @@ impl OtherTimesData {
         Ok(data)
     }
 
-    pub fn db_read(db: &Db, server_name: &str, member_id: u64) -> Result<Vec<Self>> {
+    pub fn db_read(db: &Db, server_name: &str, member_id: u64) -> Result<Self> {
         let fillter_data = Self::fillted_data(db, server_name, member_id)?;
 
         // uuid情報を削除
-        let data = fillter_data
+        let data: Vec<Self> = fillter_data
             .into_iter()
             .map(|x| x.other_times_data)
             .collect();
+
+        // 一意に定まるはずなので，返り値がvecなのはおかしい
+        if data.len() != 0 {
+            error!("kvに永続化されたOtherTimesDataに異常があります。server_nameとmember_idの組み合わせはユニークであるはずですが、2つ以上のデータが存在します。");
+        }
+
+        let data = data[0];
 
         Ok(data)
     }
