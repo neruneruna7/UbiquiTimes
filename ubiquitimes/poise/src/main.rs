@@ -2,15 +2,9 @@
 
 use common::commands_vec;
 use poise::serenity_prelude as serenity;
-use std::{
-    collections::HashMap,
-    env::{var},
-    sync::Arc,
-    time::Duration,
-};
+use std::{collections::HashMap, env::var, sync::Arc, time::Duration};
 
 use poise::serenity_prelude::RwLock;
-
 
 use tracing::info;
 

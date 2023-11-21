@@ -2,7 +2,6 @@ use anyhow::Error;
 
 use poise::serenity_prelude::RwLock;
 
-
 use std::sync::Arc;
 
 use std::collections::{HashMap, HashSet};

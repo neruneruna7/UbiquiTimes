@@ -1,11 +1,11 @@
 use super::*;
 
-use crate::other_server::{OtherTimesData, OtherTimesDataTable};
+use crate::other_server::OtherTimesData;
 
+use anyhow::Result;
 use sled::Db;
-use anyhow::{Result};
-use uuid::Uuid;
 use tracing::error;
+use uuid::Uuid;
 
 pub struct OtherTimesDataTable<'a> {
     db: &'a sled::Db,
@@ -36,12 +36,16 @@ struct OtherTimesDataKv {
 }
 
 impl OtherTimesDataKv {
-    fn new(other_times_data: OtherTimesData, key: String) -> Self { Self { other_times_data, key } }
+    fn new(other_times_data: OtherTimesData, key: String) -> Self {
+        Self {
+            other_times_data,
+            key,
+        }
+    }
 }
 
-
 // member_idとserver_nameがあって一意に定まるので，効率は悪いがuuidをキーとしておく
-impl OtherTimesData{
+impl OtherTimesData {
     pub fn db_upsert(&self, db: &Db) -> Result<()> {
         let server_name = self.dst_server_name;
         let member_id = self.src_member_id;
@@ -52,7 +56,7 @@ impl OtherTimesData{
             _ => {
                 error!("kvに永続化されたOtherTimesDataに異常があります. server_name, member_idの2つでユニークのはずですが，2つ以上データがあります");
                 data[0].key
-            },
+            }
         };
         let kv_value = OtherTimesDataKv::new(self.clone(), key.clone());
         let other_times_table = OtherTimesDataTable::new(db);
@@ -61,10 +65,13 @@ impl OtherTimesData{
     }
 
     pub fn db_read_from_member_id(db: &Db, member_id: u64) -> Result<Vec<Self>> {
-        let fillter_data =  Self::fillter_member_id(db, member_id)?;
+        let fillter_data = Self::fillter_member_id(db, member_id)?;
 
         // uuid情報を削除する
-        let data = fillter_data.into_iter().map(|x| x.other_times_data).collect();
+        let data = fillter_data
+            .into_iter()
+            .map(|x| x.other_times_data)
+            .collect();
         Ok(data)
     }
 
@@ -72,7 +79,10 @@ impl OtherTimesData{
         let fillter_data = Self::fillted_data(db, server_name, member_id)?;
 
         // uuid情報を削除
-        let data = fillter_data.into_iter().map(|x| x.other_times_data).collect();
+        let data = fillter_data
+            .into_iter()
+            .map(|x| x.other_times_data)
+            .collect();
 
         Ok(data)
     }
@@ -84,7 +94,7 @@ impl OtherTimesData{
         Ok(data)
     }
 
-    pub fn db_delete(db: &Db,  server_name: &str, member_id: u64,) -> Result<()> {
+    pub fn db_delete(db: &Db, server_name: &str, member_id: u64) -> Result<()> {
         let other_times_table = OtherTimesDataTable::new(db);
 
         let data = Self::fillted_data(db, server_name, member_id)?;
@@ -92,7 +102,7 @@ impl OtherTimesData{
         if data.len() != 1 {
             error!("kvに永続化されたOtherTimesDataに異常があります. server_name, member_idの2つでユニークのはずですが，2つ以上データがあります")
         }
-        
+
         let uuid = data[0].key;
         other_times_table.delete(&uuid)?;
         Ok(())
@@ -102,7 +112,10 @@ impl OtherTimesData{
         let other_times_table = OtherTimesDataTable::new(db);
         let data = other_times_table.read_all()?;
         // member_idが一致するものを抽出
-        let fillter_data: Vec<OtherTimesDataKv> = data.into_iter().filter(|x| x.other_times_data.src_member_id == member_id).collect();
+        let fillter_data: Vec<OtherTimesDataKv> = data
+            .into_iter()
+            .filter(|x| x.other_times_data.src_member_id == member_id)
+            .collect();
 
         Ok(fillter_data)
     }
@@ -111,10 +124,13 @@ impl OtherTimesData{
         let other_times_table = OtherTimesDataTable::new(db);
         let data = other_times_table.read_all()?;
         // member_idが一致するものを抽出
-        let fillter_data: Vec<OtherTimesDataKv> = data.into_iter().filter(|x| x.other_times_data.src_member_id == member_id && x.other_times_data.dst_server_name == server_name).collect();
+        let fillter_data: Vec<OtherTimesDataKv> = data
+            .into_iter()
+            .filter(|x| {
+                x.other_times_data.src_member_id == member_id
+                    && x.other_times_data.dst_server_name == server_name
+            })
+            .collect();
         Ok(fillter_data)
     }
-
-
-
 }

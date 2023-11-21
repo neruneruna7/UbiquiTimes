@@ -2,8 +2,8 @@ use super::*;
 
 use crate::other_server::{OtherServerData, OtherServerDataTable};
 
+use anyhow::Result;
 use sled::Db;
-use anyhow::{Result};
 
 impl OtherServerData {
     // server_nameを一意にするために，keyをserver_nameにする
@@ -29,7 +29,10 @@ impl OtherServerData {
         let other_server_table = OtherServerDataTable::new(db);
         let data = other_server_table.read_all()?;
         // guild_idが一致するものを抽出する
-        let filtered_data: Vec<Self> = data.into_iter().filter(|x| x.guild_id == guild_id).collect();
+        let filtered_data: Vec<Self> = data
+            .into_iter()
+            .filter(|x| x.guild_id == guild_id)
+            .collect();
         Ok(filtered_data)
     }
 
