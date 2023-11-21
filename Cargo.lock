@@ -2406,7 +2406,7 @@ dependencies = [
  "common",
  "dotenvy",
  "poise",
- "sqlx",
+ "sled 0.34.7",
  "tokio",
  "tracing",
  "tracing-subscriber",

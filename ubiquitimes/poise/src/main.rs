@@ -2,7 +2,6 @@
 
 use common::commands_vec;
 use poise::serenity_prelude as serenity;
-use sqlx::SqlitePool;
 use std::{
     collections::HashMap,
     env::{self, var},
@@ -11,6 +10,7 @@ use std::{
 };
 
 use poise::serenity_prelude::RwLock;
+use sled::Db;
 
 use tracing::info;
 
@@ -121,10 +121,7 @@ async fn main() {
         ..Default::default()
     };
 
-    let pool = SqlitePool::connect(&env::var("DATABASE_URL").unwrap())
-        .await
-        .unwrap();
-
+    let db = sled::open("my_database").unwrap();
     poise::Framework::builder()
         .token(
             var("DISCORD_TOKEN")
@@ -135,7 +132,7 @@ async fn main() {
                 info!("Logged in as {}", _ready.user.name);
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
-                    connection: Arc::new(pool),
+                    connection: Arc::new(db),
                     master_webhook_url: RwLock::new(String::new()),
                     public_key_pem_hashmap: RwLock::new(HashMap::new()),
                     botcom_sended: RwLock::new(HashMap::new()),
