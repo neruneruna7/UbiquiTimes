@@ -1,6 +1,8 @@
 use crate::*;
 
 use crate::sign::key_gen::*;
+use crate::db_query::SledTable;
+use crate::own_server::{OwnServerData, OwnServerDataTable};
 
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
@@ -83,13 +85,12 @@ pub async fn ut_set_own_server_data(
 )]
 pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
     // dbから取得
-    let server_data = crate::db_query::own_server_data::select_own_server_data(
-        &ctx.data().connection,
-        ctx.guild_id()
-            .ok_or(anyhow!("guildidを取得できませんでした"))?
-            .0,
-    )
-    .await?;
+
+    let db = ctx.data().connection.clone();
+    let own_server_data_table = OwnServerDataTable::new(&db);
+    let server_data = own_server_data_table
+        .read(&"OWN_SERVER_DATA".to_string())?
+        .context("own_server_data_tableに登録されていません")?;
 
     // テンプレート文字列を作成
     let register_tmplate_str = get_register_tmplate_str(
@@ -111,17 +112,15 @@ async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPair_pem>
         let (private_key, public_key) = generate_keypair();
         Ok(keypair_to_pem(&private_key, &public_key))
     } else {
-        let server_data = crate::db_query::own_server_data::select_own_server_data(
-            &ctx.data().connection,
-            ctx.guild_id()
-                .ok_or(anyhow!("guildidを取得できませんでした"))?
-                .0,
-        )
-        .await
-        .context("鍵を取得できません. trueを指定してください")?;
+        let db = ctx.data().connection.clone();
+        let own_server_data_table = OwnServerDataTable::new(&db);
+        let own_server_data = own_server_data_table
+            .read(&"OWN_SERVER_DATA".to_string())?
+            .context("鍵を取得できません. trueを指定してください")?;
+
         Ok(KeyPair_pem {
-            private_key_pem: Zeroizing::new(server_data.private_key_pem),
-            public_key_pem: server_data.public_key_pem,
+            private_key_pem: Zeroizing::new(own_server_data.private_key_pem),
+            public_key_pem: own_server_data.public_key_pem,
         })
     }
 }
