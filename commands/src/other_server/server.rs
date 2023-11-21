@@ -126,16 +126,22 @@ pub async fn ut_get_master_hook(
     let connection = ctx.data().connection.clone();
 
     let other_server_table = OtherServerDataTable::new(connection.as_ref());
-    let other_server_data =
-        other_server_table
-            .read(&server_name)
-            .context("other_server_dataの取得に失敗しました")?;
+    let other_server_data = other_server_table
+        .read(&server_name)
+        .context("other_server_dataの取得に失敗しました")?;
 
-
-    ctx.say(format!("master_webhook: {:?}", other_server_data.unwrap_or(OtherServerData { 
-        guild_id: 0, server_name: String::from("指定したサーバ名は登録されていません"), webhook_url: String::new(), public_key_pem: String::new() 
-    }).server_name))
-        .await?;
+    ctx.say(format!(
+        "master_webhook: {:?}",
+        other_server_data
+            .unwrap_or(OtherServerData {
+                guild_id: 0,
+                server_name: String::from("指定したサーバ名は登録されていません"),
+                webhook_url: String::new(),
+                public_key_pem: String::new()
+            })
+            .server_name
+    ))
+    .await?;
 
     Ok(())
 }

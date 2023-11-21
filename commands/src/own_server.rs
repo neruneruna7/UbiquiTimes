@@ -1,12 +1,11 @@
+use crate::db_query::SledTable;
 use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use crate::db_query::SledTable;
 use sqlx::FromRow;
 
 // pub mod command;
 pub mod server;
 pub mod times;
-
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow)]
 pub struct OwnServerData {
@@ -147,5 +146,4 @@ impl<'a> SledTable for OwnTimesDataTable<'a> {
     fn get_db(&self) -> &sled::Db {
         self.db
     }
-
 }

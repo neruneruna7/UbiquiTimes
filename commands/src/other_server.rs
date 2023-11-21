@@ -4,8 +4,8 @@
 pub mod server;
 pub mod times;
 
-use anyhow::Result;
 use crate::db_query::SledTable;
+use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 // 相手サーバーのデータ
@@ -87,7 +87,6 @@ impl<'a> OtherTimesDataTable<'a> {
         Self { db }
     }
 }
-
 
 impl<'a> SledTable for OtherTimesDataTable<'a> {
     const TABLE_NAME: &'static str = "OtherTimesDataTable";

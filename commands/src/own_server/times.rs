@@ -1,4 +1,4 @@
-use crate::own_server::{OwnTimesDataTable, OwnTimesData};
+use crate::own_server::{OwnTimesData, OwnTimesDataTable};
 use crate::sign_str_command;
 
 // use crate::{Context, Result};
@@ -101,7 +101,7 @@ pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
     let db = ctx.data().connection.clone();
     let own_times_table = OwnTimesDataTable::new(&db);
     let own_times_data = own_times_table.read_all()?;
-    
+
     let mut response = String::new();
 
     // スコープが小さいため，ループ変数名は名前に意味を持たせるよりも，短く見やすいものを優先した

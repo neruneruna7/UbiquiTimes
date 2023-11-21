@@ -15,12 +15,11 @@ pub mod sign;
 use sign::claims::register_public_key_ctx_data;
 use tracing::info;
 
+use crate::db_query::SledTable;
 use global_data::{Context, Data};
 use other_server::{OtherServerData, OtherServerDataTable};
 use own_server::{OwnServerData, OwnServerDataTable};
-use crate::db_query::SledTable;
 use sled::Db;
-
 
 async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) -> Result<()> {
     let err_text = format!("{}と入力してください", sign_str);
@@ -46,7 +45,7 @@ async fn upsert_own_server_data(
     own_server_data: OwnServerData,
 ) -> anyhow::Result<()> {
     let connection = ctx.data().connection.clone();
-    let own_server_data_table = OwnServerDataTable::new(&connection); 
+    let own_server_data_table = OwnServerDataTable::new(&connection);
 
     own_server_data_table.upsert(&"OWN_SERVER_DATA".to_string(), &own_server_data)?;
 
@@ -55,10 +54,7 @@ async fn upsert_own_server_data(
 }
 
 /// master_webhookをdbから取得しDataに登録する
-pub async fn register_masterhook_ctx_data(
-    connection: &Db,
-    data: &Data,
-) -> anyhow::Result<()> {
+pub async fn register_masterhook_ctx_data(connection: &Db, data: &Data) -> anyhow::Result<()> {
     let own_server_data_table = OwnServerDataTable::new(&connection);
     let server_data = own_server_data_table
         .read(&"OWN_SERVER_DATA".to_string())?
@@ -76,8 +72,12 @@ pub async fn upsert_master_webhook(
     let other_server_data_table = OtherServerDataTable::new(&connection);
     other_server_data_table.upsert(&other_server_data.guild_id.to_string(), &other_server_data)?;
 
-    register_public_key_ctx_data(other_server_data.guild_id, other_server_data.public_key_pem, ctx)
-        .await?;
+    register_public_key_ctx_data(
+        other_server_data.guild_id,
+        other_server_data.public_key_pem,
+        ctx,
+    )
+    .await?;
     Ok(())
 }
 

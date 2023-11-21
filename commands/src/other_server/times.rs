@@ -1,6 +1,6 @@
-use crate::*;
 use crate::own_server::OwnTimesData;
 use crate::own_server::OwnTimesDataTable;
+use crate::*;
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
@@ -37,20 +37,23 @@ pub async fn ut_member_webhook_reg_manual(
         .context("符号なし整数を入力してください")?;
 
     info!("a_member_id: {}", a_member_id);
-    
-        let other_times_data = OtherTimesData::new(
-            a_member_id,
-            &b_server_name,
-            b_guild_id,
-            b_channel_id,
-            &b_webhook_url,
-        );
+
+    let other_times_data = OtherTimesData::new(
+        a_member_id,
+        &b_server_name,
+        b_guild_id,
+        b_channel_id,
+        &b_webhook_url,
+    );
 
     let db = ctx.data().connection.clone();
 
     let other_times_table = OtherTimesDataTable::new(db.as_ref());
 
-    other_times_table.upsert(&other_times_data.dst_guild_id.to_string(), &other_times_data);
+    other_times_table.upsert(
+        &other_times_data.dst_guild_id.to_string(),
+        &other_times_data,
+    );
 
     let text = "member webhook inserted";
     info!(text);
@@ -64,10 +67,10 @@ pub async fn ut_member_webhook_reg_manual(
 ///
 /// あなたのメンバーウェブフックを登録しているサーバー名を，一覧表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
-pub async fn ut_list(ctx: Context<'_>) -> Result<()> {    
+pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     let member_id = ctx.author().id.0;
 
-    let other_times_data_vec =  {
+    let other_times_data_vec = {
         let db = ctx.data().connection.clone();
         let other_times_table = OtherTimesDataTable::new(db.as_ref());
         other_times_table.read_all()?
@@ -101,7 +104,7 @@ pub async fn ut_delete(
     #[description = "拡散先のから削除するサーバ名"] server_name: String,
 ) -> Result<()> {
     let member_id = ctx.author().id.0;
-    
+
     let db = ctx.data().connection.clone();
 
     let other_times_table = OtherTimesDataTable::new(db.as_ref());
@@ -115,7 +118,6 @@ pub async fn ut_delete(
     };
 
     other_times_table.delete(&guild_id.to_string())?;
-
 
     info!("member webhook deleted");
     ctx.say("member webhook deleted").await?;
@@ -158,7 +160,7 @@ pub async fn ut_times_release(
     let member_id = ctx.author().id.0;
 
     let other_times_data_vec = {
-        let other_times_table =  OtherTimesDataTable::new(db.as_ref());
+        let other_times_table = OtherTimesDataTable::new(db.as_ref());
         other_times_table.read_all()?
     };
 

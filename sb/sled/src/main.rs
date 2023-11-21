@@ -16,7 +16,6 @@ fn main() -> Result<()> {
 
     let all_values = my_table.read_all()?;
 
-
     println!("{:?}, {:?}", value, retrieved_value);
 
     println!("{:?}", all_values);
