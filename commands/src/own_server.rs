@@ -99,4 +99,5 @@ impl<'a> SledTable for OwnTimesDataTable<'a> {
     fn get_db(&self) -> &sled::Db {
         self.db
     }
+
 }

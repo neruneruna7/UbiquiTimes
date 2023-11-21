@@ -1,6 +1,6 @@
 use anyhow::{Context as _, Result};
 
-use poise::serenity_prelude::{self as serenity};
+use poise::serenity_prelude::{self as serenity, connection};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
@@ -16,8 +16,11 @@ use sign::claims::register_public_key_ctx_data;
 use tracing::info;
 
 use global_data::{Context, Data};
-use other_server::OtherServerData;
-use own_server::OwnServerData;
+use other_server::{OtherServerData, OtherServerDataTable};
+use own_server::{OwnServerData, OwnServerDataTable};
+use crate::db_query::SledTable;
+use sled::Db;
+
 
 async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) -> Result<()> {
     let err_text = format!("{}と入力してください", sign_str);
@@ -43,29 +46,37 @@ async fn upsert_own_server_data(
     own_server_data: OwnServerData,
 ) -> anyhow::Result<()> {
     let connection = ctx.data().connection.clone();
-    db_query::own_server_data::upsert_own_server_data(&connection, &own_server_data).await?;
+    let own_server_data_table = OwnServerDataTable::new(&connection); 
+
+    own_server_data_table.upsert(&"OWN_SERVER_DATA".to_string(), &own_server_data)?;
+
     register_masterhook_ctx_data(&connection, ctx.data()).await?;
     Ok(())
 }
 
 /// master_webhookをdbから取得しDataに登録する
 pub async fn register_masterhook_ctx_data(
-    connection: &sqlx::SqlitePool,
+    connection: &Db,
     data: &Data,
 ) -> anyhow::Result<()> {
-    let server_data =
-        db_query::own_server_data::select_own_server_data_without_guild_id(connection).await?;
+    let own_server_data_table = OwnServerDataTable::new(&connection);
+    let server_data = own_server_data_table
+        .read(&"OWN_SERVER_DATA".to_string())?
+        .context("own_server_data_tableに登録されていません")?;
+
     *data.master_webhook_url.write().await = server_data.master_webhook_url;
     Ok(())
 }
 
 pub async fn upsert_master_webhook(
     ctx: &Context<'_>,
-    master_webhook: OtherServerData,
+    other_server_data: OtherServerData,
 ) -> anyhow::Result<()> {
-    db_query::other_server_data::master_webhook_upsert(&ctx.data().connection, &master_webhook)
-        .await?;
-    register_public_key_ctx_data(master_webhook.guild_id, master_webhook.public_key_pem, ctx)
+    let connection = ctx.data().connection.clone();
+    let other_server_data_table = OtherServerDataTable::new(&connection);
+    other_server_data_table.upsert(&other_server_data.guild_id.to_string(), &other_server_data)?;
+
+    register_public_key_ctx_data(other_server_data.guild_id, other_server_data.public_key_pem, ctx)
         .await?;
     Ok(())
 }

@@ -2,6 +2,7 @@ use super::*;
 
 use crate::other_server::OtherServerData;
 
+
 pub async fn master_webhook_upsert(
     connection: &SqlitePool,
     master_webhook: &OtherServerData,

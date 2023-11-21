@@ -1,15 +1,15 @@
 use std::collections::{HashMap, HashSet};
 
 use super::*;
-use crate::db_query::other_server_data::master_webhook_select_from_guild_id;
+
 use crate::other_server::OtherServerData;
 use crate::other_server::OtherTimesData;
-use crate::own_server::{OwnServerData, OwnTimesData};
+use crate::own_server::{OwnServerData, OwnTimesData, OwnServerDataTable, OwnTimesDataTable};
 use crate::{logged_serenity_ctx, sign_str_command};
 
 use crate::global_data::Data;
 use crate::logged;
-use crate::{db_query::other_server_data::master_webhook_select_all, Context, Result};
+use crate::{Context, Result};
 
 use anyhow::{anyhow, Context as _};
 use poise::serenity_prelude as serenity;
@@ -22,12 +22,6 @@ use tracing::debug;
 use tracing::info;
 
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-
-use crate::db_query::{other_server_times_data, own_server_times_data::*};
-use crate::db_query::{
-    own_server_data::{self, *},
-    own_server_times_data,
-};
 
 use crate::sign::claims::Claims;
 

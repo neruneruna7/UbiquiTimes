@@ -7,6 +7,8 @@ use std::sync::Arc;
 
 use std::collections::{HashMap, HashSet};
 
+use sled::Db;
+
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -14,7 +16,7 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 // Custom user data passed to all command functions
 // すべてのコマンド関数に渡されるカスタム ユーザー データ
 pub struct Data {
-    pub connection: Arc<SqlitePool>,
+    pub connection: Arc<Db>,
     pub master_webhook_url: RwLock<String>,
     // 秘密鍵はここにはのせない
     pub public_key_pem_hashmap: RwLock<HashMap<u64, String>>,
