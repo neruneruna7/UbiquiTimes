@@ -1,10 +1,11 @@
+use crate::own_server::{OwnTimesDataTable, OwnTimesData};
 use crate::sign_str_command;
 
 // use crate::{Context, Result};
 
 use anyhow::Context as _;
 
-use crate::db_query::own_server_times_data::*;
+use crate::db_query::SledTable;
 
 use crate::*;
 
@@ -57,16 +58,12 @@ pub async fn ut_times_set(
     info!("{:?}", webhook);
 
     let webhook_url = webhook.url()?;
-    let connection = ctx.data().connection.clone();
 
-    upsert_own_times_data(
-        connection.as_ref(),
-        member_id,
-        &member_name,
-        channel_id,
-        &webhook_url,
-    )
-    .await?;
+    let own_timed_data = OwnTimesData::new(member_id, &member_name, channel_id, &webhook_url);
+
+    let db = ctx.data().connection.clone();
+    let own_times_table = OwnTimesDataTable::new(&db);
+    own_times_table.upsert(&own_timed_data.member_id.to_string(), &own_timed_data);
 
     ctx.say("このチャンネルを，本サーバでのあなたのTimesとして登録しました")
         .await?;
@@ -88,7 +85,9 @@ pub async fn ut_times_unset(
 
     let member_id = ctx.author().id.0;
 
-    delete_own_times_data(ctx.data(), member_id).await?;
+    let db = ctx.data().connection.clone();
+    let own_times_table = OwnTimesDataTable::new(&db);
+    own_times_table.delete(&member_id.to_string())?;
 
     ctx.say("本サーバでのあなたのTimes登録を削除しました")
         .await?;
@@ -99,8 +98,10 @@ pub async fn ut_times_unset(
 /// デバッグ用に member_times_data を全て表示する
 #[poise::command(prefix_command, track_edits, aliases("UtTimesShow"), slash_command)]
 pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
-    let own_times_data = select_own_times_data_all(ctx.data()).await?;
-
+    let db = ctx.data().connection.clone();
+    let own_times_table = OwnTimesDataTable::new(&db);
+    let own_times_data = own_times_table.read_all()?;
+    
     let mut response = String::new();
 
     // スコープが小さいため，ループ変数名は名前に意味を持たせるよりも，短く見やすいものを優先した
