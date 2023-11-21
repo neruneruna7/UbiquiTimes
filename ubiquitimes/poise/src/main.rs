@@ -4,13 +4,13 @@ use common::commands_vec;
 use poise::serenity_prelude as serenity;
 use std::{
     collections::HashMap,
-    env::{self, var},
+    env::{var},
     sync::Arc,
     time::Duration,
 };
 
 use poise::serenity_prelude::RwLock;
-use sled::Db;
+
 
 use tracing::info;
 

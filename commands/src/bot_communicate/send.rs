@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use super::*;
 
 use crate::db_query::SledTable;
-use crate::other_server;
+
 use crate::other_server::OtherServerData;
 use crate::other_server::OtherServerDataTable;
 use crate::other_server::OtherTimesData;
@@ -56,7 +56,7 @@ async fn get_data_for_ut_times_ubiqui_setting_send(
     };
 
     // 自身のサーバ情報を取得
-    let guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
+    let _guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
     // let server_data = select_own_server_data(connection.as_ref(), guild_id).await?;
     let own_server_data = {
         let own_server_table = OwnServerDataTable::new(&db);
@@ -352,7 +352,7 @@ pub async fn times_ubiqui_setting_set(
     .context("other_server_dataが登録されていません")?;
 
     // 必要なデータをOtherTimesDataに詰める
-    let member_webhook = OtherTimesData::new(
+    let _member_webhook = OtherTimesData::new(
         src_member_id,
         &src_server_data.server_name,
         times_ubiqui_setting_recv.dst_guild_id,
@@ -360,7 +360,7 @@ pub async fn times_ubiqui_setting_set(
         &times_ubiqui_setting_recv.dst_webhook_url,
     );
 
-    let connection = data.connection.clone();
+    let _connection = data.connection.clone();
 
     info!("times_ubiqui_setting_set: DB処理 到達");
     let other_server_table = OtherServerDataTable::new(&data.connection);

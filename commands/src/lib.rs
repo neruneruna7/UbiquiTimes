@@ -1,6 +1,6 @@
 use anyhow::{Context as _, Result};
 
-use poise::serenity_prelude::{self as serenity, connection};
+use poise::serenity_prelude::{self as serenity};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
@@ -55,7 +55,7 @@ async fn upsert_own_server_data(
 
 /// master_webhookをdbから取得しDataに登録する
 pub async fn register_masterhook_ctx_data(connection: &Db, data: &Data) -> anyhow::Result<()> {
-    let own_server_data_table = OwnServerDataTable::new(&connection);
+    let own_server_data_table = OwnServerDataTable::new(connection);
     let server_data = own_server_data_table
         .read(&"OWN_SERVER_DATA".to_string())?
         .context("own_server_data_tableに登録されていません")?;

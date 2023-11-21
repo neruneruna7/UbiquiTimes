@@ -5,8 +5,8 @@ pub mod server;
 pub mod times;
 
 use crate::db_query::SledTable;
-use anyhow::Result;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+use serde::{Deserialize, Serialize};
 
 // 相手サーバーのデータ
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]

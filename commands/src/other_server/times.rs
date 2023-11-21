@@ -1,4 +1,4 @@
-use crate::own_server::OwnTimesData;
+
 use crate::own_server::OwnTimesDataTable;
 use crate::*;
 
@@ -103,7 +103,7 @@ pub async fn ut_delete(
     ctx: Context<'_>,
     #[description = "拡散先のから削除するサーバ名"] server_name: String,
 ) -> Result<()> {
-    let member_id = ctx.author().id.0;
+    let _member_id = ctx.author().id.0;
 
     let db = ctx.data().connection.clone();
 
@@ -157,7 +157,7 @@ pub async fn ut_times_release(
 
     // DBからそのユーザのwebhookをすべて取得する
 
-    let member_id = ctx.author().id.0;
+    let _member_id = ctx.author().id.0;
 
     let other_times_data_vec = {
         let other_times_table = OtherTimesDataTable::new(db.as_ref());

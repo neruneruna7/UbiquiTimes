@@ -1,6 +1,6 @@
 use crate::db_query::SledTable;
 use anyhow::Result;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
 // pub mod command;
@@ -63,7 +63,7 @@ impl<'a> SledTable for OwnServerDataTable<'a> {
         self.db
     }
 
-    fn upsert(&self, key: &Self::SledKey, value: &Self::SledValue) -> Result<()> {
+    fn upsert(&self, _key: &Self::SledKey, value: &Self::SledValue) -> Result<()> {
         let key = "OwnServerData";
         let value = serde_json::to_string(value)?;
         let byte_key = value.as_bytes();
@@ -72,7 +72,7 @@ impl<'a> SledTable for OwnServerDataTable<'a> {
         Ok(())
     }
 
-    fn read(&self, key: &Self::SledKey) -> Result<Option<Self::SledValue>> {
+    fn read(&self, _key: &Self::SledKey) -> Result<Option<Self::SledValue>> {
         let db = self.get_db();
         let byte_key = "OwnServerData";
         let ret = db.open_tree(Self::TABLE_NAME)?.get(byte_key)?;
@@ -91,7 +91,7 @@ impl<'a> SledTable for OwnServerDataTable<'a> {
         let mut ret = Vec::new();
         let tree = db.open_tree(Self::TABLE_NAME)?;
         for item in tree.iter() {
-            let (key, value) = item?;
+            let (_key, value) = item?;
             let string = String::from_utf8(value.to_vec())?;
             let value = serde_json::from_str::<Self::SledValue>(&string)?;
             ret.push(value);
@@ -99,7 +99,7 @@ impl<'a> SledTable for OwnServerDataTable<'a> {
         Ok(ret)
     }
 
-    fn delete(&self, key: &Self::SledKey) -> Result<()> {
+    fn delete(&self, _key: &Self::SledKey) -> Result<()> {
         let db = self.get_db();
         let byte_key = "OwnServerData";
         db.open_tree(Self::TABLE_NAME)?.remove(byte_key)?;

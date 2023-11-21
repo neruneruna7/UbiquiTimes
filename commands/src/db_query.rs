@@ -1,9 +1,9 @@
-use crate::*;
+
 use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sled::Db;
-use sqlx::SqlitePool;
-use tracing::info;
+
+
 
 // pub(crate) mod other_server_data;
 // pub(crate) mod other_server_times_data;
@@ -43,7 +43,7 @@ pub trait SledTable {
         let mut ret = Vec::new();
         let tree = db.open_tree(Self::TABLE_NAME)?;
         for item in tree.iter() {
-            let (key, value) = item?;
+            let (_key, value) = item?;
             let string = String::from_utf8(value.to_vec())?;
             let value = serde_json::from_str::<Self::SledValue>(&string)?;
             ret.push(value);
