@@ -50,7 +50,7 @@ impl<'a> SledTable for OtherServerDataTable<'a> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 // 他サーバのtimesデータ
 pub struct OtherTimesData {
     pub src_member_id: u64,
@@ -78,24 +78,24 @@ impl OtherTimesData {
     }
 }
 
-pub struct OtherTimesDataTable<'a> {
-    db: &'a sled::Db,
-}
+// pub struct OtherTimesDataTable<'a> {
+//     db: &'a sled::Db,
+// }
 
-impl<'a> OtherTimesDataTable<'a> {
-    pub fn new(db: &'a sled::Db) -> Self {
-        Self { db }
-    }
-}
+// impl<'a> OtherTimesDataTable<'a> {
+//     pub fn new(db: &'a sled::Db) -> Self {
+//         Self { db }
+//     }
+// }
 
-impl<'a> SledTable for OtherTimesDataTable<'a> {
-    const TABLE_NAME: &'static str = "OtherTimesDataTable";
+// impl<'a> SledTable for OtherTimesDataTable<'a> {
+//     const TABLE_NAME: &'static str = "OtherTimesDataTable";
 
-    type SledKey = String;
+//     type SledKey = String;
 
-    type SledValue = OtherTimesData;
+//     type SledValue = OtherTimesData;
 
-    fn get_db(&self) -> &sled::Db {
-        self.db
-    }
-}
+//     fn get_db(&self) -> &sled::Db {
+//         self.db
+//     }
+// }
