@@ -1,5 +1,5 @@
-use crate::*;
 use crate::own_server::OwnTimesData;
+use crate::*;
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
@@ -128,7 +128,9 @@ pub async fn ut_times_release(
     let member_id = ctx.author().id.0;
 
     let db = ctx.data().connection.clone();
-    let times_data = OwnTimesData::db_read(db.as_ref(), member_id).context("own_server_times_dataの読み込みに失敗しました")?.context("own_server_times_dataが存在しません")?;
+    let times_data = OwnTimesData::db_read(db.as_ref(), member_id)
+        .context("own_server_times_dataの読み込みに失敗しました")?
+        .context("own_server_times_dataが存在しません")?;
 
     // webhookのusernameを設定する
     let username = format!("UT-{}", times_data.member_name);

@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::other_server::{OtherServerData};
+use crate::other_server::OtherServerData;
 
 use anyhow::Result;
 use sled::Db;
@@ -26,7 +26,6 @@ impl<'a> SledTable for OtherServerDataTable<'a> {
         self.db
     }
 }
-
 
 impl OtherServerData {
     // server_nameを一意にするために，keyをserver_nameにする

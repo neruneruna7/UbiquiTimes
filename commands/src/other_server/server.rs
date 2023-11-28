@@ -37,8 +37,11 @@ pub async fn ut_set_other_server_data(
     // DBに登録する
     let db = ctx.data().connection.clone();
 
-    let other_server_data = OtherServerData::new(guild_id, &server_name, &master_webhook_url, &public_key_pem);
-    other_server_data.db_upsert(db.as_ref()).context("other_server_dataの登録に失敗しました")?;
+    let other_server_data =
+        OtherServerData::new(guild_id, &server_name, &master_webhook_url, &public_key_pem);
+    other_server_data
+        .db_upsert(db.as_ref())
+        .context("other_server_dataの登録に失敗しました")?;
 
     let response_msg = format!(
         "登録しました．```\nserver_name: {}, webhook_url: {}, guild_id: {}```",
@@ -74,7 +77,8 @@ pub async fn ut_delete_other_masterhook(
     let db = ctx.data().connection.clone();
     let db = db.as_ref();
 
-    OtherServerData::db_delete(db, &server_name).context("other_server_dataの削除に失敗しました")?;
+    OtherServerData::db_delete(db, &server_name)
+        .context("other_server_dataの削除に失敗しました")?;
 
     ctx.say(format!("{}を削除しました", server_name)).await?;
 
@@ -118,7 +122,8 @@ pub async fn ut_get_master_hook(
     // DBから取得する
     let db = ctx.data().connection.clone();
 
-    let other_server_data = OtherServerData::db_read(db.as_ref(), &server_name).context("other_server_dataの取得に失敗しました")?;
+    let other_server_data = OtherServerData::db_read(db.as_ref(), &server_name)
+        .context("other_server_dataの取得に失敗しました")?;
 
     ctx.say(format!(
         "master_webhook: {:?}",
