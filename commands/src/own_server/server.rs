@@ -87,17 +87,14 @@ pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
     // dbから取得
 
     let db = ctx.data().connection.clone();
-    let own_server_data_table = OwnServerDataTable::new(&db);
-    let server_data = own_server_data_table
-        .read(&"OWN_SERVER_DATA".to_string())?
-        .context("own_server_data_tableに登録されていません")?;
+    let own_server_data = OwnServerData::db_read(db.as_ref())?.context("鍵を取得できません")?;
 
     // テンプレート文字列を作成
     let register_tmplate_str = get_register_tmplate_str(
-        &server_data.server_name,
-        &server_data.master_webhook_url,
-        server_data.guild_id,
-        &server_data.public_key_pem,
+        &own_server_data.server_name,
+        &own_server_data.master_webhook_url,
+        own_server_data.guild_id,
+        &own_server_data.public_key_pem,
     );
 
     // 返信
@@ -113,10 +110,7 @@ async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPair_pem>
         Ok(keypair_to_pem(&private_key, &public_key))
     } else {
         let db = ctx.data().connection.clone();
-        let own_server_data_table = OwnServerDataTable::new(&db);
-        let own_server_data = own_server_data_table
-            .read(&"OWN_SERVER_DATA".to_string())?
-            .context("鍵を取得できません. trueを指定してください")?;
+        let own_server_data = OwnServerData::db_read(db.as_ref())?.context("鍵を取得できません. trueを指定してください")?;
 
         Ok(KeyPair_pem {
             private_key_pem: Zeroizing::new(own_server_data.private_key_pem),

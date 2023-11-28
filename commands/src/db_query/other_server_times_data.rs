@@ -29,8 +29,10 @@ impl<'a> SledTable for OtherTimesDataTable<'a> {
     }
 }
 
+/// トレイトを公開する都合でpubにしている
+/// 基本的にはこのファイル内でしか使わないこと
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
-struct OtherTimesDataKv {
+pub struct OtherTimesDataKv {
     other_times_data: OtherTimesData,
     key: String,
 }
@@ -47,15 +49,16 @@ impl OtherTimesDataKv {
 // member_idとserver_nameがあって一意に定まるので，効率は悪いがuuidをキーとしておく
 impl OtherTimesData {
     pub fn db_upsert(&self, db: &Db) -> Result<()> {
-        let server_name = self.dst_server_name;
+        let server_name = self.dst_server_name.clone();
+
         let member_id = self.src_member_id;
         let data = Self::fillted_data(db, &server_name, member_id)?;
         let key = match data.len() {
             0 => Uuid::new_v4().to_string(),
-            1 => data[0].key,
+            1 => data.first().unwrap().key.to_owned(),
             _ => {
                 error!("kvに永続化されたOtherTimesDataに異常があります. server_name, member_idの2つでユニークのはずですが，2つ以上データがあります");
-                data[0].key
+                data.first().unwrap().key.to_owned()
             }
         };
         let kv_value = OtherTimesDataKv::new(self.clone(), key.clone());
@@ -79,7 +82,7 @@ impl OtherTimesData {
         let fillter_data = Self::fillted_data(db, server_name, member_id)?;
 
         // uuid情報を削除
-        let data: Vec<Self> = fillter_data
+        let mut data: Vec<Self> = fillter_data
             .into_iter()
             .map(|x| x.other_times_data)
             .collect();
@@ -89,7 +92,7 @@ impl OtherTimesData {
             error!("kvに永続化されたOtherTimesDataに異常があります。server_nameとmember_idの組み合わせはユニークであるはずですが、2つ以上のデータが存在します。");
         }
 
-        let data = data[0];
+        let data = data.remove(0);
 
         Ok(data)
     }
@@ -104,13 +107,13 @@ impl OtherTimesData {
     pub fn db_delete(db: &Db, server_name: &str, member_id: u64) -> Result<()> {
         let other_times_table = OtherTimesDataTable::new(db);
 
-        let data = Self::fillted_data(db, server_name, member_id)?;
+        let mut data = Self::fillted_data(db, server_name, member_id)?;
         // 1つしか存在しないはずである
         if data.len() != 1 {
             error!("kvに永続化されたOtherTimesDataに異常があります. server_name, member_idの2つでユニークのはずですが，2つ以上データがあります")
         }
 
-        let uuid = data[0].key;
+        let uuid = data.remove(0).key;
         other_times_table.delete(&uuid)?;
         Ok(())
     }

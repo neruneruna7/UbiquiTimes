@@ -53,7 +53,7 @@ impl OtherServerData {
         let other_server_table = OtherServerDataTable::new(db);
         let data = other_server_table.read_all()?;
         // guild_idが一致するものを抽出する
-        let filtered_data: Vec<Self> = data
+        let mut filtered_data: Vec<Self> = data
             .into_iter()
             .filter(|x| x.guild_id == guild_id)
             .collect();
@@ -62,7 +62,7 @@ impl OtherServerData {
         if filtered_data.len() > 1 {
             error!("guild_idが一致するOtherServerDataが2つ以上あります");
         }
-        let filtered_data = filtered_data[0];
+        let filtered_data = filtered_data.remove(0);
         
         Ok(filtered_data)
     }
