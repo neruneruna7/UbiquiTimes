@@ -1,7 +1,7 @@
 use crate::*;
 
 use crate::db_query::SledTable;
-use crate::own_server::{OwnServerData, OwnServerDataTable};
+use crate::own_server::{OwnServerData};
 use crate::sign::key_gen::*;
 
 use anyhow::Context as anyhowContext;
