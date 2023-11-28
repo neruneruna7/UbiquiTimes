@@ -1,4 +1,3 @@
-
 use super::*;
 
 use crate::other_server::OtherServerData;
@@ -63,7 +62,7 @@ impl OtherServerData {
             error!("guild_idが一致するOtherServerDataが2つ以上あります");
         }
         let filtered_data = filtered_data.remove(0);
-        
+
         Ok(filtered_data)
     }
 

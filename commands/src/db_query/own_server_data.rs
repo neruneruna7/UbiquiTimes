@@ -1,7 +1,6 @@
 use super::*;
 use crate::own_server::OwnServerData;
 
-
 use anyhow::Result;
 use sled::Db;
 

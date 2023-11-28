@@ -4,8 +4,6 @@
 pub mod server;
 pub mod times;
 
-
-
 use serde::{Deserialize, Serialize};
 
 // 相手サーバーのデータ

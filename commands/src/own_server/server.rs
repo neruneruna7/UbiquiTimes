@@ -1,7 +1,6 @@
 use crate::*;
 
-
-use crate::own_server::{OwnServerData};
+use crate::own_server::OwnServerData;
 use crate::sign::key_gen::*;
 
 use anyhow::Context as anyhowContext;
@@ -110,7 +109,8 @@ async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPair_pem>
         Ok(keypair_to_pem(&private_key, &public_key))
     } else {
         let db = ctx.data().connection.clone();
-        let own_server_data = OwnServerData::db_read(db.as_ref())?.context("鍵を取得できません. trueを指定してください")?;
+        let own_server_data = OwnServerData::db_read(db.as_ref())?
+            .context("鍵を取得できません. trueを指定してください")?;
 
         Ok(KeyPair_pem {
             private_key_pem: Zeroizing::new(own_server_data.private_key_pem),

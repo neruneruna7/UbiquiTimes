@@ -1,11 +1,9 @@
-use crate::own_server::{OwnTimesData};
+use crate::own_server::OwnTimesData;
 use crate::sign_str_command;
 
 // use crate::{Context, Result};
 
 use anyhow::Context as _;
-
-
 
 use crate::*;
 
@@ -63,7 +61,9 @@ pub async fn ut_times_set(
 
     let db = ctx.data().connection.clone();
 
-    own_times_data.db_upsert(db.as_ref()).context("own_server_times_dataの更新に失敗しました")?;
+    own_times_data
+        .db_upsert(db.as_ref())
+        .context("own_server_times_dataの更新に失敗しました")?;
 
     ctx.say("このチャンネルを，本サーバでのあなたのTimesとして登録しました")
         .await?;

@@ -2,9 +2,6 @@ use std::collections::{HashMap, HashSet};
 
 use super::*;
 
-
-
-
 use crate::other_server::OtherServerData;
 use crate::other_server::OtherTimesData;
 use crate::own_server::{OwnServerData, OwnTimesData};
@@ -47,13 +44,14 @@ async fn get_data_for_ut_times_ubiqui_setting_send(
     let member_id = ctx.author().id.0;
     let db = ctx.data().connection.clone();
     // 自身のtimesの情報を取得
-    let own_times_data = OwnTimesData::db_read(db.as_ref(), member_id)?.context("own_times_dataが登録されていません")?;
-
+    let own_times_data = OwnTimesData::db_read(db.as_ref(), member_id)?
+        .context("own_times_dataが登録されていません")?;
 
     // 自身のサーバ情報を取得
     let _guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
     // let server_data = select_own_server_data(connection.as_ref(), guild_id).await?;
-    let own_server_data = OwnServerData::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
+    let own_server_data =
+        OwnServerData::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
 
     // 拡散可能サーバのリストを取得
 
@@ -200,10 +198,12 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
     let recv_master_webhook = Webhook::from_url(&http, &recv_master_webhook_url).await?;
 
     // a_member_id と紐づいているtimeswebhookを取得
-    let own_times_data = OwnTimesData::db_read(db.as_ref(), src_member_id)?.context("own_times_dataが登録されていません")?;
+    let own_times_data = OwnTimesData::db_read(db.as_ref(), src_member_id)?
+        .context("own_times_dataが登録されていません")?;
 
     // 自身のサーバ情報を取得
-    let own_server_data = OwnServerData::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
+    let own_server_data =
+        OwnServerData::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
 
     Ok((recv_master_webhook, own_times_data, own_server_data))
 }
@@ -295,7 +295,8 @@ async fn get_data_for_ut_times_ubiqui_setting_set(data: &Data) -> Result<OwnServ
     let connection = data.connection.clone();
 
     // 自身のサーバ情報を取得
-    let own_server_data = OwnServerData::db_read(connection.as_ref())?.context("own_server_dataが登録されていません")?;
+    let own_server_data = OwnServerData::db_read(connection.as_ref())?
+        .context("own_server_dataが登録されていません")?;
 
     Ok(own_server_data)
 }

@@ -17,8 +17,8 @@ use tracing::info;
 
 use crate::db_query::SledTable;
 use global_data::{Context, Data};
-use other_server::{OtherServerData};
-use own_server::{OwnServerData};
+use other_server::OtherServerData;
+use own_server::OwnServerData;
 use sled::Db;
 
 async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) -> Result<()> {
@@ -54,7 +54,8 @@ async fn upsert_own_server_data(
 
 /// master_webhookをdbから取得しDataに登録する
 pub async fn register_masterhook_ctx_data(db: &Db, data: &Data) -> anyhow::Result<()> {
-    let server_data = OwnServerData::db_read(db)?.context("own_server_data_tableに登録されていません")?;;
+    let server_data =
+        OwnServerData::db_read(db)?.context("own_server_data_tableに登録されていません")?;
 
     *data.master_webhook_url.write().await = server_data.master_webhook_url;
     Ok(())

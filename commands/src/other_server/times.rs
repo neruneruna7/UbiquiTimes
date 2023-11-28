@@ -10,8 +10,6 @@ use poise::serenity_prelude::{Http, Webhook};
 
 use super::*;
 
-
-
 /// 非推奨 手動でメンバーwebhookを登録します
 #[poise::command(
     prefix_command,
