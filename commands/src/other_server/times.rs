@@ -10,7 +10,7 @@ use poise::serenity_prelude::{Http, Webhook};
 
 use super::*;
 
-use crate::db_query::SledTable;
+
 
 /// 非推奨 手動でメンバーwebhookを登録します
 #[poise::command(

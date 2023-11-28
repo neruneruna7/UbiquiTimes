@@ -63,7 +63,7 @@ impl OtherTimesData {
         };
         let kv_value = OtherTimesDataKv::new(self.clone(), key.clone());
         let other_times_table = OtherTimesDataTable::new(db);
-        let _ = other_times_table.upsert(&key, &kv_value)?;
+        other_times_table.upsert(&key, &kv_value)?;
         Ok(())
     }
 
@@ -88,7 +88,7 @@ impl OtherTimesData {
             .collect();
 
         // 一意に定まるはずなので，返り値がvecなのはおかしい
-        if data.len() != 0 {
+        if !data.is_empty() {
             error!("kvに永続化されたOtherTimesDataに異常があります。server_nameとmember_idの組み合わせはユニークであるはずですが、2つ以上のデータが存在します。");
         }
 

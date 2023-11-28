@@ -33,7 +33,7 @@ impl OtherServerData {
     // server_nameを一意にするために，keyをserver_nameにする
     pub fn db_upsert(&self, db: &Db) -> Result<()> {
         let other_server_table = OtherServerDataTable::new(db);
-        let _ = other_server_table.upsert(&self.server_name, self)?;
+        other_server_table.upsert(&self.server_name, self)?;
         Ok(())
     }
 
@@ -69,7 +69,7 @@ impl OtherServerData {
 
     pub fn db_delete(db: &Db, server_name: &str) -> Result<()> {
         let other_server_table = OtherServerDataTable::new(db);
-        let _ = other_server_table.delete(&server_name.to_owned())?;
+        other_server_table.delete(&server_name.to_owned())?;
         Ok(())
     }
 }
