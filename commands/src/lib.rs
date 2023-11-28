@@ -15,7 +15,6 @@ pub mod sign;
 use sign::claims::register_public_key_ctx_data;
 use tracing::info;
 
-use crate::db_query::SledTable;
 use global_data::{Context, Data};
 use other_server::OtherServerData;
 use own_server::OwnServerData;
@@ -31,6 +30,7 @@ async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) ->
     Ok(())
 }
 
+#[allow(dead_code)]
 async fn create_webhook_from_channel(
     ctx: Context<'_>,
     msg: &Message,

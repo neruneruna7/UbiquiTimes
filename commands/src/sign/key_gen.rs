@@ -14,18 +14,18 @@ pub fn generate_keypair() -> (RsaPrivateKey, RsaPublicKey) {
 }
 
 /// キーペアをPEM形式を入れるための構造体
-pub struct KeyPair_pem {
+pub struct KeyPairPem {
     pub private_key_pem: Zeroizing<String>,
     pub public_key_pem: String,
 }
 
 /// キーペアをPEM形式に変換する
-pub fn keypair_to_pem(private_key: &RsaPrivateKey, public_key: &RsaPublicKey) -> KeyPair_pem {
+pub fn keypair_to_pem(private_key: &RsaPrivateKey, public_key: &RsaPublicKey) -> KeyPairPem {
     let private_key_pem = private_key.to_pkcs8_pem(LineEnding::LF).unwrap();
 
     let public_key_pem = public_key.to_public_key_pem(LineEnding::LF).unwrap();
 
-    KeyPair_pem {
+    KeyPairPem {
         private_key_pem,
         public_key_pem,
     }

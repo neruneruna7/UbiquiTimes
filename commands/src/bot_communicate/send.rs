@@ -67,7 +67,7 @@ async fn times_ubiqui_setting_send_sender(
     send_bot_com_msg: &mut BotComMessage,
     member_times: &OwnTimesData,
     server_data: &OwnServerData,
-    other_master_webhooks: &Vec<OtherServerData>,
+    other_master_webhooks: &[OtherServerData],
     botcom_sended: &mut HashMap<u64, HashSet<u64>>,
 ) -> Result<()> {
     let mut sended_guild_id = HashSet::new();

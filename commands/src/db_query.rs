@@ -56,34 +56,35 @@ pub trait SledTable {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
-struct MyValue {
-    id: String,
-    name: String,
-    number: i64,
-}
+// 実装例としておいてあるだけ
+// #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+// struct MyValue {
+//     id: String,
+//     name: String,
+//     number: i64,
+// }
 
-impl MyValue {
-    fn new(id: String, name: String, number: i64) -> Self {
-        Self { id, name, number }
-    }
-}
+// impl MyValue {
+//     fn new(id: String, name: String, number: i64) -> Self {
+//         Self { id, name, number }
+//     }
+// }
 
-struct MyTable<'a> {
-    db: &'a Db,
-}
+// struct MyTable<'a> {
+//     db: &'a Db,
+// }
 
-impl<'a> MyTable<'a> {
-    fn new(db: &'a Db) -> Self {
-        Self { db }
-    }
-}
+// impl<'a> MyTable<'a> {
+//     fn new(db: &'a Db) -> Self {
+//         Self { db }
+//     }
+// }
 
-impl<'a> SledTable for MyTable<'a> {
-    const TABLE_NAME: &'static str = "MyTable";
-    type SledKey = String;
-    type SledValue = MyValue;
-    fn get_db(&self) -> &Db {
-        self.db
-    }
-}
+// impl<'a> SledTable for MyTable<'a> {
+//     const TABLE_NAME: &'static str = "MyTable";
+//     type SledKey = String;
+//     type SledValue = MyValue;
+//     fn get_db(&self) -> &Db {
+//         self.db
+//     }
+// }

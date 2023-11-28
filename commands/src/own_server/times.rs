@@ -3,8 +3,6 @@ use crate::sign_str_command;
 
 // use crate::{Context, Result};
 
-use anyhow::Context as _;
-
 use crate::*;
 
 use anyhow::Context as anyhowContext;

@@ -103,7 +103,7 @@ pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
 
 /// trueなら鍵を作り直す
 /// falseなら鍵をDBから取得する
-async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPair_pem> {
+async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPairPem> {
     if is_new_key {
         let (private_key, public_key) = generate_keypair();
         Ok(keypair_to_pem(&private_key, &public_key))
@@ -112,7 +112,7 @@ async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPair_pem>
         let own_server_data = OwnServerData::db_read(db.as_ref())?
             .context("鍵を取得できません. trueを指定してください")?;
 
-        Ok(KeyPair_pem {
+        Ok(KeyPairPem {
             private_key_pem: Zeroizing::new(own_server_data.private_key_pem),
             public_key_pem: own_server_data.public_key_pem,
         })
