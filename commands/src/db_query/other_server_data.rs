@@ -1,9 +1,32 @@
 use super::*;
 
-use crate::other_server::{OtherServerData, OtherServerDataTable};
+use crate::other_server::{OtherServerData};
 
 use anyhow::Result;
 use sled::Db;
+
+pub struct OtherServerDataTable<'a> {
+    db: &'a sled::Db,
+}
+
+impl<'a> OtherServerDataTable<'a> {
+    pub fn new(db: &'a sled::Db) -> Self {
+        Self { db }
+    }
+}
+
+impl<'a> SledTable for OtherServerDataTable<'a> {
+    const TABLE_NAME: &'static str = "OtherServerDataTable";
+
+    type SledKey = String;
+
+    type SledValue = OtherServerData;
+
+    fn get_db(&self) -> &sled::Db {
+        self.db
+    }
+}
+
 
 impl OtherServerData {
     // server_nameを一意にするために，keyをserver_nameにする

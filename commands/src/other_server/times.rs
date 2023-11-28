@@ -1,5 +1,5 @@
-use crate::own_server::OwnTimesDataTable;
 use crate::*;
+use crate::own_server::OwnTimesData;
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
@@ -21,38 +21,33 @@ use crate::db_query::SledTable;
 )]
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
-    #[description = "拡散先のサーバ名"] b_server_name: String,
+    #[description = "拡散先のサーバ名"] dst_server_name: String,
     // 17桁整数までしか受け取れないので，仕方なくStringにする
-    #[description = "拡散先のサーバID"] b_guild_id: String,
-    #[description = "拡散先のチャンネルID"] b_channel_id: String,
-    #[description = "拡散先チャンネルのwebhook URL"] b_webhook_url: String,
+    #[description = "拡散先のサーバID"] dst_guild_id: String,
+    #[description = "拡散先のチャンネルID"] dst_channel_id: String,
+    #[description = "拡散先チャンネルのwebhook URL"] dst_webhook_url: String,
 ) -> Result<()> {
-    let a_member_id = ctx.author().id.0;
-    let b_channel_id = b_channel_id
+    let src_member_id = ctx.author().id.0;
+    let dst_channel_id = dst_channel_id
         .parse::<u64>()
         .context("符号なし整数を入力してください")?;
-    let b_guild_id = b_guild_id
+    let dst_guild_id = dst_guild_id
         .parse::<u64>()
         .context("符号なし整数を入力してください")?;
 
-    info!("a_member_id: {}", a_member_id);
+    info!("a_member_id: {}", src_member_id);
 
     let other_times_data = OtherTimesData::new(
-        a_member_id,
-        &b_server_name,
-        b_guild_id,
-        b_channel_id,
-        &b_webhook_url,
+        src_member_id,
+        &dst_server_name,
+        dst_guild_id,
+        dst_channel_id,
+        &dst_webhook_url,
     );
 
     let db = ctx.data().connection.clone();
 
-    let other_times_table = OtherTimesDataTable::new(db.as_ref());
-
-    other_times_table.upsert(
-        &other_times_data.dst_guild_id.to_string(),
-        &other_times_data,
-    );
+    other_times_data.db_upsert(db.as_ref())?;
 
     let text = "member webhook inserted";
     info!(text);
@@ -69,23 +64,20 @@ pub async fn ut_member_webhook_reg_manual(
 pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     let member_id = ctx.author().id.0;
 
-    let other_times_data_vec = {
-        let db = ctx.data().connection.clone();
-        let other_times_table = OtherTimesDataTable::new(db.as_ref());
-        other_times_table.read_all()?
-    };
+    let db = ctx.data().connection.clone();
+    let other_times_data_vec = OtherTimesData::db_read_from_member_id(db.as_ref(), member_id)?;
 
-    // 自身のmember_idと一致するものを抽出する
-    let member_webhooks = other_times_data_vec
-        .into_iter()
-        .filter(|m| m.src_member_id == member_id)
-        .collect::<Vec<OtherTimesData>>();
+    // // 自身のmember_idと一致するものを抽出する
+    // let member_webhooks = other_times_data_vec
+    //     .into_iter()
+    //     .filter(|m| m.src_member_id == member_id)
+    //     .collect::<Vec<OtherTimesData>>();
 
     let mut response = String::new();
     response.push_str("拡散先リスト\n --------- \n```");
 
-    for member_webhook in member_webhooks {
-        response.push_str(&format!("{}\n", member_webhook.dst_server_name));
+    for other_times_data in other_times_data_vec {
+        response.push_str(&format!("{}\n", other_times_data.dst_server_name));
     }
     response.push_str("```");
 
@@ -102,21 +94,13 @@ pub async fn ut_delete(
     ctx: Context<'_>,
     #[description = "拡散先のから削除するサーバ名"] server_name: String,
 ) -> Result<()> {
-    let _member_id = ctx.author().id.0;
+    // このコマンドを実行したときに，サーバのリストをだして選ばせるようにしてもいいかもしれない
+    // そのほうがUXがよくなりそうだ，要やりかたを検索
+    let member_id = ctx.author().id.0;
 
     let db = ctx.data().connection.clone();
 
-    let other_times_table = OtherTimesDataTable::new(db.as_ref());
-    // サーバ名をもとにguild_idを取得
-    let guild_id = {
-        let other_times_data = other_times_table
-            .read(&server_name)
-            .context("other_times_dataの読み込みに失敗しました")?
-            .context("other_times_dataが存在しません")?;
-        other_times_data.dst_guild_id
-    };
-
-    other_times_table.delete(&guild_id.to_string())?;
+    OtherTimesData::db_delete(db.as_ref(), &server_name, member_id)?;
 
     info!("member webhook deleted");
     ctx.say("member webhook deleted").await?;
@@ -141,15 +125,10 @@ pub async fn ut_times_release(
     #[description = "拡散内容"] content: String,
 ) -> Result<()> {
     let _username = format!("UT-{}", ctx.author().name);
+    let member_id = ctx.author().id.0;
 
     let db = ctx.data().connection.clone();
-    let times_data = {
-        let own_server_times_table = OwnTimesDataTable::new(db.as_ref());
-        own_server_times_table
-            .read(&ctx.author().id.0.to_string())
-            .context("own_server_times_dataの読み込みに失敗しました")?
-            .context("own_server_times_dataが存在しません")?
-    };
+    let times_data = OwnTimesData::db_read(db.as_ref(), member_id).context("own_server_times_dataの読み込みに失敗しました")?.context("own_server_times_dataが存在しません")?;
 
     // webhookのusernameを設定する
     let username = format!("UT-{}", times_data.member_name);
@@ -158,10 +137,7 @@ pub async fn ut_times_release(
 
     let _member_id = ctx.author().id.0;
 
-    let other_times_data_vec = {
-        let other_times_table = OtherTimesDataTable::new(db.as_ref());
-        other_times_table.read_all()?
-    };
+    let other_times_data_vec = OtherTimesData::db_read_all(db.as_ref())?;
 
     let member_webhooks = other_times_data_vec
         .iter()

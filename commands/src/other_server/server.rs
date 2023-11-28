@@ -35,15 +35,10 @@ pub async fn ut_set_other_server_data(
     );
 
     // DBに登録する
-    let connection = ctx.data().connection.clone();
+    let db = ctx.data().connection.clone();
 
-    let other_server_table = OtherServerDataTable::new(connection.as_ref());
-    other_server_table
-        .upsert(
-            &server_name,
-            &OtherServerData::new(guild_id, &server_name, &master_webhook_url, &public_key_pem),
-        )
-        .context("other_server_dataの登録に失敗しました")?;
+    let other_server_data = OtherServerData::new(guild_id, &server_name, &master_webhook_url, &public_key_pem);
+    other_server_data.db_upsert(db.as_ref()).context("other_server_dataの登録に失敗しました")?;
 
     let response_msg = format!(
         "登録しました．```\nserver_name: {}, webhook_url: {}, guild_id: {}```",
@@ -76,12 +71,10 @@ pub async fn ut_delete_other_masterhook(
     info!("server_name: {}", server_name);
 
     // dbから削除する
-    let connection = ctx.data().connection.clone();
+    let db = ctx.data().connection.clone();
+    let db = db.as_ref();
 
-    let other_server_table = OtherServerDataTable::new(connection.as_ref());
-    other_server_table
-        .delete(&server_name)
-        .context("other_server_dataの削除に失敗しました")?;
+    OtherServerData::db_delete(db, &server_name).context("other_server_dataの削除に失敗しました")?;
 
     ctx.say(format!("{}を削除しました", server_name)).await?;
 
@@ -99,10 +92,10 @@ pub async fn ut_delete_other_masterhook(
 #[poise::command(prefix_command, track_edits, aliases("UtServerlist"), slash_command)]
 pub async fn ut_serverlist(ctx: Context<'_>) -> Result<()> {
     // DBから取得する
-    let connection = ctx.data().connection.clone();
+    let db = ctx.data().connection.clone();
 
-    let other_server_table = OtherServerDataTable::new(connection.as_ref());
-    let other_server_data_vec = other_server_table.read_all()?;
+    let other_server_data_vec = OtherServerData::db_read_all(db.as_ref())
+        .context("other_server_dataの取得に失敗しました")?;
 
     let mut response = String::new();
     for other_server_data in other_server_data_vec.iter() {
@@ -123,12 +116,9 @@ pub async fn ut_get_master_hook(
     info!("server_name: {}", server_name);
 
     // DBから取得する
-    let connection = ctx.data().connection.clone();
+    let db = ctx.data().connection.clone();
 
-    let other_server_table = OtherServerDataTable::new(connection.as_ref());
-    let other_server_data = other_server_table
-        .read(&server_name)
-        .context("other_server_dataの取得に失敗しました")?;
+    let other_server_data = OtherServerData::db_read(db.as_ref(), &server_name).context("other_server_dataの取得に失敗しました")?;
 
     ctx.say(format!(
         "master_webhook: {:?}",
