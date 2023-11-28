@@ -4,10 +4,10 @@ use super::*;
 
 use crate::db_query::SledTable;
 
+use crate::db_query::other_server_data;
 use crate::other_server::OtherServerData;
-use crate::other_server::OtherServerDataTable;
 use crate::other_server::OtherTimesData;
-use crate::own_server::{OwnServerData, OwnServerDataTable, OwnTimesData, OwnTimesDataTable};
+use crate::own_server::{OwnServerData, OwnTimesData};
 use crate::{logged_serenity_ctx, sign_str_command};
 
 use crate::global_data::Data;
@@ -47,29 +47,17 @@ async fn get_data_for_ut_times_ubiqui_setting_send(
     let member_id = ctx.author().id.0;
     let db = ctx.data().connection.clone();
     // 自身のtimesの情報を取得
-    // let member_times = select_own_times_data(connection.as_ref(), ctx.author().id.0).await?;
-    let own_times_data = {
-        let own_times_table = OwnTimesDataTable::new(&db);
-        own_times_table
-            .read(&member_id.to_string())?
-            .context("own_times_dataが登録されていません")?
-    };
+    let own_times_data = OwnTimesData::db_read(db.as_ref(), member_id)?.context("own_times_dataが登録されていません")?;
+
 
     // 自身のサーバ情報を取得
     let _guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
     // let server_data = select_own_server_data(connection.as_ref(), guild_id).await?;
-    let own_server_data = {
-        let own_server_table = OwnServerDataTable::new(&db);
-        own_server_table.read(&"OWN_SERVER_DATA".to_string())?
-    }
-    .context("own_server_dataが登録されていません")?;
+    let own_server_data = OwnServerData::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
 
     // 拡散可能サーバのリストを取得
-    // let other_master_webhooks = master_webhook_select_all(connection.as_ref()).await?;
-    let other_server_data = {
-        let other_server_table = OtherServerDataTable::new(&db);
-        other_server_table.read_all()?
-    };
+
+    let other_server_data = OtherServerData::db_read_all(db.as_ref())?;
 
     Ok((own_times_data, own_server_data, other_server_data))
 }
@@ -204,7 +192,7 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
 ) -> Result<(Webhook, OwnTimesData, OwnServerData)> {
     let src_member_id = times_ubiqui_setting.src_member_id;
 
-    let connection = data.connection.clone();
+    let db = data.connection.clone();
 
     // 返送先のOtherServerData
     let recv_master_webhook_url = times_ubiqui_setting.src_master_webhook_url.clone();
@@ -212,30 +200,18 @@ async fn get_data_for_ut_times_ubiqui_setting_recv(
     let recv_master_webhook = Webhook::from_url(&http, &recv_master_webhook_url).await?;
 
     // a_member_id と紐づいているtimeswebhookを取得
-    let own_times_data = {
-        let own_times_table = OwnTimesDataTable::new(&connection);
-        own_times_table.read(&src_member_id.to_string())?
-    }
-    .context("own_times_dataが登録されていません")?;
+    let own_times_data = OwnTimesData::db_read(db.as_ref(), src_member_id)?.context("own_times_dataが登録されていません")?;
 
     // 自身のサーバ情報を取得
-    let own_server_data = {
-        let own_server_table = OwnServerDataTable::new(&connection);
-        own_server_table.read(&"OWN_SERVER_DATA".to_string())?
-    }
-    .context("own_server_dataが登録されていません")?;
+    let own_server_data = OwnServerData::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
 
     Ok((recv_master_webhook, own_times_data, own_server_data))
 }
 
 pub async fn velify(signed_token: &str, src_guild_id: u64, data: &Data) -> Result<Claims> {
     // dbから対象サーバの情報を取得
-    let connection = data.connection.clone();
-    let other_server_data = {
-        let other_server_table = OtherServerDataTable::new(&connection);
-        other_server_table.read(&src_guild_id.to_string())?
-    }
-    .context("other_server_dataが登録されていません")?;
+    let db = data.connection.clone();
+    let other_server_data = OtherServerData::db_read_from_guild_id(db.as_ref(), src_guild_id)?;
 
     // info!("public_key_pem_hashmap: {:?}", &public_key_pem_hashmap);
     // let public_key_pem = public_key_pem_hashmap
@@ -319,11 +295,7 @@ async fn get_data_for_ut_times_ubiqui_setting_set(data: &Data) -> Result<OwnServ
     let connection = data.connection.clone();
 
     // 自身のサーバ情報を取得
-    let own_server_data = {
-        let own_server_table = OwnServerDataTable::new(&connection);
-        own_server_table.read(&"OWN_SERVER_DATA".to_string())?
-    }
-    .context("own_server_dataが登録されていません")?;
+    let own_server_data = OwnServerData::db_read(connection.as_ref())?.context("own_server_dataが登録されていません")?;
 
     Ok(own_server_data)
 }
@@ -343,13 +315,12 @@ pub async fn times_ubiqui_setting_set(
 
     // sended_servers.remove(times_ubiqui_setting_send.)
 
+    let db = data.connection.clone();
+
     let src_member_id = times_ubiqui_setting_recv.src_member_id;
     // other_server_dataを取得
-    let src_server_data = {
-        let other_server_table = OtherServerDataTable::new(&data.connection);
-        other_server_table.read(&times_ubiqui_setting_recv.dst_guild_id.to_string())?
-    }
-    .context("other_server_dataが登録されていません")?;
+    let dst_guild_id = times_ubiqui_setting_recv.dst_guild_id;
+    let src_server_data = OtherServerData::db_read_from_guild_id(db.as_ref(), dst_guild_id)?;
 
     // 必要なデータをOtherTimesDataに詰める
     let _member_webhook = OtherTimesData::new(
@@ -360,11 +331,10 @@ pub async fn times_ubiqui_setting_set(
         &times_ubiqui_setting_recv.dst_webhook_url,
     );
 
-    let _connection = data.connection.clone();
+    let db = data.connection.clone();
 
     info!("times_ubiqui_setting_set: DB処理 到達");
-    let other_server_table = OtherServerDataTable::new(&data.connection);
-    other_server_table.upsert(&src_server_data.guild_id.to_string(), &src_server_data)?;
+    src_server_data.db_upsert(db.as_ref())?;
 
     let msg = format!(
         "拡散設定リクエスト返信 受信\n サーバ名: {} サーバid: {} をメンバーid: {} の拡散先に設定しました",

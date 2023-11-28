@@ -1,9 +1,11 @@
+
 use super::*;
 
 use crate::other_server::OtherServerData;
 
 use anyhow::Result;
 use sled::Db;
+use tracing::error;
 
 pub struct OtherServerDataTable<'a> {
     db: &'a sled::Db,
@@ -47,7 +49,7 @@ impl OtherServerData {
         Ok(data)
     }
 
-    pub fn db_read_from_guild_id(db: &Db, guild_id: u64) -> Result<Vec<Self>> {
+    pub fn db_read_from_guild_id(db: &Db, guild_id: u64) -> Result<Self> {
         let other_server_table = OtherServerDataTable::new(db);
         let data = other_server_table.read_all()?;
         // guild_idが一致するものを抽出する
@@ -55,6 +57,13 @@ impl OtherServerData {
             .into_iter()
             .filter(|x| x.guild_id == guild_id)
             .collect();
+
+        // 要素数は1か0になるはずである
+        if filtered_data.len() > 1 {
+            error!("guild_idが一致するOtherServerDataが2つ以上あります");
+        }
+        let filtered_data = filtered_data[0];
+        
         Ok(filtered_data)
     }
 
