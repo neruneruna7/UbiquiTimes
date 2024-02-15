@@ -6,6 +6,7 @@ pub mod times;
 
 use serde::{Deserialize, Serialize};
 
+
 // 相手サーバーのデータ
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 pub struct OtherServer {
@@ -28,7 +29,7 @@ impl OtherServer {
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 // 他サーバのtimesデータ
-pub struct OtherTimesData {
+pub struct OtherTimes {
     pub src_member_id: u64,
     pub dst_server_name: String,
     pub dst_guild_id: u64,
@@ -36,7 +37,7 @@ pub struct OtherTimesData {
     pub dst_webhook_url: String,
 }
 
-impl OtherTimesData {
+impl OtherTimes {
     pub fn new(
         src_member_id: u64,
         dst_server_name: &str,

@@ -218,7 +218,6 @@ name = "commands"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-trait",
  "chrono",
  "jsonwebtoken",
  "poise",
@@ -228,6 +227,8 @@ dependencies = [
  "serde_json",
  "sled 0.34.7",
  "sqlx",
+ "thiserror",
+ "tokio",
  "tracing",
  "tracing-subscriber",
  "uuid",
