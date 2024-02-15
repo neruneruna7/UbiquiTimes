@@ -7,7 +7,10 @@ use serenity::{model::channel::Message, webhook::Webhook};
 pub mod bot_communicate;
 pub mod global_data;
 pub mod other_server;
+pub mod other_server_repository;
 pub mod own_server;
+pub mod own_server_repository;
+pub mod sled_table;
 
 mod db_query;
 pub mod sign;

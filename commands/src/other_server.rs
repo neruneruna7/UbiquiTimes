@@ -8,14 +8,14 @@ use serde::{Deserialize, Serialize};
 
 // 相手サーバーのデータ
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
-pub struct OtherServerData {
+pub struct OtherServer {
     pub guild_id: u64,
     pub server_name: String,
     pub webhook_url: String,
     pub public_key_pem: String,
 }
 
-impl OtherServerData {
+impl OtherServer {
     pub fn new(guild_id: u64, server_name: &str, webhook_url: &str, public_key_pem: &str) -> Self {
         Self {
             guild_id,

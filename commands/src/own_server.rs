@@ -5,8 +5,10 @@ use sqlx::FromRow;
 pub mod server;
 pub mod times;
 
+pub mod own_server_repository;
+
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow)]
-pub struct OwnServerData {
+pub struct OwnServer {
     pub guild_id: u64,
     pub server_name: String,
     pub master_channel_id: u64,
@@ -15,7 +17,7 @@ pub struct OwnServerData {
     pub public_key_pem: String,
 }
 
-impl OwnServerData {
+impl OwnServer {
     pub fn new(
         guild_id: u64,
         server_name: &str,
@@ -36,14 +38,14 @@ impl OwnServerData {
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow)]
-pub struct OwnTimesData {
+pub struct OwnTimes {
     pub member_id: u64,
     pub member_name: String,
     pub channel_id: u64,
     pub webhook_url: String,
 }
 
-impl OwnTimesData {
+impl OwnTimes {
     pub fn new(member_id: u64, member_name: &str, channel_id: u64, webhook_url: &str) -> Self {
         Self {
             member_id,
