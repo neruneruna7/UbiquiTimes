@@ -6,7 +6,6 @@ pub mod times;
 
 use serde::{Deserialize, Serialize};
 
-
 // 相手サーバーのデータ
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 pub struct OtherServer {

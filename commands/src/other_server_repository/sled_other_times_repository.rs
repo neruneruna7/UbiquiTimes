@@ -22,6 +22,7 @@ impl SledOtherTimesRepository {
         let filtered_data: Vec<OtherTimes> = data
             .into_iter()
             .filter(|x| x.other_times_data.src_member_id == member_id)
+            .map(|x| x.other_times_data)
             .collect();
 
         Ok(filtered_data)
@@ -31,12 +32,13 @@ impl SledOtherTimesRepository {
         let other_times_table = OtherTimesTable::new(&self.db);
         let data = other_times_table.read_all()?;
         // member_idが一致するものを抽出
-        let fillter_data: Vec<OtherTimesKv> = data
+        let fillter_data: Vec<OtherTimes> = data
             .into_iter()
             .filter(|x| {
                 x.other_times_data.src_member_id == member_id
                     && x.other_times_data.dst_server_name == server_name
             })
+            .map(|x| x.other_times_data)
             .collect();
         Ok(fillter_data)
     }
@@ -117,7 +119,7 @@ impl From<OtherTimes> for OtherTimesKv {
     fn from(other_times_data: OtherTimes) -> Self {
         let key = format!(
             "{}_{}",
-            other_times_data.member_id, other_times_data.guild_id
+            other_times_data.src_member_id, other_times_data.dst_guild_id
         );
         Self {
             other_times_data,

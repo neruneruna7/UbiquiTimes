@@ -19,8 +19,8 @@ use sign::claims::register_public_key_ctx_data;
 use tracing::info;
 
 use global_data::{Context, Data};
-use other_server::OtherServerData;
-use own_server::OwnServerData;
+use other_server::OtherServer;
+use own_server::OwnServer;
 use sled::Db;
 
 async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) -> Result<()> {
