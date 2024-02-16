@@ -4,6 +4,9 @@ use anyhow::Result;
 pub mod sled_other_server_repository;
 pub mod sled_other_times_repository;
 
+pub use sled_other_server_repository::SledOtherServerRepository;
+pub use sled_other_times_repository::SledOtherTimesRepository;
+
 pub type OtherServerResult<T> = Result<T>;
 pub type OtherTimesResult<T> = Result<T>;
 

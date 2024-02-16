@@ -1,18 +1,20 @@
 use anyhow::{Context as _, Result};
 
+use own_server_repository::OwnServerRepository;
 use poise::serenity_prelude::{self as serenity};
 
 use serenity::{model::channel::Message, webhook::Webhook};
 
-pub mod bot_communicate;
+pub mod bot_communicate_controller;
+pub mod commands;
 pub mod global_data;
+pub mod initializer;
 pub mod other_server;
 pub mod other_server_repository;
 pub mod own_server;
 pub mod own_server_repository;
 pub mod sled_table;
 
-mod db_query;
 pub mod sign;
 
 use sign::claims::register_public_key_ctx_data;
@@ -43,30 +45,9 @@ async fn create_webhook_from_channel(
     Ok(webhook)
 }
 
-async fn upsert_own_server_data(
-    ctx: &Context<'_>,
-    own_server_data: OwnServerData,
-) -> anyhow::Result<()> {
-    let db = ctx.data().connection.clone();
-
-    own_server_data.db_upsert(db.as_ref())?;
-
-    register_masterhook_ctx_data(&db, ctx.data()).await?;
-    Ok(())
-}
-
-/// master_webhookをdbから取得しDataに登録する
-pub async fn register_masterhook_ctx_data(db: &Db, data: &Data) -> anyhow::Result<()> {
-    let server_data =
-        OwnServerData::db_read(db)?.context("own_server_data_tableに登録されていません")?;
-
-    *data.master_webhook_url.write().await = server_data.master_webhook_url;
-    Ok(())
-}
-
 pub async fn upsert_master_webhook(
     ctx: &Context<'_>,
-    other_server_data: OtherServerData,
+    other_server_data: OtherServer,
 ) -> anyhow::Result<()> {
     let db = ctx.data().connection.clone();
     other_server_data.db_upsert(db.as_ref())?;

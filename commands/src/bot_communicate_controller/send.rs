@@ -2,9 +2,9 @@ use std::collections::{HashMap, HashSet};
 
 use super::*;
 
-use crate::other_server::OtherServerData;
-use crate::other_server::OtherTimesData;
-use crate::own_server::{OwnServerData, OwnTimesData};
+use crate::other_server::OtherServer;
+use crate::other_server::OtherTimes;
+use crate::own_server::{OwnServer, OwnTimes};
 use crate::{logged_serenity_ctx, sign_str_command};
 
 use crate::global_data::Data;
@@ -38,9 +38,9 @@ pub async fn bot_com_msg_recv(
 }
 
 /// ut_times_ubiqui_setting_sendのために必要なデータを詰める関数
-async fn get_data_for_ut_times_ubiqui_setting_send(
+fn get_data_for_ut_times_ubiqui_setting_send(
     ctx: &Context<'_>,
-) -> Result<(OwnTimesData, OwnServerData, Vec<OtherServerData>)> {
+) -> Result<(OwnTimes, OwnServer, Vec<OtherServer>)> {
     let member_id = ctx.author().id.0;
     let db = ctx.data().connection.clone();
     // 自身のtimesの情報を取得
@@ -51,11 +51,11 @@ async fn get_data_for_ut_times_ubiqui_setting_send(
     let _guild_id = ctx.guild_id().ok_or(anyhow!(""))?.0;
     // let server_data = select_own_server_data(connection.as_ref(), guild_id).await?;
     let own_server_data =
-        OwnServerData::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
+        OwnServer::db_read(db.as_ref())?.context("own_server_dataが登録されていません")?;
 
     // 拡散可能サーバのリストを取得
 
-    let other_server_data = OtherServerData::db_read_all(db.as_ref())?;
+    let other_server_data = OtherServer::get_all(db.as_ref())?;
 
     Ok((own_times_data, own_server_data, other_server_data))
 }
@@ -126,7 +126,7 @@ pub async fn ut_times_ubiqui_setting_send(
 
     // 必要なデータを取得
     let (member_times, server_data, other_master_webhooks) =
-        get_data_for_ut_times_ubiqui_setting_send(&ctx).await?;
+        get_data_for_ut_times_ubiqui_setting_send(&ctx)?;
 
     let times_ubiqui_setting_send = TimesUbiquiSettingSend {
         src_member_id: member_times.member_id,

@@ -5,6 +5,9 @@ use crate::own_server::{OwnServer, OwnTimes};
 pub mod sled_own_server_repository;
 pub mod sled_own_times_repository;
 
+pub use sled_own_server_repository::SledOwnServerRepository;
+pub use sled_own_times_repository::SledOwnTimesRepository;
+
 #[derive(Debug, Error)]
 pub enum OwnServerRepositoryError {
     // お試しでthiserrorを導入してみる

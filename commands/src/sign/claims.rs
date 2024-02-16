@@ -1,4 +1,4 @@
-use crate::{bot_communicate::TimesUbiquiSettingSend, global_data::Context};
+use crate::{bot_communicate_controller::TimesUbiquiSettingSend, global_data::Context};
 
 use serde::{Deserialize, Serialize};
 

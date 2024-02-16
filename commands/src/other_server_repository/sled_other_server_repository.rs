@@ -3,17 +3,17 @@ use super::{OtherServer, OtherServerRepository, OtherServerResult};
 use crate::sled_table::SledTable;
 use tracing::error;
 
-pub struct SeledOtherServerRepository {
+pub struct SledOtherServerRepository {
     db: sled::Db,
 }
 
-impl SeledOtherServerRepository {
+impl SledOtherServerRepository {
     pub fn new(db: sled::Db) -> Self {
         Self { db }
     }
 }
 
-impl OtherServerRepository for SeledOtherServerRepository {
+impl OtherServerRepository for SledOtherServerRepository {
     async fn upsert(&self, other_server: OtherServer) -> OtherServerResult<OtherServer> {
         let other_server_table = OtherServerTable::new(&self.db);
         other_server_table.upsert(&other_server.server_name, &other_server)?;
