@@ -1,3 +1,5 @@
+// もともとsenderに置いていたものを，リファクタリングのためにこちらに移動
+
 use std::collections::{HashMap, HashSet};
 
 use super::*;

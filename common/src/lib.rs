@@ -1,10 +1,10 @@
 use anyhow::Error;
-use commands::bot_communicate::send::{
+use commands::bot_message_communicator::sender::{
     bot_com_msg_recv, times_ubiqui_setting_recv, times_ubiqui_setting_set,
 };
 use poise::{serenity_prelude as serenity, Event};
 
-use commands::bot_communicate::CmdKind;
+use commands::bot_message_communicator::CmdKind;
 use commands::global_data::Data;
 use commands::register_masterhook_ctx_data;
 
@@ -26,7 +26,7 @@ use commands::other_server::times::{
 };
 
 use commands::{
-    bot_communicate::send::ut_times_ubiqui_setting_send,
+    bot_message_communicator::sender::ut_times_ubiqui_setting_send,
     other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_server_data},
     own_server::server::{ut_get_own_server_data, ut_set_own_server_data},
 };
