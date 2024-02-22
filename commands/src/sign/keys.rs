@@ -10,7 +10,7 @@ use rsa::{
 
 // たぶんこの構造体たちの場所はモジュール分けした先だな
 pub struct UbiquitimesPrivateKey {
-    private_key: rsa::RsaPrivateKey,
+    pub private_key: rsa::RsaPrivateKey,
 }
 
 impl UbiquitimesPrivateKey {
@@ -43,7 +43,7 @@ impl UbiquitimesSigner for UbiquitimesPrivateKey {
 
 // たぶんこの構造体たちの場所はモジュール分けした先だな
 pub struct UbiquitimesPublicKey {
-    public_key: rsa::RsaPublicKey,
+    pub public_key: rsa::RsaPublicKey,
 }
 
 impl UbiquitimesPublicKey {
