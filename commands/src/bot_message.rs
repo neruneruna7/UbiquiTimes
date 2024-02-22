@@ -26,19 +26,19 @@ impl RequestMessage {
 pub struct ResponseMessage {
     pub src_guild_id: u64,
     pub dst_guild_id: u64,
-    times_setting_responce: TimesSettingResponce,
+    times_setting_Response: TimesSettingResponse,
 }
 
 impl ResponseMessage {
     pub fn new(
         src_guild_id: u64,
         dst_guild_id: u64,
-        times_setting_responce: TimesSettingResponce,
+        times_setting_Response: TimesSettingResponse,
     ) -> Self {
         Self {
             src_guild_id,
             dst_guild_id,
-            times_setting_responce,
+            times_setting_Response,
         }
     }
 }
@@ -54,14 +54,14 @@ pub struct TimesSettingRequest {
 // 常にリクエストの送信側をsrcとする
 // AサーバがBサーバにリクエストを送信するとき，この構想体においてもAサーバがsrc，Bサーバがdstである
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TimesSettingResponce {
+pub struct TimesSettingResponse {
     pub req_src_member_id: u64,
     pub req_dst_guild_id: u64,
     pub req_dst_channel_id: u64,
     pub req_dst_webhook_url: String,
 }
 
-impl TimesSettingResponce {
+impl TimesSettingResponse {
     pub fn from_req(req: &TimesSettingRequest, own_server: &OwnServer) -> Self {
         Self {
             req_src_member_id: req.req_src_member_id,

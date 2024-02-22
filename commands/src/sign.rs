@@ -5,7 +5,7 @@ pub mod keys;
 pub mod keys_gen;
 
 use crate::bot_message::{
-    RequestMessage, ResponseMessage, TimesSettingRequest, TimesSettingResponce,
+    RequestMessage, ResponseMessage, TimesSettingRequest, TimesSettingResponse,
 };
 use crate::other_server::OtherServer;
 use crate::own_server::OwnServer;

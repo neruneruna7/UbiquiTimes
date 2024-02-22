@@ -1,12 +1,12 @@
 use crate::{
-    bot_message::{RequestMessage, TimesSettingRequest, TimesSettingResponce},
+    bot_message::{RequestMessage, TimesSettingRequest, TimesSettingResponse},
     global_data::{Context, Data},
 };
 use poise::serenity_prelude as serenity;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-pub mod reciever;
+pub mod receiver;
 pub mod sender;
 pub mod set;
 
@@ -34,8 +34,8 @@ pub trait UbiquitimesSender {
     ) -> TimesSettingCommunicatorResult<()>;
 }
 
-pub trait UbiquitimesReciever {
-    async fn times_setting_recieve_and_response(
+pub trait UbiquitimesReceiver {
+    async fn times_setting_receive_and_response(
         &self,
         // poiseのContextが使えないので，serenityのContextを使う
         ctx: &serenity::Context,

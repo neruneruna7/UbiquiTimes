@@ -1,6 +1,6 @@
 use crate::bot_message;
 use crate::bot_message::ResponseMessage;
-use crate::bot_message::TimesSettingResponce;
+use crate::bot_message::TimesSettingResponse;
 use crate::global_data::Context;
 use crate::other_server_repository::OtherServerRepository;
 use crate::sign;
@@ -9,7 +9,7 @@ use crate::sign::UbiquitimesSigner;
 use crate::sign::UbiquitimesVerifier;
 
 use super::TimesSettingCommunicatorResult;
-use super::UbiquitimesReciever;
+use super::UbiquitimesReceiver;
 use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
@@ -17,9 +17,9 @@ use serde::Serialize;
 
 /// 他サーバからのリクエストを受信する
 ///
-pub struct WebhookReciever;
+pub struct WebhookReceiver;
 
-impl WebhookReciever {
+impl WebhookReceiver {
     pub fn check(new_message: &poise::serenity_prelude::Message) -> bool {
         // ここでリクエストのチェックを行う
         // botから以外のメッセージは無視する
@@ -30,8 +30,8 @@ impl WebhookReciever {
     }
 }
 
-impl UbiquitimesReciever for WebhookReciever {
-    async fn times_setting_recieve_and_response(
+impl UbiquitimesReceiver for WebhookReceiver {
+    async fn times_setting_receive_and_response(
         &self,
         // poiseのContextが使えないので，serenityのContextを使う
         ctx: &poise::serenity_prelude::Context,
@@ -60,7 +60,7 @@ impl UbiquitimesReciever for WebhookReciever {
         let claim = verifier
             .verify(&req.jws_times_setting_request)
             .context(format!(
-                "Faild to Verifey, src_guild_id is {} ,検証に失敗しました",
+                "Failed to Verifey, src_guild_id is {} ,検証に失敗しました",
                 req.src_guild_id,
             ))?;
         // 必要なデータを取得
@@ -71,7 +71,7 @@ impl UbiquitimesReciever for WebhookReciever {
             .ok_or_else(|| anyhow::anyhow!("Own Server Data is Not Found"))?;
 
         // レスポンスの作成
-        let setting_res = TimesSettingResponce::from_req(&claim.times_setting_req, own_server);
+        let setting_res = TimesSettingResponse::from_req(&claim.times_setting_req, own_server);
         let res_message = ResponseMessage::new(req.src_guild_id, req.dst_guild_id, setting_res);
 
         // シリアライズ
