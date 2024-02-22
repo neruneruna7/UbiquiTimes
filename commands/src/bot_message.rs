@@ -64,7 +64,7 @@ pub struct TimesSettingResponce {
 impl TimesSettingResponce {
     pub fn from_req(req: &TimesSettingRequest, own_server: &OwnServer) -> Self {
         Self {
-            req_src_member_id: req.src_member_id,
+            req_src_member_id: req.req_src_member_id,
             req_dst_guild_id: own_server.guild_id,
             req_dst_channel_id: own_server.manage_channel_id,
             req_dst_webhook_url: own_server.manage_webhook_url.clone(),
