@@ -5,7 +5,7 @@ use sqlx::FromRow;
 pub mod server;
 pub mod times;
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow, Clone)]
 pub struct OwnServer {
     pub guild_id: u64,
     pub server_name: String,

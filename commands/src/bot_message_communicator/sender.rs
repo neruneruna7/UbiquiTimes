@@ -3,18 +3,18 @@ use std::collections::HashSet;
 use crate::bot_message;
 use crate::bot_message::TimesSettingRequest;
 use crate::global_data::Context;
+use crate::other_server::OtherServer;
 use crate::other_server_repository::OtherServerRepository;
 use crate::sign;
 use crate::sign::Claims;
 use crate::sign::UbiquitimesSigner;
-use crate::other_server::OtherServer;
 
 use super::TimesSettingCommunicatorResult;
 use super::UbiquitimesSender;
 use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::Http;
-use poise::serenity_prelude::Webhook;
 use poise::serenity_prelude::RwLock;
+use poise::serenity_prelude::Webhook;
 
 pub struct WebhookSender;
 
@@ -98,12 +98,12 @@ impl WebhookSender {
     ) -> TimesSettingCommunicatorResult<()> {
         // どのサーバに対して送信したかを記録する
         let mut sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.write().await;
-        
+
         let member_id = ctx.author().id.0;
         // メンバーごとに紐づく送信記録がまだなければ作成
         let sent_guild_ids = sent_member_and_guild_ids.get(&member_id);
 
-        let sent_guild_ids =  match sent_guild_ids {
+        let sent_guild_ids = match sent_guild_ids {
             Some(sent_guild_ids) => sent_guild_ids,
             None => {
                 let sent_guild_ids = RwLock::new(HashSet::new());
@@ -115,7 +115,9 @@ impl WebhookSender {
         sent_guild_ids.write().await.insert(dst_guild_id);
 
         // 送信
-        webhook.execute(&ctx, false, |w| w.content(req_message)).await?;
+        webhook
+            .execute(&ctx, false, |w| w.content(req_message))
+            .await?;
 
         Ok(())
     }
@@ -131,7 +133,6 @@ impl UbiquitimesSender for WebhookSender {
         dst_guild_id: u64,
         req: crate::bot_message::TimesSettingRequest,
     ) -> TimesSettingCommunicatorResult<()> {
-
         // dbから他サーバのデータを取得
         let other_server = self.get_other_server(ctx, dst_guild_id).await?;
         // 送信につかうWebhookを取得
@@ -144,7 +145,8 @@ impl UbiquitimesSender for WebhookSender {
         let req_message = self.serialize_req_message(req_message)?;
 
         // 送信し，どのサーバに送信したかを記録する
-        self.send_webhook(webhook, req_message, ctx, dst_guild_id).await?;  
+        self.send_webhook(webhook, req_message, ctx, dst_guild_id)
+            .await?;
 
         Ok(())
     }

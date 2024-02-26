@@ -8,7 +8,6 @@ use thiserror::Error;
 
 pub mod receiver;
 pub mod sender;
-pub mod set;
 
 #[derive(Debug, Error)]
 pub enum TimesSettingCommunicatorError {
