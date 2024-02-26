@@ -7,6 +7,7 @@ use serenity::{model::channel::Message, webhook::Webhook};
 
 pub mod bot_message;
 pub mod bot_message_communicator;
+pub mod ca_driver;
 pub mod commands;
 pub mod global_data;
 pub mod initializer;

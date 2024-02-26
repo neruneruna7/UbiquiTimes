@@ -2,7 +2,7 @@
 members = [
     "commands",
     "common",
-    "ubiquitimes/poise",
+    # "ubiquitimes/poise",
     # "ubiquitimes/shuttle",
     # "sb/commands",
     # "sb/slcommands",
