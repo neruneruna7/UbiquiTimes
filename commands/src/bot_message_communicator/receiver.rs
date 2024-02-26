@@ -28,6 +28,7 @@ impl WebhookReceiver {
         }
         true
     }
+    
 }
 
 impl UbiquitimesReceiver for WebhookReceiver {
@@ -101,6 +102,7 @@ impl UbiquitimesReceiver for WebhookReceiver {
             .execute(ctx, false, |w| w.content(serialized_message))
             .await?;
 
-        todo!()
+        Ok(())
+
     }
 }
