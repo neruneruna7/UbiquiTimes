@@ -50,7 +50,7 @@ impl OwnTimesRepository for SledOwnTimesRepository {
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
-struct OwnTimesKv {
+pub struct OwnTimesKv {
     own_times_data: OwnTimes,
     key: String,
 }

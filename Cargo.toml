@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "commands",
-    "common",
+    # 警告情報を絞るため，一時的にコメントアウト
+    # "common",
     # "ubiquitimes/poise",
     # "ubiquitimes/shuttle",
     # "sb/commands",
