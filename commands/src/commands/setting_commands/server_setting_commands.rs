@@ -5,7 +5,7 @@ use std::ops::Deref;
 
 use super::super::CommandsResult;
 use crate::global_data::Context;
-use crate::own_server::{OwnServer, OwnServerRepository};
+use crate::own_server::OwnServer;
 use crate::own_server_repository::OwnServerRepository;
 use crate::sign::UbiquitimesKeys;
 use crate::sign::{keys_gen::RsaKeyGenerator, UbiquitimesKeyGenerator};
@@ -59,11 +59,36 @@ pub async fn ut_initialize(
     let own_server_repository = ctx.data().own_server_repository.clone();
     own_server_repository.upsert(own_server).await?;
 
-    // webhookのURLと公開鍵のpemを返信
+    // manage_webhookのURLと公開鍵のpemを返信
     let reply = format!(
         "manage_webhookのURL: {}\n公開鍵のPEM: {}",
         manage_webhook_url, keys_pem.public_key_pem
     );
+    ctx.say(reply).await?;
+    Ok(())
+}
+
+/// このサーバの情報を返します
+///
+/// 他のサーバが自身のサーバを拡散可能先として登録する際にコピペ可能なテキストを返します．
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UtGetOwnServerData"),
+    slash_command
+)]
+pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
+    // dbから取得
+    let own_server_repository = ctx.data().own_server_repository.clone();
+    let own_server = own_server_repository.get().await?;
+
+    // manage_webhookのURLと公開鍵のpemを返信
+    let reply = format!(
+        "manage_webhookのURL: {}\n公開鍵のPEM: {}",
+        own_server.manage_webhook_url, own_server.public_key_pem
+    );
+
+    // 返信
     ctx.say(reply).await?;
     Ok(())
 }
