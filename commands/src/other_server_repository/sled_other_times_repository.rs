@@ -108,7 +108,8 @@ impl OtherTimesRepository for SledOtherTimesRepository {
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
-struct OtherTimesKv {
+/// 設計上はpubにする必要はないのだが，pubトレイトの関連型で使う都合でpubにする必要がある
+pub struct OtherTimesKv {
     other_times_data: OtherTimes,
     key: String,
 }
