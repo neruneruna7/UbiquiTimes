@@ -31,8 +31,6 @@ pub type SignResult<T> = Result<T, SignError>;
 
 use serde::{Deserialize, Serialize};
 
-use self::keys_gen::UbiquitimesKeys;
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 // なんだったか忘れたけど，何かに基づいてClaim型を定義した
 // 署名のときの云々があったはず...
@@ -82,8 +80,13 @@ impl Claims {
     }
 }
 
+pub struct UbiquitimesKeys {
+    pub private_key: UbiquitimesPrivateKey,
+    pub public_key: UbiquitimesPublicKey,
+}
+
 pub trait UbiquitimesKeyGenerator {
-    fn generate_keys() -> SignResult<UbiquitimesKeys>;
+    fn generate_keys(&self) -> SignResult<UbiquitimesKeys>;
 }
 
 pub trait UbiquitimesSigner {

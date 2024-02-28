@@ -3,12 +3,12 @@ use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey, LineEnding};
 use rsa::{RsaPrivateKey, RsaPublicKey};
 
 use super::keys::{UbiquitimesPrivateKey, UbiquitimesPublicKey};
-use super::{SignResult, UbiquitimesKeyGenerator};
+use super::{SignResult, UbiquitimesKeyGenerator, UbiquitimesKeys};
 
 /// キーペアをPEM形式を入れるための構造体
 pub struct KeyPairPem {
-    private_key_pem: Zeroizing<String>,
-    public_key_pem: String,
+    pub private_key_pem: Zeroizing<String>,
+    pub public_key_pem: String,
 }
 
 /// キーペアを生成するときにつかう
@@ -17,13 +17,18 @@ pub struct KeyPairPem {
 /// ```
 /// let UbiquitimesKeys { private_key, public_key } = UbiquitimesKeys::generate_keys().unwrap();
 /// ```
-pub struct UbiquitimesKeys {
-    private_key: UbiquitimesPrivateKey,
-    public_key: UbiquitimesPublicKey,
+#[derive(Clone, Copy)]
+pub struct RsaKeyGenerator;
+
+impl RsaKeyGenerator {
+    pub fn new() -> Self {
+        Self
+    }
 }
-impl UbiquitimesKeyGenerator for UbiquitimesKeys {
+
+impl UbiquitimesKeyGenerator for RsaKeyGenerator {
     /// RSA-2048の鍵ペアを生成する
-    fn generate_keys() -> SignResult<UbiquitimesKeys> {
+    fn generate_keys(&self) -> SignResult<UbiquitimesKeys> {
         let (private_key, public_key) = generate_keypair();
         let private_key = UbiquitimesPrivateKey { private_key };
         let public_key = UbiquitimesPublicKey { public_key };

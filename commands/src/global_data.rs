@@ -10,6 +10,7 @@ use sled::Db;
 
 use crate::other_server_repository::{SledOtherServerRepository, SledOtherTimesRepository};
 use crate::own_server_repository::{SledOwnServerRepository, SledOwnTimesRepository};
+use crate::sign::{keys_gen::RsaKeyGenerator, UbiquitimesPrivateKey, UbiquitimesPublicKey};
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型
@@ -31,8 +32,13 @@ pub struct Data {
     // 具体的な型を指定する
     // ていうか，sledは排他制御してるんだっけ
     // してなかったらMutexで囲む
+    // データ保存にかかわるオブジェクト
     pub own_server_repository: Arc<SledOwnServerRepository>,
     pub own_times_repository: Arc<SledOwnTimesRepository>,
     pub other_server_repository: Arc<SledOtherServerRepository>,
     pub other_times_repository: Arc<SledOtherTimesRepository>,
+    // 鍵に関わるオブジェクト
+    pub ubiquitimes_signer: Arc<UbiquitimesPrivateKey>,
+    pub ubiquitimes_verifier: Arc<UbiquitimesPublicKey>,
+    pub ubiquitimes_keygenerator: Arc<RsaKeyGenerator>,
 }
