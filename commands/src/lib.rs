@@ -19,7 +19,6 @@ pub mod sled_table;
 
 pub mod sign;
 
-use sign::claims::register_public_key_ctx_data;
 use tracing::info;
 
 use global_data::{Context, Data};
@@ -34,32 +33,6 @@ async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) ->
         return Err(anyhow::anyhow!(err_text));
     }
 
-    Ok(())
-}
-
-#[allow(dead_code)]
-async fn create_webhook_from_channel(
-    ctx: Context<'_>,
-    msg: &Message,
-    name: &str,
-) -> anyhow::Result<Webhook> {
-    let webhook = msg.channel_id.create_webhook(ctx, name).await?;
-    Ok(webhook)
-}
-
-pub async fn upsert_master_webhook(
-    ctx: &Context<'_>,
-    other_server_data: OtherServer,
-) -> anyhow::Result<()> {
-    let db = ctx.data().connection.clone();
-    other_server_data.db_upsert(db.as_ref())?;
-
-    register_public_key_ctx_data(
-        other_server_data.guild_id,
-        other_server_data.public_key_pem,
-        ctx,
-    )
-    .await?;
     Ok(())
 }
 

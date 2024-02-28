@@ -20,6 +20,8 @@ pub enum TimesSettingCommunicatorError {
     JsonError(#[from] serde_json::Error),
     #[error("sign error: {0}")]
     SignError(#[from] crate::sign::SignError),
+    #[error("OtherServerRepository error: {0}")]
+    OtherServerRepositoryError(#[from] crate::other_server_repository::OtherServerRepositoryError),
 }
 
 pub type TimesSettingCommunicatorResult<T> = Result<T, TimesSettingCommunicatorError>;

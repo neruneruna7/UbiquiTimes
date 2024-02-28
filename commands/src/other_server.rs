@@ -1,9 +1,3 @@
-// pub mod auto;
-// pub mod manual;
-
-pub mod server;
-pub mod times;
-
 use serde::{Deserialize, Serialize};
 
 // 相手サーバーのデータ

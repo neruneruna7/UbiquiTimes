@@ -1,11 +1,6 @@
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
 
-// pub mod command;
-pub mod server;
-pub mod times;
-
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow, Clone)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct OwnServer {
     pub guild_id: u64,
     pub server_name: String,
@@ -35,7 +30,7 @@ impl OwnServer {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, FromRow, Clone)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct OwnTimes {
     pub member_id: u64,
     pub member_name: String,
