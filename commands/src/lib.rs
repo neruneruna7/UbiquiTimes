@@ -26,16 +26,6 @@ use other_server::OtherServer;
 use own_server::OwnServer;
 use sled::Db;
 
-async fn sign_str_command(ctx: &Context<'_>, enter_str: &str, sign_str: &str) -> Result<()> {
-    let err_text = format!("{}と入力してください", sign_str);
-    if enter_str != sign_str {
-        ctx.say(&err_text).await?;
-        return Err(anyhow::anyhow!(err_text));
-    }
-
-    Ok(())
-}
-
 /// 現在エラー発生中 master_webhook_urlがdataに無いと予測
 async fn logged(ctx: &Context<'_>, msg: &str) -> Result<()> {
     let master_webhook_url = ctx.data().master_webhook_url.read().await;

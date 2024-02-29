@@ -19,7 +19,6 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 // Custom user data passed to all command functions
 // すべてのコマンド関数に渡されるカスタム ユーザー データ
 pub struct Data {
-    pub connection: Arc<Db>,
     pub master_webhook_url: RwLock<String>,
     // いちいちデータベースにアクセスするのは非効率なので
     // キャッシュのような役割として，ここに保持する
