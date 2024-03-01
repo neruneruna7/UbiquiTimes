@@ -188,7 +188,7 @@ pub async fn ut_times_spread_setting(
         .times_setting_request_send(&ctx, dst_guild_id, &dst_server_name, times_setting_req)
         .await?;
 
-    ctx.say("設定リクエストを送信しました");
+    ctx.say("設定リクエストを送信しました").await?;
 
     Ok(())
 }
