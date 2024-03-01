@@ -26,19 +26,19 @@ impl RequestMessage {
 pub struct ResponseMessage {
     pub src_guild_id: u64,
     pub dst_guild_id: u64,
-    times_setting_Response: TimesSettingResponse,
+    pub times_setting_response: TimesSettingResponse,
 }
 
 impl ResponseMessage {
     pub fn new(
         src_guild_id: u64,
         dst_guild_id: u64,
-        times_setting_Response: TimesSettingResponse,
+        times_setting_response: TimesSettingResponse,
     ) -> Self {
         Self {
             src_guild_id,
             dst_guild_id,
-            times_setting_Response,
+            times_setting_response,
         }
     }
 }

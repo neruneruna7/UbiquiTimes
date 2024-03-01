@@ -10,7 +10,7 @@ use crate::sign::UbiquitimesSigner;
 use crate::sign::UbiquitimesVerifier;
 
 use super::TimesSettingCommunicatorResult;
-use super::UbiquitimesReceiver;
+use super::UbiquitimesReqReceiver;
 use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
@@ -37,6 +37,7 @@ impl WebhookReceiver {
         req: &bot_message::RequestMessage,
     ) -> TimesSettingCommunicatorResult<Claims> {
         // 送信元のサーバの公開鍵を取得
+        // ここ，オレオレ認証局もどきにアクセスするようにした方がいいかも？
         let public_key_pem = {
             let other_server = framework
                 .user_data
@@ -130,7 +131,7 @@ impl WebhookReceiver {
     }
 }
 
-impl UbiquitimesReceiver for WebhookReceiver {
+impl UbiquitimesReqReceiver for WebhookReceiver {
     async fn times_setting_receive_and_response(
         &self,
         // poiseのContextが使えないので，serenityのContextを使う

@@ -9,8 +9,9 @@ use crate::sign;
 use crate::sign::Claims;
 use crate::sign::UbiquitimesSigner;
 
+use super::save_sent_guild_ids;
 use super::TimesSettingCommunicatorResult;
-use super::UbiquitimesSender;
+use super::UbiquitimesReqSender;
 use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::RwLock;
@@ -97,22 +98,7 @@ impl WebhookSender {
         dst_guild_id: u64,
     ) -> TimesSettingCommunicatorResult<()> {
         // どのサーバに対して送信したかを記録する
-        let mut sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.write().await;
-
-        let member_id = ctx.author().id.0;
-        // メンバーごとに紐づく送信記録がまだなければ作成
-        let sent_guild_ids = sent_member_and_guild_ids.get(&member_id);
-
-        let sent_guild_ids = match sent_guild_ids {
-            Some(sent_guild_ids) => sent_guild_ids,
-            None => {
-                let sent_guild_ids = RwLock::new(HashSet::new());
-                sent_member_and_guild_ids.insert(member_id, sent_guild_ids);
-                sent_member_and_guild_ids.get(&member_id).unwrap()
-            }
-        };
-        // 送信記録を更新
-        sent_guild_ids.write().await.insert(dst_guild_id);
+        save_sent_guild_ids(ctx, dst_guild_id).await?;
 
         // 送信
         webhook
@@ -123,7 +109,7 @@ impl WebhookSender {
     }
 }
 
-impl UbiquitimesSender for WebhookSender {
+impl UbiquitimesReqSender for WebhookSender {
     /// 他サーバにリクエストを送信する
     ///
     ///
