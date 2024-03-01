@@ -1,16 +1,20 @@
 // - メンバーのTimesがどのチャンネルなのかを設定するコマンド
 // - メンバーのTimesがどのチャンネルなのかを削除するコマンド
-// - メンバーのTimes拡散設定コマンド
+// - メンバーのTimesを指定したサーバに拡散設定するコマンド
 // - メンバーのTimes拡散設定情報を取得する
 // - メンバーのTimes拡散設定情報を削除する
 // - メンバーのTimes拡散設定情報を手動で作成する
 //
 
 use super::super::command_check;
+use crate::bot_message::{RequestMessage, TimesSettingRequest};
+use crate::bot_message_communicator::req_sender::WebhookReqSender;
+use crate::bot_message_communicator::UbiquitimesReqSender;
 use crate::global_data::Context;
 use crate::other_server_repository::OtherTimesRepository;
 use crate::own_server::OwnTimes;
-use crate::own_server_repository::OwnTimesRepository;
+use crate::own_server_repository::{OwnServerRepository, OwnTimesRepository};
+use crate::sign::Claims;
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
@@ -132,6 +136,59 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     response.push_str("```");
 
     ctx.say(response).await?;
+
+    Ok(())
+}
+
+/// 指定したサーバに大して，あなたのTimesを拡散できるように設定します
+///
+/// ここで入力するサーバ名は，必ずしも一意である必要はありません
+/// 人間がその名前をみて，どのサーバかを判断できるのであれば問題ありません
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UtTimesSpreadSetting"),
+    slash_command
+)]
+pub async fn ut_times_spread_setting(
+    ctx: Context<'_>,
+    #[description = "拡散先サーバのギルド（サーバー）ID"] dst_guild_id: String,
+    #[description = "拡散先の識別用サーバ名"] dst_server_name: String,
+) -> Result<()> {
+    // slash commandではu64型をうまく受け取れないので，Stringで受け取ってから変換する
+    let dst_guild_id = dst_guild_id.parse::<u64>()?;
+
+    // リクエストメッセージを組み立てる
+    // 自身のサーバ情報が必要なので，それを取得する
+    let own_server_repository = ctx.data().own_server_repository.clone();
+    let own_server = own_server_repository.get().await?;
+
+    let own_times_repository = ctx.data().own_times_repository.clone();
+    let own_times = own_times_repository.get(ctx.author().id.0).await?;
+
+    let own_times = match own_times {
+        Some(own_times) => own_times,
+        None => {
+            ctx.say("あなたのTimesが登録されていません").await?;
+            return Ok(());
+        }
+    };
+
+    // リクエストメッセージのもととなるデータを作成
+    let times_setting_req = TimesSettingRequest::new(
+        ctx.author().id.0,
+        own_server.manage_webhook_url.clone(),
+        ctx.channel_id().0,
+        own_times.times_webhook_url.clone(),
+    );
+
+    // 設定リクエストを送信する
+    let req_sender = WebhookReqSender::new();
+    req_sender
+        .times_setting_request_send(&ctx, dst_guild_id, &dst_server_name, times_setting_req)
+        .await?;
+
+    ctx.say("設定リクエストを送信しました");
 
     Ok(())
 }

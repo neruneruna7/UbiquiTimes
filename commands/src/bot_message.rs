@@ -46,9 +46,25 @@ impl ResponseMessage {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TimesSettingRequest {
     pub req_src_member_id: u64,
-    pub req_src_master_webhook_url: String,
+    pub req_src_manage_webhook_url: String,
     pub req_src_channel_id: u64,
     pub req_src_member_webhook_url: String,
+}
+
+impl TimesSettingRequest {
+    pub fn new(
+        req_src_member_id: u64,
+        req_src_manage_webhook_url: String,
+        req_src_channel_id: u64,
+        req_src_member_webhook_url: String,
+    ) -> Self {
+        Self {
+            req_src_member_id,
+            req_src_manage_webhook_url,
+            req_src_channel_id,
+            req_src_member_webhook_url,
+        }
+    }
 }
 
 // 常にリクエストの送信側をsrcとする

@@ -22,9 +22,9 @@ use serde::Serialize;
 
 /// 他サーバからのリクエストを受信する
 ///
-pub struct WebhookReceiver;
+pub struct WebhookReqReceiver;
 
-impl WebhookReceiver {
+impl WebhookReqReceiver {
     pub fn check(new_message: &poise::serenity_prelude::Message) -> bool {
         // ここでリクエストのチェックを行う
         // botから以外のメッセージは無視する
@@ -139,7 +139,7 @@ impl WebhookReceiver {
     }
 }
 
-impl UbiquitimesReqReceiver for WebhookReceiver {
+impl UbiquitimesReqReceiver for WebhookReqReceiver {
     async fn times_setting_receive_and_response(
         &self,
         // poiseのContextが使えないので，serenityのContextを使う

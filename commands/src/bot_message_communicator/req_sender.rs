@@ -19,9 +19,9 @@ use poise::serenity_prelude::Http;
 use poise::serenity_prelude::RwLock;
 use poise::serenity_prelude::Webhook;
 
-pub struct WebhookSender;
+pub struct WebhookReqSender;
 
-impl WebhookSender {
+impl WebhookReqSender {
     pub fn new() -> Self {
         Self
     }
@@ -132,7 +132,7 @@ impl WebhookSender {
     }
 }
 
-impl UbiquitimesReqSender for WebhookSender {
+impl UbiquitimesReqSender for WebhookReqSender {
     /// 他サーバにリクエストを送信する
     ///
     /// dst_guild_idは送信先のサーバのID かならず機械的にどのサーバか特定できるもの
