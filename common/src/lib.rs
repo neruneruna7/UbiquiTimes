@@ -1,35 +1,16 @@
 use anyhow::Error;
-use commands::bot_message_communicator::sender::{
-    bot_com_msg_recv, times_ubiqui_setting_recv, times_ubiqui_setting_set,
+use commands::bot_message_communicator::req_receiver::WebhookReqReceiver;
+use commands::bot_message_communicator::res_receiver::WebhookResReceiver;
+use commands::poise_commands::setting_commands::{
+    member_setting_commands, server_setting_commands,
 };
+
+use commands::bot_message_communicator::{req_receiver, res_receiver, MultiReceiver};
 use poise::{serenity_prelude as serenity, Event};
 
-use commands::bot_message_communicator::CmdKind;
 use commands::global_data::Data;
-use commands::register_masterhook_ctx_data;
 
 use tracing::info;
-
-// use commands::member_webhook::auto::{
-//     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
-// };
-// use commands::member_webhook::manual::{
-//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-// };
-use commands::own_server::times::{ut_times_set, ut_times_show, ut_times_unset};
-// use commands::member_webhook::manual::{
-//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-// };
-
-use commands::other_server::times::{
-    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-};
-
-use commands::{
-    bot_message_communicator::sender::ut_times_ubiqui_setting_send,
-    other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_server_data},
-    own_server::server::{ut_get_own_server_data, ut_set_own_server_data},
-};
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -94,32 +75,25 @@ pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 pub async fn event_handler(
     ctx: &serenity::Context,
     event: &Event<'_>,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
+    framework: poise::FrameworkContext<'_, Data, Error>,
     data: &Data,
 ) -> Result<(), Error> {
     match event {
         Event::Ready { data_about_bot } => {
             println!("Logged in as {}", data_about_bot.user.name);
-            register_masterhook_ctx_data(&data.connection, data).await?;
         }
         Event::Message { new_message } => {
             println!("msg recvd");
 
             // info!("Got a message from a bot: {:?}", new_message);
-            let bot_com_msg = match bot_com_msg_recv(new_message, data).await {
-                Some(t) => t,
-                None => return Ok(()),
-            };
-
-            match &bot_com_msg.cmd_kind {
-                CmdKind::TimesUbiquiSettingSendToken(t) => {
-                    times_ubiqui_setting_recv(ctx, data, t, &bot_com_msg).await?;
-                }
-                CmdKind::TimesUbiquiSettingRecv(t) => {
-                    times_ubiqui_setting_set(ctx, data, t, &bot_com_msg).await?;
-                }
-                CmdKind::None => {}
+            let is_bot = WebhookReqReceiver::check(new_message);
+            if is_bot {
+                return Ok(());
             }
+
+            let webhook_receiver = MultiReceiver::new(WebhookReqReceiver, WebhookResReceiver);
+
+            webhook_receiver.receiv(new_message, ctx, framework)?;
 
             // if new_message.content.to_lowercase().contains("poise") {
             //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
@@ -136,21 +110,5 @@ pub async fn event_handler(
 
 // Shuttleとセルフホストの両方で使えるようにするため，切り出している
 pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
-    vec![
-        help(),
-        ut_set_own_server_data(),
-        ut_get_own_server_data(),
-        ut_set_other_server_data(),
-        ut_serverlist(),
-        ut_delete_other_masterhook(),
-        // ut_get_master_hook(),
-        ut_member_webhook_reg_manual(),
-        ut_list(),
-        ut_delete(),
-        ut_times_release(),
-        ut_times_set(),
-        ut_times_unset(),
-        ut_times_show(),
-        ut_times_ubiqui_setting_send(),
-    ]
+    vec![help()]
 }

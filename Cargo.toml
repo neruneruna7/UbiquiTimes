@@ -1,14 +1,13 @@
 [workspace]
 members = [
     "commands",
-    # 警告情報を絞るため，一時的にコメントアウト
-    # "common",
+    "common",
     # "ubiquitimes/poise",
     # "ubiquitimes/shuttle",
     # "sb/commands",
     # "sb/slcommands",
     # "sb/crypt",
-    "sb/sled",
+    # "sb/sled",
 ]
 
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none

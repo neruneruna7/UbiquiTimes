@@ -3,8 +3,10 @@ use crate::{
     ca_driver::CaDriverError,
     global_data::{Context, Data},
 };
-use poise::serenity_prelude as serenity;
+use anyhow::Error;
+
 use poise::serenity_prelude::RwLock;
+use poise::serenity_prelude::{self as serenity, Message};
 
 use std::collections::HashMap;
 use thiserror::Error;
@@ -116,4 +118,59 @@ async fn is_response_from_sent_guild(
     };
 
     Ok(is_response_from_sent_guild)
+}
+
+/// リクエストとレスポンス，両方のレシーバーを持つ構造体
+///
+/// 合成を試しに使ってみている
+/// 合成ってのはこういうことでいいんだろうか
+// 設計として良い悪いを判断できる知識がないので，とりあえず使ってみる
+pub struct MultiReceiver<T, R>
+where
+    T: UbiquitimesReqReceiver,
+    R: UbiquitimesResReceiver,
+{
+    req_receiver: T,
+    res_receiver: R,
+}
+
+impl<T, R> MultiReceiver<T, R>
+where
+    T: UbiquitimesReqReceiver,
+    R: UbiquitimesResReceiver,
+{
+    pub fn new(req_receiver: T, res_receiver: R) -> Self {
+        Self {
+            req_receiver,
+            res_receiver,
+        }
+    }
+
+    pub fn receiv(
+        &self,
+        new_message: &Message,
+        ctx: &serenity::Context,
+        framework: poise::FrameworkContext<'_, Data, Error>,
+    ) -> TimesSettingCommunicatorResult<()> {
+        let msg_string = &new_message.content;
+
+        // RequestMessageまたはResponseMessageに変換
+        let result_req_message = serde_json::from_str::<RequestMessage>(msg_string);
+        let result_res_message = serde_json::from_str::<ResponseMessage>(msg_string);
+
+        // RequestMessageだった場合
+        if let Ok(req_message) = result_req_message {
+            self.req_receiver
+                .times_setting_receive_and_response(ctx, framework, req_message);
+        }
+
+        // ResponseMessageだった場合
+        if let Ok(res_message) = result_res_message {
+            self.res_receiver
+                .times_setting_response_receive(framework, res_message);
+        }
+
+        // どちらでもなければ，とくに何もしない
+        Ok(())
+    }
 }
