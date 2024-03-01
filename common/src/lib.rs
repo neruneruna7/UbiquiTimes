@@ -6,6 +6,7 @@ use commands::poise_commands::setting_commands::{
 };
 
 use commands::bot_message_communicator::{req_receiver, res_receiver, MultiReceiver};
+use commands::poise_commands::spreading_commands;
 use poise::{serenity_prelude as serenity, Event};
 
 use commands::global_data::Data;
@@ -110,5 +111,15 @@ pub async fn event_handler(
 
 // Shuttleとセルフホストの両方で使えるようにするため，切り出している
 pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
-    vec![help()]
+    vec![
+        help(),
+        server_setting_commands::ut_initialize(),
+        server_setting_commands::ut_get_own_server_data(),
+        member_setting_commands::ut_times_set(),
+        member_setting_commands::ut_times_unset(),
+        member_setting_commands::ut_times_spread_setting(),
+        member_setting_commands::ut_list(),
+        member_setting_commands::ut_times_spread_unset(),
+        spreading_commands::ut_times_release(),
+    ]
 }
