@@ -5,17 +5,13 @@
 //     - ウェルカムメッセージを表示する（応用）
 // - なければ，データを登録するように促すメッセージを表示する
 
-use crate::{
-    global_data::{Context, Data},
-    own_server_repository::OwnServerRepository,
-};
-use anyhow::{Context as _, Result};
+use crate::{global_data::Context, own_server_repository::OwnServerRepository};
 
 use crate::own_server::OwnServer;
 
 pub async fn get_or_init_own_server_data(
     ctx: &Context<'_>,
-    own_server_data: OwnServer,
+    _own_server_data: OwnServer,
 ) -> anyhow::Result<()> {
     let own_server_repository = ctx.data().own_server_repository.clone();
     let own_server_data = own_server_repository.get().await;

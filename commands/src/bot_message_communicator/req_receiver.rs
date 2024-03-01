@@ -5,12 +5,11 @@ use crate::ca_driver::my_ca_driver::MyCaDriver;
 use crate::ca_driver::CaDriver;
 use crate::ca_driver::KeyAndWebhook;
 use crate::global_data;
-use crate::global_data::Context;
-use crate::other_server::OtherServer;
+
 use crate::other_server_repository::OtherServerRepository;
 use crate::sign;
 use crate::sign::Claims;
-use crate::sign::UbiquitimesSigner;
+
 use crate::sign::UbiquitimesVerifier;
 
 use super::TimesSettingCommunicatorResult;
@@ -18,7 +17,6 @@ use super::UbiquitimesReqReceiver;
 use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
-use serde::Serialize;
 
 /// 他サーバからのリクエストを受信する
 ///
@@ -46,7 +44,7 @@ impl WebhookReqReceiver {
     // リクエストを検証して，Claimsを取得する
     async fn verify(
         &self,
-        framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,
+        _framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,
         req: &bot_message::RequestMessage,
     ) -> TimesSettingCommunicatorResult<Claims> {
         // 送信元のサーバの公開鍵を取得

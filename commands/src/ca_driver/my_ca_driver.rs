@@ -1,5 +1,5 @@
 // クソ雑オレオレ認証局モドキへのドライバ
-use super::{CaDriver, CaDriverError, CaDriverResult, KeyAndWebhook};
+use super::{CaDriver, CaDriverResult, KeyAndWebhook};
 use reqwest;
 
 pub struct MyCaDriver;

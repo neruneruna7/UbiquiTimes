@@ -5,7 +5,7 @@ use super::{Claims, SignResult, UbiquitimesSigner, UbiquitimesVerifier};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use rsa::{
     pkcs1::{DecodeRsaPublicKey, EncodeRsaPublicKey},
-    pkcs8::{DecodePrivateKey, EncodePrivateKey, EncodePublicKey},
+    pkcs8::{DecodePrivateKey, EncodePrivateKey},
 };
 
 // たぶんこの構造体たちの場所はモジュール分けした先だな
@@ -58,7 +58,7 @@ impl UbiquitimesPublicKey {
 
 impl UbiquitimesVerifier for UbiquitimesPublicKey {
     fn verify(&self, signed_token: &str) -> SignResult<Claims> {
-        let header = Header::new(Algorithm::RS256);
+        let _header = Header::new(Algorithm::RS256);
         let key = DecodingKey::from_rsa_pem(
             &self
                 .public_key

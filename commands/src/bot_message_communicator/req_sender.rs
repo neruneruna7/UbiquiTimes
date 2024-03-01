@@ -1,12 +1,10 @@
-use std::collections::HashSet;
-
 use crate::bot_message;
 use crate::bot_message::TimesSettingRequest;
 use crate::ca_driver::my_ca_driver::MyCaDriver;
 use crate::ca_driver::CaDriver;
 use crate::global_data::Context;
 use crate::other_server::OtherServer;
-use crate::other_server_repository::OtherServerRepository;
+
 use crate::sign;
 use crate::sign::Claims;
 use crate::sign::UbiquitimesSigner;
@@ -16,7 +14,7 @@ use super::TimesSettingCommunicatorResult;
 use super::UbiquitimesReqSender;
 use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::Http;
-use poise::serenity_prelude::RwLock;
+
 use poise::serenity_prelude::Webhook;
 
 pub struct WebhookReqSender;
@@ -65,7 +63,7 @@ impl WebhookReqSender {
     /// webhook_urlから送信につかうWebhookを作成
     async fn get_webhook(
         &self,
-        ctx: &Context<'_>,
+        _ctx: &Context<'_>,
         other_server: &OtherServer,
     ) -> TimesSettingCommunicatorResult<Webhook> {
         // 送信だけなら特にトークン無しでもいいらしい

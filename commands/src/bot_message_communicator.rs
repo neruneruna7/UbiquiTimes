@@ -1,12 +1,12 @@
 use crate::{
-    bot_message::{RequestMessage, ResponseMessage, TimesSettingRequest, TimesSettingResponse},
+    bot_message::{RequestMessage, ResponseMessage, TimesSettingRequest},
     ca_driver::CaDriverError,
     global_data::{Context, Data},
 };
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::RwLock;
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+
+use std::collections::HashMap;
 use thiserror::Error;
 
 pub mod req_receiver;

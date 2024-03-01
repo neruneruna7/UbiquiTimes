@@ -4,9 +4,7 @@ use poise::serenity_prelude::RwLock;
 
 use std::sync::Arc;
 
-use std::collections::{HashMap, HashSet};
-
-use sled::Db;
+use std::collections::HashMap;
 
 use crate::other_server_repository::{SledOtherServerRepository, SledOtherTimesRepository};
 use crate::own_server_repository::{SledOwnServerRepository, SledOwnTimesRepository};

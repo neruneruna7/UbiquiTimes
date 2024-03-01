@@ -1,15 +1,12 @@
 // - サーバー初期化コマンド
 // - サーバー設定情報を取得する
 
-use std::ops::Deref;
-
-use super::super::CommandsResult;
 use crate::global_data::Context;
 use crate::own_server::OwnServer;
 use crate::own_server_repository::OwnServerRepository;
+use crate::sign::UbiquitimesKeyGenerator;
 use crate::sign::UbiquitimesKeys;
-use crate::sign::{keys_gen::RsaKeyGenerator, UbiquitimesKeyGenerator};
-use anyhow::Context as anyhowContext;
+
 use anyhow::{anyhow, Result};
 
 /// Botのセットアップを行います 導入後最初に実行してください
@@ -21,7 +18,7 @@ use anyhow::{anyhow, Result};
 pub async fn ut_initialize(
     ctx: Context<'_>,
     #[description = "本サーバのサーバ名"] server_name: String,
-    #[description = "署名鍵を作り直しますか？（初回はTrueにしてください）"] is_new_key: bool,
+    #[description = "署名鍵を作り直しますか？（初回はTrueにしてください）"] _is_new_key: bool,
 ) -> Result<()> {
     // デバッグビルドだと鍵作成の処理時間が長いため，返信が来ないことがあります
     // おそらくどこかに時間を設定するところがあるはず...

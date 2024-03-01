@@ -1,9 +1,8 @@
 use anyhow::{Context as _, Result};
 
-use own_server_repository::OwnServerRepository;
 use poise::serenity_prelude::{self as serenity};
 
-use serenity::{model::channel::Message, webhook::Webhook};
+use serenity::webhook::Webhook;
 
 pub mod bot_message;
 pub mod bot_message_communicator;
@@ -21,10 +20,7 @@ pub mod sign;
 
 use tracing::info;
 
-use global_data::{Context, Data};
-use other_server::OtherServer;
-use own_server::OwnServer;
-use sled::Db;
+use global_data::Context;
 
 /// 現在エラー発生中 master_webhook_urlがdataに無いと予測
 async fn logged(ctx: &Context<'_>, msg: &str) -> Result<()> {

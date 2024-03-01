@@ -1,7 +1,6 @@
 use super::{OwnServer, OwnServerRepository, OwnServerResult};
 use crate::sled_table::SledTable;
 use anyhow::Result;
-use tracing::error;
 
 pub struct SledOwnServerRepository {
     db: sled::Db,

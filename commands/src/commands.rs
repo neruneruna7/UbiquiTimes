@@ -1,7 +1,7 @@
 use crate::global_data::Context;
 use crate::other_server_repository::OtherServerRepositoryError;
 use crate::own_server_repository::OwnServerRepositoryError;
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 use thiserror::Error;
 
 pub mod setting_commands;
