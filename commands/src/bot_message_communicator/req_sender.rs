@@ -2,6 +2,8 @@ use std::collections::HashSet;
 
 use crate::bot_message;
 use crate::bot_message::TimesSettingRequest;
+use crate::ca_driver::my_ca_driver::MyCaDriver;
+use crate::ca_driver::CaDriver;
 use crate::global_data::Context;
 use crate::other_server::OtherServer;
 use crate::other_server_repository::OtherServerRepository;
@@ -24,23 +26,43 @@ impl WebhookSender {
         Self
     }
 
-    // dbから他サーバのデータを取得
+    // // dbから他サーバのデータを取得
+    // async fn get_other_server(
+    //     &self,
+    //     ctx: &Context<'_>,
+    //     dst_guild_id: u64,
+    // ) -> TimesSettingCommunicatorResult<crate::other_server::OtherServer> {
+    //     let other_server = ctx
+    //         .data()
+    //         .other_server_repository
+    //         .clone()
+    //         .get_from_guild_id(dst_guild_id)
+    //         .await?
+    //         .ok_or_else(|| anyhow::anyhow!("OtherServer not found"))?;
+    //     Ok(other_server)
+    // }
+
+    // 認証局もどきから他サーバのデータを取得
     async fn get_other_server(
         &self,
-        ctx: &Context<'_>,
         dst_guild_id: u64,
-    ) -> TimesSettingCommunicatorResult<crate::other_server::OtherServer> {
-        let other_server = ctx
-            .data()
-            .other_server_repository
-            .clone()
-            .get_from_guild_id(dst_guild_id)
-            .await?
-            .ok_or_else(|| anyhow::anyhow!("OtherServer not found"))?;
+        dst_guild_name: &str,
+    ) -> TimesSettingCommunicatorResult<OtherServer> {
+        let ca_driver = MyCaDriver::new();
+
+        let key_and_webhook = ca_driver.get_key_webhook(dst_guild_id).await?;
+
+        let other_server = OtherServer::new(
+            dst_guild_id,
+            &dst_guild_name,
+            &key_and_webhook.manage_webhook,
+            &key_and_webhook.public_key_pem,
+        );
+
         Ok(other_server)
     }
 
-    // 送信につかうWebhookを取得
+    /// webhook_urlから送信につかうWebhookを作成
     async fn get_webhook(
         &self,
         ctx: &Context<'_>,
@@ -112,16 +134,19 @@ impl WebhookSender {
 impl UbiquitimesReqSender for WebhookSender {
     /// 他サーバにリクエストを送信する
     ///
-    ///
+    /// dst_guild_idは送信先のサーバのID かならず機械的にどのサーバか特定できるもの
+    /// dst_guild_nameは送信先のサーバの名前 人間が識別可能であればなんでもよい
     async fn times_setting_request_send(
+        //
         &self,
         ctx: &Context<'_>,
         dst_guild_id: u64,
+        dst_guild_name: &str,
         req: crate::bot_message::TimesSettingRequest,
     ) -> TimesSettingCommunicatorResult<()> {
-        // dbから他サーバのデータを取得
-        let other_server = self.get_other_server(ctx, dst_guild_id).await?;
-        // 送信につかうWebhookを取得
+        // 認証局もどきから他サーバのデータを取得
+        let other_server = self.get_other_server(dst_guild_id, dst_guild_name).await?;
+        // 送信につかうWebhookを作成
         let webhook = self.get_webhook(ctx, &other_server).await?;
 
         // 送信するメッセージを作成

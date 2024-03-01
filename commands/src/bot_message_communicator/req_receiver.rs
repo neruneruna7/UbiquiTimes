@@ -1,8 +1,12 @@
 use crate::bot_message;
 use crate::bot_message::ResponseMessage;
 use crate::bot_message::TimesSettingResponse;
+use crate::ca_driver::my_ca_driver::MyCaDriver;
+use crate::ca_driver::CaDriver;
+use crate::ca_driver::KeyAndWebhook;
 use crate::global_data;
 use crate::global_data::Context;
+use crate::other_server::OtherServer;
 use crate::other_server_repository::OtherServerRepository;
 use crate::sign;
 use crate::sign::Claims;
@@ -30,6 +34,15 @@ impl WebhookReceiver {
         true
     }
 
+    // 認証局もどきからリクエスト送信元サーバのデータを取得
+    async fn get_src_key_and_webhook(
+        guild_id: u64,
+    ) -> TimesSettingCommunicatorResult<KeyAndWebhook> {
+        let ca_driver = MyCaDriver::new();
+        let key_and_webhook = ca_driver.get_key_webhook(guild_id).await?;
+        Ok(key_and_webhook)
+    }
+
     // リクエストを検証して，Claimsを取得する
     async fn verify(
         &self,
@@ -37,17 +50,12 @@ impl WebhookReceiver {
         req: &bot_message::RequestMessage,
     ) -> TimesSettingCommunicatorResult<Claims> {
         // 送信元のサーバの公開鍵を取得
-        // ここ，オレオレ認証局もどきにアクセスするようにした方がいいかも？
+        // オレオレ認証局もどきにアクセスする
         let public_key_pem = {
-            let other_server = framework
-                .user_data
-                .other_server_repository
-                .clone()
-                .get_from_guild_id(req.src_guild_id)
-                .await?
-                .ok_or_else(|| anyhow::anyhow!("OtherServer not found"))?;
-            other_server.public_key_pem
+            let key_and_webhook = Self::get_src_key_and_webhook(req.src_guild_id).await?;
+            key_and_webhook.public_key_pem
         };
+
         let verifier = sign::UbiquitimesPublicKey::from_pem(&public_key_pem)
             .context("Failed to create verifier")?;
 

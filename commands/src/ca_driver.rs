@@ -20,9 +20,9 @@ pub type CaDriverResult<T> = Result<T, CaDriverError>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct KeyAndWebhook {
-    guild_id: u64,
-    public_key: String,
-    manage_webhook: String,
+    pub guild_id: u64,
+    pub public_key_pem: String,
+    pub manage_webhook: String,
 }
 
 pub trait CaDriver {

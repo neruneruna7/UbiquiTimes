@@ -1,5 +1,6 @@
 use crate::{
     bot_message::{RequestMessage, ResponseMessage, TimesSettingRequest, TimesSettingResponse},
+    ca_driver::CaDriverError,
     global_data::{Context, Data},
 };
 use poise::serenity_prelude as serenity;
@@ -25,6 +26,8 @@ pub enum TimesSettingCommunicatorError {
     SignError(#[from] crate::sign::SignError),
     #[error("OtherServerRepository error: {0}")]
     OtherServerRepositoryError(#[from] crate::other_server_repository::OtherServerRepositoryError),
+    #[error("CaDriver error: {0}")]
+    CaDriverError(#[from] CaDriverError),
 }
 
 pub type TimesSettingCommunicatorResult<T> = Result<T, TimesSettingCommunicatorError>;
@@ -34,6 +37,7 @@ pub trait UbiquitimesReqSender {
         &self,
         ctx: &Context<'_>,
         dst_guild_id: u64,
+        dst_guild_name: &str,
         req: TimesSettingRequest,
     ) -> TimesSettingCommunicatorResult<()>;
 }
