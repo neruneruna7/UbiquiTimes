@@ -115,31 +115,6 @@ pub async fn ut_times_unset(
     Ok(())
 }
 
-/// あなたのメンバー拡散先リストを表示します
-///
-/// あなたのメンバーウェブフックを登録しているサーバー名を，一覧表示します
-#[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
-pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
-    let member_id = ctx.author().id.0;
-
-    // let db = ctx.data().connection.clone();
-    // let other_times_data_vec = OtherTimesData::db_read_from_member_id(db.as_ref(), member_id)?;
-    let other_times_repository = ctx.data().other_times_repository.clone();
-    let other_times_data_vec = other_times_repository.get_from_member_id(member_id).await?;
-
-    let mut response = String::new();
-    response.push_str("拡散先リスト\n --------- \n```");
-
-    for other_times_data in other_times_data_vec {
-        response.push_str(&format!("{}\n", other_times_data.dst_server_name));
-    }
-    response.push_str("```");
-
-    ctx.say(response).await?;
-
-    Ok(())
-}
-
 /// 指定したサーバに大して，あなたのTimesを拡散できるように設定します
 ///
 /// ここで入力するサーバ名は，必ずしも一意である必要はありません
@@ -147,7 +122,7 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
 #[poise::command(
     prefix_command,
     track_edits,
-    aliases("UtTimesSpreadSetting"),
+    aliases("UtTimesSpreadSet"),
     slash_command
 )]
 pub async fn ut_times_spread_setting(
@@ -189,6 +164,54 @@ pub async fn ut_times_spread_setting(
         .await?;
 
     ctx.say("設定リクエストを送信しました").await?;
+
+    Ok(())
+}
+
+/// 拡散先サーバのリストを表示します
+///
+/// あなたのTimesを拡散しているサーバのリストを表示します
+#[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
+pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
+    let member_id = ctx.author().id.0;
+
+    // let db = ctx.data().connection.clone();
+    // let other_times_data_vec = OtherTimesData::db_read_from_member_id(db.as_ref(), member_id)?;
+    let other_times_repository = ctx.data().other_times_repository.clone();
+    let other_times_data_vec = other_times_repository.get_from_member_id(member_id).await?;
+
+    let mut response = String::new();
+    response.push_str("拡散先リスト\n --------- \n```");
+
+    for other_times_data in other_times_data_vec {
+        response.push_str(&format!("{}\n", other_times_data.dst_server_name));
+    }
+    response.push_str("```");
+
+    ctx.say(response).await?;
+
+    Ok(())
+}
+
+// Times拡散設定情報を削除する
+#[poise::command(
+    prefix_command,
+    track_edits,
+    aliases("UtTimesSpreadUnset"),
+    slash_command
+)]
+pub async fn ut_times_spread_unset(
+    ctx: Context<'_>,
+    #[description = "削除するサーバ名"] server_name: String,
+) -> Result<()> {
+    let member_id = ctx.author().id.0;
+
+    let other_times_repository = ctx.data().other_times_repository.clone();
+    other_times_repository
+        .delete(&server_name, member_id)
+        .await?;
+
+    ctx.say("拡散先サーバを削除しました").await?;
 
     Ok(())
 }
