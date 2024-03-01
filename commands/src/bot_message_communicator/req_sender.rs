@@ -118,9 +118,10 @@ impl WebhookSender {
         req_message: String,
         ctx: &Context<'_>,
         dst_guild_id: u64,
+        dst_guild_name: String,
     ) -> TimesSettingCommunicatorResult<()> {
         // どのサーバに対して送信したかを記録する
-        save_sent_guild_ids(ctx, dst_guild_id).await?;
+        save_sent_guild_ids(ctx, dst_guild_id, dst_guild_name).await?;
 
         // 送信
         webhook
@@ -155,8 +156,9 @@ impl UbiquitimesReqSender for WebhookSender {
         // メッセージをシリアライズ
         let req_message = self.serialize_req_message(req_message)?;
 
+        let dst_guild_name = dst_guild_name.to_string();
         // 送信し，どのサーバに送信したかを記録する
-        self.send_webhook(webhook, req_message, ctx, dst_guild_id)
+        self.send_webhook(webhook, req_message, ctx, dst_guild_id, dst_guild_name)
             .await?;
 
         Ok(())

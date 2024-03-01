@@ -26,7 +26,7 @@ pub struct Data {
     // 秘密鍵はここにはのせない
     pub public_key_pem_hashmap: RwLock<HashMap<u64, String>>,
     // ユーザidと送信先ギルドid
-    pub sent_member_and_guild_ids: RwLock<HashMap<u64, RwLock<HashSet<u64>>>>,
+    pub sent_member_and_guild_ids: RwLock<HashMap<u64, RwLock<HashMap<u64, String>>>>,
     // トレイトを受け取るようにしたいけど，うまくいかないから
     // 具体的な型を指定する
     // ていうか，sledは排他制御してるんだっけ

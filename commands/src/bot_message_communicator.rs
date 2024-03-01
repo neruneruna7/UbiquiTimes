@@ -6,7 +6,7 @@ use crate::{
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::RwLock;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use thiserror::Error;
 
 pub mod req_receiver;
@@ -62,10 +62,12 @@ pub trait UbiquitimesResReceiver {
     ) -> TimesSettingCommunicatorResult<()>;
 }
 
-// どのサーバに対して送信したかを記録する
+/// どのサーバに対して送信したかを記録する
+/// リクエストコマンド時に入力した識別用サーバー名も記録する必要が出てきた
 async fn save_sent_guild_ids(
     ctx: &Context<'_>,
     dst_guild_id: u64,
+    dst_guild_name: String,
 ) -> TimesSettingCommunicatorResult<()> {
     let mut sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.write().await;
 
@@ -76,22 +78,26 @@ async fn save_sent_guild_ids(
     let sent_guild_ids = match sent_guild_ids {
         Some(sent_guild_ids) => sent_guild_ids,
         None => {
-            let sent_guild_ids = RwLock::new(HashSet::new());
+            let sent_guild_ids = RwLock::new(HashMap::new());
             sent_member_and_guild_ids.insert(member_id, sent_guild_ids);
             sent_member_and_guild_ids.get(&member_id).unwrap()
         }
     };
     // 送信記録を更新
-    sent_guild_ids.write().await.insert(dst_guild_id);
+    sent_guild_ids
+        .write()
+        .await
+        .insert(dst_guild_id, dst_guild_name);
 
     Ok(())
 }
 
-// 送信記録にあるサーバからのレスポンスかどうかを判定する
+/// サーバからのレスポンスに対してリクエスト送信記録があるかどうか
+/// 返ってくるStringはサーバ名
 async fn is_response_from_sent_guild(
     framwework: poise::FrameworkContext<'_, crate::global_data::Data, anyhow::Error>,
     res: &ResponseMessage,
-) -> TimesSettingCommunicatorResult<bool> {
+) -> TimesSettingCommunicatorResult<Option<String>> {
     let member_id = res.times_setting_response.req_src_member_id;
     let guild_id = res.src_guild_id;
 
@@ -106,7 +112,7 @@ async fn is_response_from_sent_guild(
             let is_response_from_sent_guild = sent_guild_ids.remove(&guild_id);
             is_response_from_sent_guild
         }
-        None => false,
+        None => None,
     };
 
     Ok(is_response_from_sent_guild)
