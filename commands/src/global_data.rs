@@ -31,7 +31,5 @@ pub struct Data {
     pub other_server_repository: Arc<SledOtherServerRepository>,
     pub other_times_repository: Arc<SledOtherTimesRepository>,
     // 鍵に関わるオブジェクト
-    pub ubiquitimes_signer: Arc<UbiquitimesPrivateKey>,
-    pub ubiquitimes_verifier: Arc<UbiquitimesPublicKey>,
     pub ubiquitimes_keygenerator: Arc<RsaKeyGenerator>,
 }

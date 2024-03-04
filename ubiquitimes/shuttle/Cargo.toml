@@ -13,6 +13,8 @@ shuttle-secrets = "0.39.0"
 tracing = "0.1.37"
 tokio = "1.26.0"
 
+sled = "0.34.7"
+
 # sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
 
 commands = { path = "../../commands" }

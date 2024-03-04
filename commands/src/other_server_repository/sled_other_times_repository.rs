@@ -1,4 +1,6 @@
-use super::{OtherServerRepository, OtherTimesRepository, OtherTimesResult};
+use super::{
+    OtherServer, OtherServerRepository, OtherServerResult, OtherTimesRepository, OtherTimesResult,
+};
 
 use crate::{other_server::OtherTimes, sled_table::SledTable};
 use serde::{Deserialize, Serialize};

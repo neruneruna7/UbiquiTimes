@@ -3604,6 +3604,7 @@ dependencies = [
  "shuttle-poise",
  "shuttle-runtime 0.39.0",
  "shuttle-secrets",
+ "sled",
  "tokio",
  "tracing",
 ]
