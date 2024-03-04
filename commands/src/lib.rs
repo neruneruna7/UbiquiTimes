@@ -1,8 +1,6 @@
 use anyhow::{Context as _, Result};
 
-use poise::serenity_prelude::{self as serenity};
-
-use serenity::webhook::Webhook;
+use poise::serenity_prelude::{self as serenity, ExecuteWebhook, Webhook};
 
 pub mod bot_message;
 pub mod bot_message_communicator;
@@ -49,7 +47,8 @@ async fn logged_serenity_ctx(
     let my_webhook = Webhook::from_url(&ctx, master_webhook_url).await?;
 
     info!(msg);
-    my_webhook.execute(ctx, false, |w| w.content(msg)).await?;
+    let builder = ExecuteWebhook::new().content(msg);
+    my_webhook.execute(ctx, false, builder).await?;
     Ok(())
 }
 

@@ -7,7 +7,7 @@ use commands::poise_commands::setting_commands::{
 
 use commands::bot_message_communicator::{req_receiver, res_receiver, MultiReceiver};
 use commands::poise_commands::spreading_commands;
-use poise::{serenity_prelude as serenity, Event};
+use poise::serenity_prelude::{self as serenity, Event, FullEvent};
 
 use commands::global_data::Data;
 
@@ -59,7 +59,7 @@ pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     // そして残りをデフォルトのハンドラーに転送します
     match error {
         poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
-        poise::FrameworkError::Command { error, ctx } => {
+        poise::FrameworkError::Command { error, ctx, .. } => {
             info!("Error in command `{}`: {:?}", ctx.command().name, error,);
             ctx.say(error.to_string()).await.ok();
         }
@@ -75,15 +75,15 @@ pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 // serenityの，EventHadlerトレイトを実装して実現していたものと同等と推測
 pub async fn event_handler(
     ctx: &serenity::Context,
-    event: &Event<'_>,
+    event: &FullEvent,
     framework: poise::FrameworkContext<'_, Data, Error>,
     data: &Data,
 ) -> Result<(), Error> {
     match event {
-        Event::Ready { data_about_bot } => {
+        FullEvent::Ready { data_about_bot } => {
             println!("Logged in as {}", data_about_bot.user.name);
         }
-        Event::Message { new_message } => {
+        FullEvent::Message { new_message } => {
             println!("msg recvd");
 
             // info!("Got a message from a bot: {:?}", new_message);

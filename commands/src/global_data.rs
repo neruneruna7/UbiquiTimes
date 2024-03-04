@@ -1,6 +1,6 @@
 use anyhow::Error;
 
-use poise::serenity_prelude::RwLock;
+use tokio::sync::RwLock;
 
 use std::sync::Arc;
 

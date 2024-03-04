@@ -5,8 +5,8 @@ use crate::{
 };
 use anyhow::Error;
 
-use poise::serenity_prelude::RwLock;
 use poise::serenity_prelude::{self as serenity, Message};
+use tokio::sync::RwLock;
 
 use std::collections::HashMap;
 use thiserror::Error;
@@ -76,7 +76,7 @@ async fn save_sent_guild_ids(
 ) -> TimesSettingCommunicatorResult<()> {
     let mut sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.write().await;
 
-    let member_id = ctx.author().id.0;
+    let member_id = ctx.author().id.get();
     // メンバーごとに紐づく送信記録がまだなければ作成
     let sent_guild_ids = sent_member_and_guild_ids.get(&member_id);
 

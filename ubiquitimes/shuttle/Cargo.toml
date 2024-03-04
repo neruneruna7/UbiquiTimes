@@ -6,8 +6,8 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.68"
-poise = "0.5.2"
-shuttle-poise = "0.37.0"
+poise = "0.6.1"
+shuttle-serenity = "0.39.0"
 shuttle-runtime = "0.39.0"
 shuttle-secrets = "0.39.0"
 tracing = "0.1.37"

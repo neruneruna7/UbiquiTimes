@@ -15,6 +15,7 @@ use super::save_sent_guild_ids;
 use super::TimesSettingCommunicatorResult;
 use super::UbiquitimesReqSender;
 use anyhow::Context as anyhowContext;
+use poise::serenity_prelude::ExecuteWebhook;
 use poise::serenity_prelude::Http;
 
 use poise::serenity_prelude::Webhook;
@@ -83,7 +84,7 @@ impl WebhookReqSender {
         dst_server: OtherServer,
         req: TimesSettingRequest,
     ) -> TimesSettingCommunicatorResult<bot_message::RequestMessage> {
-        let own_guild_id = ctx.guild_id().unwrap().0;
+        let own_guild_id = ctx.guild_id().unwrap().get();
 
         let own_server_repository = ctx.data().own_server_repository.clone();
         let own_server = own_server_repository.get().await?;
@@ -124,9 +125,8 @@ impl WebhookReqSender {
         save_sent_guild_ids(ctx, dst_guild_id, dst_guild_name).await?;
 
         // 送信
-        webhook
-            .execute(&ctx, false, |w| w.content(req_message))
-            .await?;
+        let builder = ExecuteWebhook::new().content(req_message);
+        webhook.execute(&ctx, false, builder).await?;
 
         Ok(())
     }

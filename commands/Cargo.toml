@@ -10,7 +10,7 @@ rand = "*"
 rsa = "*"
 jsonwebtoken = "*"
 
-poise = "0.5.6"
+poise = "0.6.1"
 anyhow = "1.0"
 thiserror = "1.0"
 

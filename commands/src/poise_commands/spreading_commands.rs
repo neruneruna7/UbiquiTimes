@@ -4,7 +4,7 @@ use crate::other_server_repository::OtherTimesRepository;
 use crate::{global_data::Context, own_server_repository::OwnTimesRepository};
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
-use poise::serenity_prelude::{Http, Webhook};
+use poise::serenity_prelude::{ExecuteWebhook, Http, Webhook};
 
 /// 投稿内容を拡散します. `~UT`コマンドの使用を推奨
 ///
@@ -22,7 +22,7 @@ pub async fn ut_times_release(
     #[description = "拡散内容"] content: String,
 ) -> Result<()> {
     let _username = format!("UT-{}", ctx.author().name);
-    let member_id = ctx.author().id.0;
+    let member_id = ctx.author().id.get();
 
     // let db = ctx.data().connection.clone();
     // let times_data = OwnTimesData::db_read(db.as_ref(), member_id)
@@ -39,7 +39,7 @@ pub async fn ut_times_release(
     let username = format!("UT-{}", times_data.member_name);
 
     // DBからそのユーザのwebhookをすべて取得する
-    let _member_id = ctx.author().id.0;
+    // let _member_id = ctx.author().id.0;
 
     // let other_times_data_vec = OtherTimesData::db_read_all(db.as_ref())?;
     let other_times_repository = ctx.data().other_times_repository.clone();
@@ -73,13 +73,11 @@ async fn execute_ubiquitus(
 
     for webhook_url in webhooks.iter() {
         let webhook = Webhook::from_url(&http, webhook_url).await?;
-        webhook
-            .execute(&http, false, |w| {
-                w.content(content)
-                    .username(username)
-                    .avatar_url(&avatar_url)
-            })
-            .await?;
+        let builder = ExecuteWebhook::new()
+            .content(content)
+            .username(username)
+            .avatar_url(&avatar_url);
+        webhook.execute(&http, false, builder).await?;
     }
     Ok(())
 }

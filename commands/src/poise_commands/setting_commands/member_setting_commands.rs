@@ -18,6 +18,7 @@ use crate::own_server_repository::{OwnServerRepository, OwnTimesRepository};
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
 
+use poise::serenity_prelude::{CreateWebhook, ExecuteWebhook};
 use tracing::info;
 
 fn create_member_webhook_name(member_id: u64) -> String {
@@ -33,18 +34,18 @@ pub async fn ut_times_set(
     ctx: Context<'_>,
     #[description = "拡散時に使う名前を入力してください"] name: String,
 ) -> Result<()> {
-    let member_id = ctx.author().id.0;
+    let member_id = ctx.author().id.get();
     let member_name = name;
-    let channel_id = ctx.channel_id().0;
+    let channel_id = ctx.channel_id().get();
 
-    let webhook_name = Some(create_member_webhook_name(member_id));
+    let webhook_name = create_member_webhook_name(member_id);
 
     // チャンネルに"UT-{メンバーid}"のwebhookがあるか確認
     let webhooks = ctx.channel_id().webhooks(&ctx).await?;
 
     let webhook_exists = webhooks.iter().any(|webhook| {
         // webhook.name == webhook_name_option
-        webhook.name == webhook_name
+        webhook.name == Some(webhook_name.clone())
     });
 
     // 存在するならそれを返す，無ければ作る
@@ -52,13 +53,14 @@ pub async fn ut_times_set(
         info!("member webhook exists");
         webhooks
             .iter()
-            .find(|webhook| webhook.name == webhook_name)
+            .find(|webhook| webhook.name == Some(webhook_name.clone()))
             .unwrap()
             .clone()
     } else {
         info!("member webhook not exists. create new webhook");
+        let builder = CreateWebhook::new(webhook_name);
         ctx.channel_id()
-            .create_webhook(&ctx, webhook_name.unwrap())
+            .create_webhook(&ctx, builder)
             .await
             .context("webhookの作成に失敗しました")?
     };
@@ -92,7 +94,7 @@ pub async fn ut_times_unset(
     // 誤操作の防止
     command_check(&ctx, &untimes, "untimes").await?;
 
-    let member_id = ctx.author().id.0;
+    let member_id = ctx.author().id.get();
 
     // webhookを削除
     // 想定通りに動くのか未検証
@@ -138,7 +140,7 @@ pub async fn ut_times_spread_setting(
     let own_server = own_server_repository.get().await?;
 
     let own_times_repository = ctx.data().own_times_repository.clone();
-    let own_times = own_times_repository.get(ctx.author().id.0).await?;
+    let own_times = own_times_repository.get(ctx.author().id.get()).await?;
 
     let own_times = match own_times {
         Some(own_times) => own_times,
@@ -150,9 +152,9 @@ pub async fn ut_times_spread_setting(
 
     // リクエストメッセージのもととなるデータを作成
     let times_setting_req = TimesSettingRequest::new(
-        ctx.author().id.0,
+        ctx.author().id.get(),
         own_server.manage_webhook_url.clone(),
-        ctx.channel_id().0,
+        ctx.channel_id().get(),
         own_times.times_webhook_url.clone(),
     );
 
@@ -172,7 +174,7 @@ pub async fn ut_times_spread_setting(
 /// あなたのTimesを拡散しているサーバのリストを表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
 pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
-    let member_id = ctx.author().id.0;
+    let member_id = ctx.author().id.get();
 
     // let db = ctx.data().connection.clone();
     // let other_times_data_vec = OtherTimesData::db_read_from_member_id(db.as_ref(), member_id)?;
@@ -203,7 +205,7 @@ pub async fn ut_times_spread_unset(
     ctx: Context<'_>,
     #[description = "削除するサーバ名"] server_name: String,
 ) -> Result<()> {
-    let member_id = ctx.author().id.0;
+    let member_id = ctx.author().id.get();
 
     let other_times_repository = ctx.data().other_times_repository.clone();
     other_times_repository

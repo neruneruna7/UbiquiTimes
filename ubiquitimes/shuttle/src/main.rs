@@ -11,10 +11,10 @@ use commands::own_server_repository::{
     SledOwnTimesRepository,
 };
 use commands::sign::keys_gen::RsaKeyGenerator;
-use poise::serenity_prelude as serenity;
-use poise::serenity_prelude::RwLock;
-use shuttle_poise::ShuttlePoise;
+use poise::serenity_prelude::{self as serenity, ClientBuilder, GatewayIntents};
 use shuttle_secrets::SecretStore;
+use shuttle_serenity::ShuttleSerenity;
+use tokio::sync::RwLock;
 
 use commands::global_data::{Context, Data};
 use commands::help;
@@ -26,17 +26,17 @@ use tracing::info;
 // type Context<'a> = poise::Context<'a, Data, Error>;
 
 /// Responds with "world!"
-#[poise::command(slash_command)]
-async fn hello(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("world!").await?;
-    Ok(())
-}
+// #[poise::command(slash_command)]
+// async fn hello(ctx: Context<'_>) -> Result<(), Error> {
+//     ctx.say("world!").await?;
+//     Ok(())
+// }
 
 #[shuttle_runtime::main]
 async fn poise(
     #[shuttle_secrets::Secrets] secret_store: SecretStore,
     // #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
-) -> ShuttlePoise<Data, Error> {
+) -> ShuttleSerenity {
     // Get the discord token set in `Secrets.toml`
     let discord_token = secret_store
         .get("DISCORD_TOKEN")
@@ -58,12 +58,9 @@ async fn poise(
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            // hello(),
             commands: common::commands_vec(),
             ..Default::default()
         })
-        .token(discord_token)
-        .intents(serenity::GatewayIntents::non_privileged())
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 info!("Logged in as {}", _ready.user.name);
@@ -78,9 +75,12 @@ async fn poise(
                 })
             })
         })
-        .build()
+        .build();
+
+    let client = ClientBuilder::new(discord_token, GatewayIntents::non_privileged())
+        .framework(framework)
         .await
         .map_err(shuttle_runtime::CustomError::new)?;
 
-    Ok(framework.into())
+    Ok(client.into())
 }

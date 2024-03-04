@@ -8,6 +8,7 @@ use crate::sign::UbiquitimesKeyGenerator;
 use crate::sign::UbiquitimesKeys;
 
 use anyhow::{anyhow, Result};
+use poise::serenity_prelude::CreateWebhook;
 
 /// Botのセットアップを行います 導入後最初に実行してください
 ///
@@ -24,16 +25,16 @@ pub async fn ut_initialize(
     // おそらくどこかに時間を設定するところがあるはず...
     // チャンネルからwebhookを作成
     let manage_channel_id = ctx.channel_id();
-    let manage_webhook = manage_channel_id
-        .create_webhook(&ctx, "UbiquitimesManageWebhook")
-        .await?;
+    // ビルダーを介して作るようになったようだ
+    let builder = CreateWebhook::new("UbiquitimesManageWebhook");
+    let manage_webhook = manage_channel_id.create_webhook(&ctx, builder).await?;
     let manage_webhook_url = manage_webhook.url()?;
 
     // guild_idを取得
     let guild_id = ctx
         .guild_id()
         .ok_or(anyhow!("guild_idが取得できませんでした"))?
-        .0;
+        .get();
 
     // 公開鍵を作成
     let keys_generator = ctx.data().ubiquitimes_keygenerator.clone();

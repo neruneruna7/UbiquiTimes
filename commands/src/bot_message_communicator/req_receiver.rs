@@ -17,6 +17,7 @@ use crate::sign::UbiquitimesVerifier;
 use super::TimesSettingCommunicatorResult;
 use super::UbiquitimesReqReceiver;
 use anyhow::Context as anyhowContext;
+use poise::serenity_prelude::ExecuteWebhook;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
 
@@ -130,9 +131,8 @@ impl WebhookReqReceiver {
         webhook: Webhook,
         serialized_message: String,
     ) -> TimesSettingCommunicatorResult<()> {
-        webhook
-            .execute(ctx, false, |w| w.content(serialized_message))
-            .await?;
+        let builder = ExecuteWebhook::new().content(serialized_message);
+        webhook.execute(ctx, false, builder).await?;
         Ok(())
     }
 }
