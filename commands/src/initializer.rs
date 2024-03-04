@@ -14,7 +14,7 @@ pub async fn get_or_init_own_server_data(
     _own_server_data: OwnServer,
 ) -> anyhow::Result<()> {
     let own_server_repository = ctx.data().own_server_repository.clone();
-    let own_server_data = own_server_repository.get().await;
+    let _own_server_data = own_server_repository.get().await;
 
     // if let Ok(own_server_data) = own_server_data {
     //     let mut own_server_cache = ctx.data().own_server_cache.write().await;

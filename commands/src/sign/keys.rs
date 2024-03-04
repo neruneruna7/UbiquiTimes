@@ -30,8 +30,7 @@ impl UbiquitimesSigner for UbiquitimesPrivateKey {
         // pemを通さずに変換したいが，既にある実装をもとにしているのでひとまず今のまま
         // let key = EncodingKey::from(&self.private_key);
         let key = EncodingKey::from_rsa_pem(
-            &self
-                .private_key
+            self.private_key
                 .to_pkcs8_pem(rsa::pkcs8::LineEnding::LF)?
                 .as_bytes(),
         )?;
@@ -60,8 +59,7 @@ impl UbiquitimesVerifier for UbiquitimesPublicKey {
     fn verify(&self, signed_token: &str) -> SignResult<Claims> {
         let _header = Header::new(Algorithm::RS256);
         let key = DecodingKey::from_rsa_pem(
-            &self
-                .public_key
+            self.public_key
                 .to_pkcs1_pem(rsa::pkcs8::LineEnding::LF)?
                 .as_bytes(),
         )?;

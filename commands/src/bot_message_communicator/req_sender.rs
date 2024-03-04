@@ -5,7 +5,6 @@ use crate::ca_driver::CaDriver;
 use crate::global_data::Context;
 use crate::other_server::OtherServer;
 
-use crate::own_server_repository;
 use crate::own_server_repository::OwnServerRepository;
 use crate::sign;
 use crate::sign::Claims;
@@ -21,6 +20,12 @@ use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
 
 pub struct WebhookReqSender;
+
+impl Default for WebhookReqSender {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl WebhookReqSender {
     pub fn new() -> Self {
@@ -55,7 +60,7 @@ impl WebhookReqSender {
 
         let other_server = OtherServer::new(
             dst_guild_id,
-            &dst_guild_name,
+            dst_guild_name,
             &key_and_webhook.manage_webhook,
             &key_and_webhook.public_key_pem,
         );

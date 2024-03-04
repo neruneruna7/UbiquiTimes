@@ -5,9 +5,9 @@ use commands::poise_commands::setting_commands::{
     member_setting_commands, server_setting_commands,
 };
 
-use commands::bot_message_communicator::{req_receiver, res_receiver, MultiReceiver};
+use commands::bot_message_communicator::MultiReceiver;
 use commands::poise_commands::spreading_commands;
-use poise::serenity_prelude::{self as serenity, Event, FullEvent};
+use poise::serenity_prelude::{self as serenity, FullEvent};
 
 use commands::global_data::Data;
 
@@ -77,7 +77,7 @@ pub async fn event_handler(
     ctx: &serenity::Context,
     event: &FullEvent,
     framework: poise::FrameworkContext<'_, Data, Error>,
-    data: &Data,
+    _data: &Data,
 ) -> Result<(), Error> {
     match event {
         FullEvent::Ready { data_about_bot } => {

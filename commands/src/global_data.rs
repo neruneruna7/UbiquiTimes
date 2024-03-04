@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 use crate::other_server_repository::{SledOtherServerRepository, SledOtherTimesRepository};
 use crate::own_server_repository::{SledOwnServerRepository, SledOwnTimesRepository};
-use crate::sign::{keys_gen::RsaKeyGenerator, UbiquitimesPrivateKey, UbiquitimesPublicKey};
+use crate::sign::keys_gen::RsaKeyGenerator;
 
 // Types used by all command functions
 // すべてのコマンド関数で使用される型

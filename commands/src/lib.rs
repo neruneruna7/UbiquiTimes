@@ -1,4 +1,4 @@
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 
 use poise::serenity_prelude::{self as serenity, ExecuteWebhook, Webhook};
 
@@ -22,7 +22,7 @@ use global_data::Context;
 
 /// 現在エラー発生中 master_webhook_urlがdataに無いと予測
 // 一旦コメントアウト
-async fn logged(ctx: &Context<'_>, msg: &str) -> Result<()> {
+async fn logged(_ctx: &Context<'_>, _msg: &str) -> Result<()> {
     // let master_webhook_url = ctx.data().master_webhook_url.read().await;
 
     // let webhook = Webhook::from_url(ctx, &master_webhook_url)

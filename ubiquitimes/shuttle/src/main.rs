@@ -1,24 +1,18 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+
 use std::sync::Arc;
 
-use anyhow::{Context as _, Error};
-use commands::other_server_repository::{
-    sled_other_server_repository, SledOtherServerRepository, SledOtherTimesRepository,
-};
-use commands::own_server_repository::{
-    sled_own_server_repository, sled_own_times_repository, SledOwnServerRepository,
-    SledOwnTimesRepository,
-};
+use anyhow::Context as _;
+use commands::other_server_repository::{SledOtherServerRepository, SledOtherTimesRepository};
+use commands::own_server_repository::{SledOwnServerRepository, SledOwnTimesRepository};
 use commands::sign::keys_gen::RsaKeyGenerator;
-use poise::serenity_prelude::{self as serenity, ClientBuilder, GatewayIntents};
+use poise::serenity_prelude::{ClientBuilder, GatewayIntents};
 use shuttle_secrets::SecretStore;
 use shuttle_serenity::ShuttleSerenity;
 use tokio::sync::RwLock;
 
-use commands::global_data::{Context, Data};
-use commands::help;
-use sled::Db;
+use commands::global_data::Data;
+
 use tracing::info;
 
 // struct Data {} // User data, which is stored and accessible in all command invocations

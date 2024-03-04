@@ -18,7 +18,7 @@ use crate::own_server_repository::{OwnServerRepository, OwnTimesRepository};
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
 
-use poise::serenity_prelude::{CreateWebhook, ExecuteWebhook};
+use poise::serenity_prelude::CreateWebhook;
 use tracing::info;
 
 fn create_member_webhook_name(member_id: u64) -> String {

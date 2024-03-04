@@ -60,7 +60,7 @@ impl<'a> OwnServerTable<'a> {
     }
 }
 
-const KEY_NAME: &'static str = "OwnServer";
+const KEY_NAME: &str = "OwnServer";
 impl<'a> SledTable for OwnServerTable<'a> {
     const TABLE_NAME: &'static str = "OwnServerDataTable";
     // 自身のサーバーデータは常に1つしかない

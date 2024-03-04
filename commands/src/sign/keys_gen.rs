@@ -20,6 +20,12 @@ pub struct KeyPairPem {
 #[derive(Clone, Copy)]
 pub struct RsaKeyGenerator;
 
+impl Default for RsaKeyGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RsaKeyGenerator {
     pub fn new() -> Self {
         Self

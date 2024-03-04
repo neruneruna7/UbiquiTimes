@@ -114,8 +114,8 @@ async fn is_response_from_sent_guild(
         Some(sent_guild_ids) => {
             // guild_idが一致するものがあれば，その記録を削除し，trueを返す
             let mut sent_guild_ids = sent_guild_ids.write().await;
-            let is_response_from_sent_guild = sent_guild_ids.remove(&guild_id);
-            is_response_from_sent_guild
+
+            sent_guild_ids.remove(&guild_id)
         }
         None => None,
     };

@@ -1,6 +1,4 @@
-use super::{
-    OtherServer, OtherServerRepository, OtherServerResult, OtherTimesRepository, OtherTimesResult,
-};
+use super::{OtherServerRepository, OtherTimesRepository, OtherTimesResult};
 
 use crate::{other_server::OtherTimes, sled_table::SledTable};
 use serde::{Deserialize, Serialize};
@@ -154,14 +152,13 @@ impl<'a> SledTable for OtherTimesTable<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sled::{Config, Db};
 
     #[tokio::test]
     async fn sled_other_times_repository_upsert_get() {
         let db = sled::Config::new().temporary(true).open().unwrap();
         let other_times_repository = SledOtherTimesRepository::new(db);
         let other_times = OtherTimes::new(1, "server_name", 2, 3, "webhook_url");
-        let result = other_times_repository
+        let _result = other_times_repository
             .upsert(other_times.clone())
             .await
             .unwrap();
@@ -180,11 +177,11 @@ mod tests {
         let other_times_repository = SledOtherTimesRepository::new(db);
         let other_times1 = OtherTimes::new(1, "server_name", 2, 3, "webhook_url");
         let other_times2 = OtherTimes::new(4, "server_name2", 5, 6, "webhook_url2");
-        let result1 = other_times_repository
+        let _result1 = other_times_repository
             .upsert(other_times1.clone())
             .await
             .unwrap();
-        let result2 = other_times_repository
+        let _result2 = other_times_repository
             .upsert(other_times2.clone())
             .await
             .unwrap();
