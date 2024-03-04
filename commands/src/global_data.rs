@@ -17,12 +17,8 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 // Custom user data passed to all command functions
 // すべてのコマンド関数に渡されるカスタム ユーザー データ
 pub struct Data {
-    pub master_webhook_url: RwLock<String>,
-    // いちいちデータベースにアクセスするのは非効率なので
-    // キャッシュのような役割として，ここに保持する
-    pub own_server_cache: RwLock<Option<crate::own_server::OwnServer>>,
-    // 秘密鍵はここにはのせない
-    pub public_key_pem_hashmap: RwLock<HashMap<u64, String>>,
+    // ここにキャッシュと明示したデータを作るのはおかしいと思ったので，それらを削除
+
     // ユーザidと送信先ギルドid
     pub sent_member_and_guild_ids: RwLock<HashMap<u64, RwLock<HashMap<u64, String>>>>,
     // トレイトを受け取るようにしたいけど，うまくいかないから

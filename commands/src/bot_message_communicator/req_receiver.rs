@@ -7,6 +7,8 @@ use crate::ca_driver::KeyAndWebhook;
 use crate::global_data;
 
 use crate::other_server_repository::OtherServerRepository;
+use crate::own_server_repository;
+use crate::own_server_repository::OwnServerRepository;
 use crate::sign;
 use crate::sign::Claims;
 
@@ -72,10 +74,8 @@ impl WebhookReqReceiver {
         &self,
         framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,
     ) -> TimesSettingCommunicatorResult<crate::own_server::OwnServer> {
-        let _own_server = framework.user_data.own_server_cache.read().await;
-        let own_server = _own_server
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("Own Server Data is Not Found"))?;
+        let own_server_repository = framework.user_data.own_server_repository.clone();
+        let own_server = own_server_repository.get().await?;
 
         Ok(own_server.clone())
     }

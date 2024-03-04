@@ -5,6 +5,8 @@ use crate::ca_driver::CaDriver;
 use crate::global_data::Context;
 use crate::other_server::OtherServer;
 
+use crate::own_server_repository;
+use crate::own_server_repository::OwnServerRepository;
 use crate::sign;
 use crate::sign::Claims;
 use crate::sign::UbiquitimesSigner;
@@ -83,13 +85,13 @@ impl WebhookReqSender {
     ) -> TimesSettingCommunicatorResult<bot_message::RequestMessage> {
         let own_guild_id = ctx.guild_id().unwrap().0;
 
-        let _own_server = ctx.data().own_server_cache.read().await;
-        let own_server = _own_server.as_ref().unwrap();
+        let own_server_repository = ctx.data().own_server_repository.clone();
+        let own_server = own_server_repository.get().await?;
 
         let signer = sign::UbiquitimesPrivateKey::from_pem(&own_server.private_key_pem)
             .context("Failed to create private key")?;
 
-        let claim = Claims::from_servers_for_req(own_server, &dst_server, req);
+        let claim = Claims::from_servers_for_req(&own_server, &dst_server, req);
 
         let req_message = bot_message::RequestMessage::new(
             own_guild_id,

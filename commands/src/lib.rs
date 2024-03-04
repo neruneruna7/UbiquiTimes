@@ -23,18 +23,19 @@ use tracing::info;
 use global_data::Context;
 
 /// 現在エラー発生中 master_webhook_urlがdataに無いと予測
+// 一旦コメントアウト
 async fn logged(ctx: &Context<'_>, msg: &str) -> Result<()> {
-    let master_webhook_url = ctx.data().master_webhook_url.read().await;
+    // let master_webhook_url = ctx.data().master_webhook_url.read().await;
 
-    let webhook = Webhook::from_url(ctx, &master_webhook_url)
-        .await
-        .context(format!(
-            "globaldataのmaster_webhook_urlに異常があるか，登録されていません． url: {}",
-            &master_webhook_url
-        ))?;
+    // let webhook = Webhook::from_url(ctx, &master_webhook_url)
+    //     .await
+    //     .context(format!(
+    //         "globaldataのmaster_webhook_urlに異常があるか，登録されていません． url: {}",
+    //         &master_webhook_url
+    //     ))?;
 
-    info!(msg);
-    webhook.execute(&ctx, false, |w| w.content(msg)).await?;
+    // info!(msg);
+    // webhook.execute(&ctx, false, |w| w.content(msg)).await?;
 
     Ok(())
 }

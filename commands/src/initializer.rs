@@ -16,12 +16,12 @@ pub async fn get_or_init_own_server_data(
     let own_server_repository = ctx.data().own_server_repository.clone();
     let own_server_data = own_server_repository.get().await;
 
-    if let Ok(own_server_data) = own_server_data {
-        let mut own_server_cache = ctx.data().own_server_cache.write().await;
-        *own_server_cache = Some(own_server_data);
-    } else {
-        // データの登録を促すメッセージを表示する
-    }
+    // if let Ok(own_server_data) = own_server_data {
+    //     let mut own_server_cache = ctx.data().own_server_cache.write().await;
+    //     *own_server_cache = Some(own_server_data);
+    // } else {
+    //     // データの登録を促すメッセージを表示する
+    // }
 
     Ok(())
 }

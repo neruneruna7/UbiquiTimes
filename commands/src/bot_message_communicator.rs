@@ -30,6 +30,9 @@ pub enum TimesSettingCommunicatorError {
     OtherServerRepositoryError(#[from] crate::other_server_repository::OtherServerRepositoryError),
     #[error("CaDriver error: {0}")]
     CaDriverError(#[from] CaDriverError),
+    // OwnServerRepositoryErrorを追加
+    #[error("OwnServerRepository error: {0}")]
+    OwnServerRepositoryError(#[from] crate::own_server_repository::OwnServerRepositoryError),
 }
 
 pub type TimesSettingCommunicatorResult<T> = Result<T, TimesSettingCommunicatorError>;
