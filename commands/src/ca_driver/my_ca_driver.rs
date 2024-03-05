@@ -17,9 +17,8 @@ impl MyCaDriver {
 }
 
 // URLを定義しておく
-/// ```
-/// "GET https://steel-borne.shuttleapp.rs/ubiquitimes/v1/oreoreca/get/{guild_id}"
-/// ```
+/// 
+/// GET https://steel-borne.shuttleapp.rs/ubiquitimes/v1/oreoreca/get/{guild_id}
 const BASE_URL: &str = "https://steel-borne.shuttleapp.rs/ubiquitimes/v1/oreoreca/get/";
 
 impl CaDriver for MyCaDriver {

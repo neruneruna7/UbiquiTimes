@@ -13,10 +13,7 @@ pub struct KeyPairPem {
 
 /// キーペアを生成するときにつかう
 /// 今のところ，それ以外の使い道は想定していない
-/// 生成した後デストラクトして使ってね
-/// ```
-/// let UbiquitimesKeys { private_key, public_key } = UbiquitimesKeys::generate_keys().unwrap();
-/// ```
+/// 
 #[derive(Clone, Copy, Debug)]
 pub struct RsaKeyGenerator;
 
