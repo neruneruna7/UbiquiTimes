@@ -52,14 +52,8 @@ impl WebhookReqReceiver {
         &self,
         _framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,
         req: &bot_message::RequestMessage,
+        public_key_pem: &str,
     ) -> TimesSettingCommunicatorResult<Claims> {
-        // 送信元のサーバの公開鍵を取得
-        // オレオレ認証局もどきにアクセスする
-        let public_key_pem = {
-            let key_and_webhook = Self::get_src_key_and_webhook(req.src_guild_id).await?;
-            key_and_webhook.public_key_pem
-        };
-
         info!("CA access complete. public_key_pem: {}", public_key_pem);
 
         let verifier = sign::UbiquitimesPublicKey::from_pem(&public_key_pem)
@@ -106,28 +100,10 @@ impl WebhookReqReceiver {
     }
 
     // webhookを取得
-    async fn get_webhook(
-        &self,
-        framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,
-        req: &bot_message::RequestMessage,
-    ) -> TimesSettingCommunicatorResult<Webhook> {
+    async fn create_webhook(&self, webhook_url: &str) -> TimesSettingCommunicatorResult<Webhook> {
         let webhook = {
             let http = Http::new("");
-            // リクエストを送信したサーバのWebhookを取得
-            let webhook_url = {
-                let other_server = framework
-                    .user_data
-                    .other_server_repository
-                    .clone()
-                    .get_from_guild_id(req.src_guild_id)
-                    .await?
-                    .ok_or_else(|| {
-                        anyhow::anyhow!("OtherServer guild_id: {} is not found", req.src_guild_id)
-                    })?;
-                other_server.webhook_url
-            };
-
-            Webhook::from_url(http, &webhook_url).await?
+            Webhook::from_url(http, webhook_url).await?
         };
 
         Ok(webhook)
@@ -160,9 +136,13 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
         // リクエストをを検証し，レスポンスを返す
         info!("receive request start");
 
+        // 送信元のサーバのwebhookと公開鍵を取得
+        // オレオレ認証局もどきにアクセスする
+        let key_and_webhook = Self::get_src_key_and_webhook(req.src_guild_id).await?;
+
         // リクエストを検証
         let claim = self
-            .verify(framework, &req)
+            .verify(framework, &req, &key_and_webhook.public_key_pem)
             .await
             .context("Failed to verify request")?;
         info!("verify complete. claim: {:?}", claim);
@@ -177,7 +157,7 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
             .context("Failed to create response message")?;
 
         // webhookを取得
-        let webhook = self.get_webhook(framework, &req).await?;
+        let webhook = self.create_webhook(&key_and_webhook.manage_webhook).await?;
 
         info!("send response message start");
         // レスポンスを送信

@@ -20,7 +20,7 @@ impl UbiquitimesResReceiver for WebhookResReceiver {
         // 送信記録にあるサーバからのレスポンスかどうかを判定する
         // ない場合はエラーを返す
         let is_response_from_sent_guild = is_response_from_sent_guild(framwework, &res).await?;
-        let guild_name = match is_response_from_sent_guild {
+        let guild_id = match is_response_from_sent_guild {
             Some(guild_name) => guild_name,
             None => {
                 return Err(
