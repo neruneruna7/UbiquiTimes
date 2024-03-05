@@ -68,6 +68,22 @@ pub trait UbiquitimesResReceiver {
     ) -> TimesSettingCommunicatorResult<()>;
 }
 
+/// ハッシュマップに送信記録を保存するとき，キーとして使うための構造体
+#[derive(Debug, Hash, Eq, PartialEq, Clone, Copy)]
+pub struct HashKey {
+    member_id: u64,
+    guild_id: u64,
+}
+
+impl HashKey {
+    fn new(member_id: u64, guild_id: u64) -> Self {
+        Self {
+            member_id,
+            guild_id,
+        }
+    }
+}
+
 /// どのサーバに対して送信したかを記録する
 /// リクエストコマンド時に入力した識別用サーバー名も記録する必要が出てきた
 async fn save_sent_guild_ids(
@@ -78,22 +94,17 @@ async fn save_sent_guild_ids(
     let mut sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.write().await;
 
     let member_id = ctx.author().id.get();
-    // メンバーごとに紐づく送信記録がまだなければ作成
-    let sent_guild_ids = sent_member_and_guild_ids.get(&member_id);
 
-    let sent_guild_ids = match sent_guild_ids {
-        Some(sent_guild_ids) => sent_guild_ids,
-        None => {
-            let sent_guild_ids = RwLock::new(HashMap::new());
-            sent_member_and_guild_ids.insert(member_id, sent_guild_ids);
-            sent_member_and_guild_ids.get(&member_id).unwrap()
-        }
-    };
-    // 送信記録を更新
-    sent_guild_ids
-        .write()
-        .await
-        .insert(dst_guild_id, dst_guild_name);
+    let hash_key = HashKey::new(member_id, dst_guild_id);
+
+    info!(
+        "hash_key: {:?}, server_name: {:?}",
+        hash_key, dst_guild_name
+    );
+
+    // 一定時間後に削除するようにしたい
+
+    sent_member_and_guild_ids.insert(hash_key, dst_guild_name);
 
     Ok(())
 }
@@ -105,23 +116,21 @@ async fn is_response_from_sent_guild(
     res: &ResponseMessage,
 ) -> TimesSettingCommunicatorResult<Option<String>> {
     let member_id = res.times_setting_response.req_src_member_id;
-    let guild_id = res.src_guild_id;
+    let guild_id = res.dst_guild_id;
+
+    let hash_key = HashKey::new(member_id, guild_id);
 
     // 該当データを取得
-    let sent_member_and_guild_ids = framwework.user_data.sent_member_and_guild_ids.read().await;
-    let sent_guild_ids = sent_member_and_guild_ids.get(&member_id);
+    let mut sent_member_and_guild_ids =
+        framwework.user_data.sent_member_and_guild_ids.write().await;
+    let sent_guild_name = sent_member_and_guild_ids.remove(&hash_key);
 
-    let is_response_from_sent_guild = match sent_guild_ids {
-        Some(sent_guild_ids) => {
-            // guild_idが一致するものがあれば，その記録を削除し，trueを返す
-            let mut sent_guild_ids = sent_guild_ids.write().await;
+    info!(
+        "hash_key: {:?}, server_name: {:?}",
+        hash_key, sent_guild_name
+    );
 
-            sent_guild_ids.remove(&guild_id)
-        }
-        None => None,
-    };
-
-    Ok(is_response_from_sent_guild)
+    Ok(sent_guild_name)
 }
 
 /// リクエストとレスポンス，両方のレシーバーを持つ構造体

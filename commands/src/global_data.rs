@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use std::collections::HashMap;
 
+use crate::bot_message_communicator::HashKey;
 use crate::other_server_repository::{SledOtherServerRepository, SledOtherTimesRepository};
 use crate::own_server_repository::{SledOwnServerRepository, SledOwnTimesRepository};
 use crate::sign::keys_gen::RsaKeyGenerator;
@@ -21,7 +22,7 @@ pub struct Data {
     // ここにキャッシュと明示したデータを作るのはおかしいと思ったので，それらを削除
 
     // ユーザidと送信先ギルドid
-    pub sent_member_and_guild_ids: RwLock<HashMap<u64, RwLock<HashMap<u64, String>>>>,
+    pub sent_member_and_guild_ids: RwLock<HashMap<HashKey, String>>,
     // トレイトを受け取るようにしたいけど，うまくいかないから
     // 具体的な型を指定する
     // ていうか，sledは排他制御してるんだっけ
