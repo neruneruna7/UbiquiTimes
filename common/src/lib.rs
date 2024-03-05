@@ -84,17 +84,22 @@ pub async fn event_handler(
             println!("Logged in as {}", data_about_bot.user.name);
         }
         FullEvent::Message { new_message } => {
-            println!("msg recvd");
+            info!("new message: {:?}", new_message);
 
             // info!("Got a message from a bot: {:?}", new_message);
+            // この辺ややこしいことになってるので要改善
             let is_bot = WebhookReqReceiver::check(new_message);
-            if is_bot {
+            if !is_bot {
+                info!("Not a bot message");
                 return Ok(());
             }
+            info!("Bot message");
 
             let webhook_receiver = MultiReceiver::new(WebhookReqReceiver, WebhookResReceiver);
 
+            info!("receiver start");
             webhook_receiver.receiv(new_message, ctx, framework)?;
+            info!("receiver done");
 
             // if new_message.content.to_lowercase().contains("poise") {
             //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;

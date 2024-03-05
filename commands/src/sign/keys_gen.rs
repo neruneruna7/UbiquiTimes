@@ -13,7 +13,7 @@ pub struct KeyPairPem {
 
 /// キーペアを生成するときにつかう
 /// 今のところ，それ以外の使い道は想定していない
-/// 
+///
 #[derive(Clone, Copy, Debug)]
 pub struct RsaKeyGenerator;
 

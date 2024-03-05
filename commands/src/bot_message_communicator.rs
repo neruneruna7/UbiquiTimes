@@ -7,8 +7,9 @@ use anyhow::Error;
 
 use poise::serenity_prelude::{self as serenity, Message};
 use tokio::sync::RwLock;
+use tracing::{info, info_span};
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 use thiserror::Error;
 
 pub mod req_receiver;
@@ -128,10 +129,11 @@ async fn is_response_from_sent_guild(
 /// 合成を試しに使ってみている
 /// 合成ってのはこういうことでいいんだろうか
 // 設計として良い悪いを判断できる知識がないので，とりあえず使ってみる
+#[derive(Debug)]
 pub struct MultiReceiver<T, R>
 where
-    T: UbiquitimesReqReceiver,
-    R: UbiquitimesResReceiver,
+    T: UbiquitimesReqReceiver + Debug,
+    R: UbiquitimesResReceiver + Debug,
 {
     req_receiver: T,
     res_receiver: R,
@@ -139,8 +141,8 @@ where
 
 impl<T, R> MultiReceiver<T, R>
 where
-    T: UbiquitimesReqReceiver,
-    R: UbiquitimesResReceiver,
+    T: UbiquitimesReqReceiver + Debug,
+    R: UbiquitimesResReceiver + Debug,
 {
     pub fn new(req_receiver: T, res_receiver: R) -> Self {
         Self {
@@ -149,6 +151,7 @@ where
         }
     }
 
+    #[tracing::instrument(skip(ctx, framework))]
     pub fn receiv(
         &self,
         new_message: &Message,
@@ -160,20 +163,31 @@ where
         // RequestMessageまたはResponseMessageに変換
         let result_req_message = serde_json::from_str::<RequestMessage>(msg_string);
         let result_res_message = serde_json::from_str::<ResponseMessage>(msg_string);
+        info!("result_req_message: {:?}", result_req_message);
+        info!("result_res_message: {:?}", result_res_message);
 
         // RequestMessageだった場合
         if let Ok(req_message) = result_req_message {
+            info!("RequestMessage received");
             self.req_receiver
                 .times_setting_receive_and_response(ctx, framework, req_message);
+
+            // 早期リターンする
+            return Ok(());
         }
 
         // ResponseMessageだった場合
         if let Ok(res_message) = result_res_message {
+            info!("ResponseMessage received");
             self.res_receiver
                 .times_setting_response_receive(framework, res_message);
+
+            return Ok(());
         }
 
-        // どちらでもなければ，とくに何もしない
+        // どちらでもなければ，その旨をログに残す
+        info!("Not a bot message");
+
         Ok(())
     }
 }

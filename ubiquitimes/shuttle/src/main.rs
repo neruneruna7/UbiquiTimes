@@ -20,7 +20,7 @@ use tracing::info;
 // type Error = Box<dyn std::error::Error + Send + Sync>;
 // type Context<'a> = poise::Context<'a, Data, Error>;
 
-const MODE: &str = "debug1";
+const MODE: &str = "debug2";
 
 #[shuttle_runtime::main]
 async fn poise(
@@ -105,15 +105,15 @@ async fn poise(
 
             /// Every command invocation must pass this check to continue execution
             /// 実行を続行するには、すべてのコマンド呼び出しがこのチェックに合格する必要があります
-            command_check: Some(|ctx| {
-                Box::pin(async move {
-                    // お試しで仕込んであるやつ
-                    if ctx.author().id == 123456789 {
-                        return Ok(false);
-                    }
-                    Ok(true)
-                })
-            }),
+            // command_check: Some(|ctx| {
+            //     Box::pin(async move {
+            //         // お試しで仕込んであるやつ
+            //         if ctx.author().id == 123456789 {
+            //             return Ok(false);
+            //         }
+            //         Ok(true)
+            //     })
+            // }),
 
             /// Enforce command checks even for owners (enforced by default)
             /// Set to true to bypass checks, which is useful for testing
@@ -150,10 +150,15 @@ async fn poise(
         })
         .build();
 
-    let client = ClientBuilder::new(discord_token, GatewayIntents::non_privileged())
-        .framework(framework)
-        .await
-        .map_err(shuttle_runtime::CustomError::new)?;
+    let client = ClientBuilder::new(
+        discord_token,
+        GatewayIntents::non_privileged()
+            | GatewayIntents::MESSAGE_CONTENT
+            | GatewayIntents::GUILD_WEBHOOKS,
+    )
+    .framework(framework)
+    .await
+    .map_err(shuttle_runtime::CustomError::new)?;
 
     Ok(client.into())
 }

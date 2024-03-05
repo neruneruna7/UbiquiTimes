@@ -12,10 +12,10 @@ use poise::serenity_prelude::{ExecuteWebhook, Http, Webhook};
 /// このスラッシュコマンドではなく，`~UT`のプレフィックスコマンドを推奨
 /// スラッシュコマンドの場合，拡散元のサーバでは内容が表示されません
 /// ### `~UT`の場合
-/// 
+///
 /// ~UT
 /// 一度生まれたものは，そう簡単には死なない
-/// 
+///
 #[poise::command(prefix_command, track_edits, aliases("UT"), slash_command)]
 pub async fn ut_times_release(
     ctx: Context<'_>,

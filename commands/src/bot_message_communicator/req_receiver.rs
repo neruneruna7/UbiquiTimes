@@ -23,6 +23,7 @@ use poise::serenity_prelude::Webhook;
 
 /// 他サーバからのリクエストを受信する
 ///
+#[derive(Debug)]
 pub struct WebhookReqReceiver;
 
 impl WebhookReqReceiver {

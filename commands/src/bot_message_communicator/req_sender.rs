@@ -19,6 +19,7 @@ use poise::serenity_prelude::Http;
 
 use poise::serenity_prelude::Webhook;
 
+#[derive(Debug)]
 pub struct WebhookReqSender;
 
 impl Default for WebhookReqSender {

@@ -8,6 +8,7 @@ use crate::{
     other_server::OtherTimes, other_server_repository::OtherTimesRepository,
 };
 
+#[derive(Debug)]
 pub struct WebhookResReceiver;
 
 impl UbiquitimesResReceiver for WebhookResReceiver {
