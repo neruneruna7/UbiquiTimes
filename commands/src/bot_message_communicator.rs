@@ -58,7 +58,6 @@ pub trait UbiquitimesReqReceiver {
         // リクエストを引数にとる
         req: RequestMessage,
         own_guild_id: u64,
-        member_id: u64,
     ) -> TimesSettingCommunicatorResult<()>;
 }
 
@@ -170,7 +169,6 @@ where
         framework: poise::FrameworkContext<'_, Data, Error>,
     ) -> TimesSettingCommunicatorResult<()> {
         let msg_string = &new_message.content;
-        let own_guild_id = new_message.guild_id.unwrap().get();
 
         // RequestMessageまたはResponseMessageに変換
         let result_req_message = serde_json::from_str::<RequestMessage>(msg_string);
@@ -185,15 +183,8 @@ where
                 .guild_id
                 .ok_or(anyhow::anyhow!("guild_id not found"))?
                 .get();
-            let member_id = new_message.author.id.get();
             self.req_receiver
-                .times_setting_receive_and_response(
-                    ctx,
-                    framework,
-                    req_message,
-                    own_guild_id,
-                    member_id,
-                )
+                .times_setting_receive_and_response(ctx, framework, req_message, own_guild_id)
                 .await?;
 
             // 早期リターンする

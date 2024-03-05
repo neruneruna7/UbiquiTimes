@@ -143,7 +143,6 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
         // リクエストを引数にとる
         req: bot_message::RequestMessage,
         own_guild_id: u64,
-        member_id: u64,
     ) -> TimesSettingCommunicatorResult<()> {
         // リクエストをを検証し，レスポンスを返す
         info!("receive request start");
@@ -160,6 +159,8 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
         info!("verify complete. claim: {:?}", claim);
 
         // 必要なデータを取得
+        let member_id = claim.times_setting_req.req_src_member_id;
+
         let own_times = self.get_own_times(framework, member_id).await?;
 
         // レスポンスの作成とシリアライズ
