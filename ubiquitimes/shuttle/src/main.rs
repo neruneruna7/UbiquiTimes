@@ -20,6 +20,8 @@ use tracing::info;
 // type Error = Box<dyn std::error::Error + Send + Sync>;
 // type Context<'a> = poise::Context<'a, Data, Error>;
 
+const MODE: &str = "debug1";
+
 #[shuttle_runtime::main]
 async fn poise(
     #[shuttle_secrets::Secrets] secret_store: SecretStore,
@@ -28,13 +30,29 @@ async fn poise(
     // Get the discord token set in `Secrets.toml`
     // tracing_subscriber::fmt::init();
 
-    let discord_token = secret_store
-        .get("DISCORD_TOKEN")
-        .context("'DISCORD_TOKEN' was not found")?;
+    let (discord_token, db) = if MODE == "debug1" {
+        let discord_token = secret_store
+            .get("DISCORD_TOKEN")
+            .context("'DISCORD_TOKEN' was not found")?;
+        let db = sled::open("my_database").unwrap();
+        (discord_token, db)
+    } else if MODE == "debug2" {
+        let discord_token = secret_store
+            .get("DISCORD_TOKEN2")
+            .context("'DISCORD_TOKEN' was not found")?;
+        let db = sled::open("my_database2").unwrap();
+        (discord_token, db)
+    } else {
+        return Err(Error::msg("MODEが不正です").into());
+    };
+
+    // let discord_token = secret_store
+    //     .get("DISCORD_TOKEN2")
+    //     .context("'DISCORD_TOKEN' was not found")?;
 
     let sent_member_and_guild_ids = RwLock::new(HashMap::new());
     // DAO作成
-    let db = sled::open("my_database").unwrap();
+    // let db = sled::open("my_database").unwrap();
     // 一旦Cloneしておく
     let own_server_repository = Arc::new(SledOwnServerRepository::new(db.clone()));
     let own_times_repository = Arc::new(SledOwnTimesRepository::new(db.clone()));

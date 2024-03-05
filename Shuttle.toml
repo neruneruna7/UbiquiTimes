@@ -1,3 +1,4 @@
+name = "ubiquitimes"
 assets = [
     "./my_database"
 ]
