@@ -43,7 +43,7 @@ impl ResponseMessage {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct TimesSettingRequest {
     pub req_src_member_id: u64,
     pub req_src_manage_webhook_url: String,

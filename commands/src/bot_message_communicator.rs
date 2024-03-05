@@ -151,8 +151,8 @@ where
         }
     }
 
-    #[tracing::instrument(skip(ctx, framework))]
-    pub fn receiv(
+    #[tracing::instrument(skip(ctx, framework, new_message))]
+    pub async fn receiv(
         &self,
         new_message: &Message,
         ctx: &serenity::Context,
@@ -170,7 +170,8 @@ where
         if let Ok(req_message) = result_req_message {
             info!("RequestMessage received");
             self.req_receiver
-                .times_setting_receive_and_response(ctx, framework, req_message);
+                .times_setting_receive_and_response(ctx, framework, req_message)
+                .await?;
 
             // 早期リターンする
             return Ok(());
@@ -180,7 +181,8 @@ where
         if let Ok(res_message) = result_res_message {
             info!("ResponseMessage received");
             self.res_receiver
-                .times_setting_response_receive(framework, res_message);
+                .times_setting_response_receive(framework, res_message)
+                .await?;
 
             return Ok(());
         }

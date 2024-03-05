@@ -20,6 +20,8 @@ use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::ExecuteWebhook;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
+use rsa::pkcs8::SubjectPublicKeyInfoRef;
+use tracing::info;
 
 /// 他サーバからのリクエストを受信する
 ///
@@ -58,8 +60,12 @@ impl WebhookReqReceiver {
             key_and_webhook.public_key_pem
         };
 
+        info!("CA access complete. public_key_pem: {}", public_key_pem);
+
         let verifier = sign::UbiquitimesPublicKey::from_pem(&public_key_pem)
             .context("Failed to create verifier")?;
+
+        info!("verifier created.");
 
         // リクエストを検証
         let claim = verifier
@@ -68,6 +74,8 @@ impl WebhookReqReceiver {
                 "Failed to Verifey, src_guild_id is {} ,検証に失敗しました",
                 req.src_guild_id,
             ))?;
+
+        info!("verify complete. claim: {:?}", claim);
         Ok(claim)
     }
 
@@ -139,6 +147,7 @@ impl WebhookReqReceiver {
 }
 
 impl UbiquitimesReqReceiver for WebhookReqReceiver {
+    #[tracing::instrument(skip(self, ctx, framework, req))]
     async fn times_setting_receive_and_response(
         &self,
         // poiseのContextが使えないので，serenityのContextを使う
@@ -149,12 +158,14 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
         req: bot_message::RequestMessage,
     ) -> TimesSettingCommunicatorResult<()> {
         // リクエストをを検証し，レスポンスを返す
+        info!("receive request start");
 
         // リクエストを検証
         let claim = self
             .verify(framework, &req)
             .await
             .context("Failed to verify request")?;
+        info!("verify complete. claim: {:?}", claim);
 
         // 必要なデータを取得
         let own_server = self.get_own_server(framework).await?;
@@ -168,10 +179,12 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
         // webhookを取得
         let webhook = self.get_webhook(framework, &req).await?;
 
+        info!("send response message start");
         // レスポンスを送信
         self.send_res_message(ctx, webhook, serialized_message)
             .await
             .context("Failed to send response message")?;
+        info!("send response message complete");
 
         Ok(())
     }

@@ -98,7 +98,7 @@ pub async fn event_handler(
             let webhook_receiver = MultiReceiver::new(WebhookReqReceiver, WebhookResReceiver);
 
             info!("receiver start");
-            webhook_receiver.receiv(new_message, ctx, framework)?;
+            webhook_receiver.receiv(new_message, ctx, framework).await?;
             info!("receiver done");
 
             // if new_message.content.to_lowercase().contains("poise") {

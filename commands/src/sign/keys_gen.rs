@@ -1,3 +1,4 @@
+use rsa::pkcs1::EncodeRsaPublicKey;
 use rsa::pkcs8::der::zeroize::Zeroizing;
 use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey, LineEnding};
 use rsa::{RsaPrivateKey, RsaPublicKey};
@@ -65,7 +66,7 @@ fn generate_keypair() -> (RsaPrivateKey, RsaPublicKey) {
 pub fn keypair_to_pem(private_key: &RsaPrivateKey, public_key: &RsaPublicKey) -> KeyPairPem {
     let private_key_pem = private_key.to_pkcs8_pem(LineEnding::LF).unwrap();
 
-    let public_key_pem = public_key.to_public_key_pem(LineEnding::LF).unwrap();
+    let public_key_pem = public_key.to_pkcs1_pem(LineEnding::LF).unwrap();
 
     KeyPairPem {
         private_key_pem,

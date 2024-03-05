@@ -29,7 +29,7 @@ pub type SignResult<T> = Result<T, SignError>;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 // なんだったか忘れたけど，何かに基づいてClaim型を定義した
 // 署名のときの云々があったはず...
 pub struct Claims {

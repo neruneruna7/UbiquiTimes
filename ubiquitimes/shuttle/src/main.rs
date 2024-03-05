@@ -20,7 +20,7 @@ use tracing::info;
 // type Error = Box<dyn std::error::Error + Send + Sync>;
 // type Context<'a> = poise::Context<'a, Data, Error>;
 
-const MODE: &str = "debug2";
+const MODE: &str = "debug1";
 
 #[shuttle_runtime::main]
 async fn poise(
