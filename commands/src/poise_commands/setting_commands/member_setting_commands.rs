@@ -80,6 +80,35 @@ pub async fn ut_times_set(
     Ok(())
 }
 
+/// 自身のtimesを表示する
+///
+/// 本サーバにおいて，あなたの登録されているTimesの情報を表示します．
+/// 結果は実行するチャンネルに依存しません．
+#[poise::command(prefix_command, track_edits, aliases("UtTimesShow"), slash_command)]
+pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
+    let member_id = ctx.author().id.get();
+
+    let own_times_repository = ctx.data().own_times_repository.clone();
+    let own_times = own_times_repository.get(member_id).await?;
+
+    let own_times = match own_times {
+        Some(own_times) => own_times,
+        None => {
+            ctx.say("あなたのTimesが登録されていません").await?;
+            return Ok(());
+        }
+    };
+
+    let response = format!(
+        "Times情報\n --------- \n```name: {}\nchannel_id: {}\nwebhook_url: {}```",
+        own_times.member_name, own_times.channel_id, own_times.times_webhook_url
+    );
+
+    ctx.say(response).await?;
+
+    Ok(())
+}
+
 /// 自身のtimesを解除する
 ///
 /// 本サーバにおいて，あなたの登録されているTimesを削除します.

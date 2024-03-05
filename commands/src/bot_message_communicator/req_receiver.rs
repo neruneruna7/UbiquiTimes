@@ -75,6 +75,7 @@ impl WebhookReqReceiver {
     }
 
     // 必要なデータを取得
+    #[tracing::instrument(skip(self, framework))]
     async fn get_own_times(
         &self,
         framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,

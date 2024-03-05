@@ -121,6 +121,7 @@ pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
         server_setting_commands::ut_initialize(),
         server_setting_commands::ut_get_own_server_data(),
         member_setting_commands::ut_times_set(),
+        member_setting_commands::ut_times_show(),
         member_setting_commands::ut_times_unset(),
         member_setting_commands::ut_times_spread_setting(),
         member_setting_commands::ut_list(),
