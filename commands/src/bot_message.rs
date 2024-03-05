@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::own_server::OwnServer;
+use crate::own_server::{OwnServer, OwnTimes};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RequestMessage {
@@ -73,17 +73,17 @@ impl TimesSettingRequest {
 pub struct TimesSettingResponse {
     pub req_src_member_id: u64,
     pub req_dst_guild_id: u64,
-    pub req_dst_channel_id: u64,
-    pub req_dst_webhook_url: String,
+    pub req_dst_member_channel_id: u64,
+    pub req_dst_member_webhook_url: String,
 }
 
 impl TimesSettingResponse {
-    pub fn from_req(req: &TimesSettingRequest, own_server: &OwnServer) -> Self {
+    pub fn from_req(req: &TimesSettingRequest, own_guild_id: u64, own_times: &OwnTimes) -> Self {
         Self {
             req_src_member_id: req.req_src_member_id,
-            req_dst_guild_id: own_server.guild_id,
-            req_dst_channel_id: own_server.manage_channel_id,
-            req_dst_webhook_url: own_server.manage_webhook_url.clone(),
+            req_dst_guild_id: own_guild_id,
+            req_dst_member_channel_id: own_times.channel_id,
+            req_dst_member_webhook_url: own_times.times_webhook_url.clone(),
         }
     }
 }

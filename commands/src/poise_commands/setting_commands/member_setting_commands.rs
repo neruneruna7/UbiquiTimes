@@ -65,7 +65,7 @@ pub async fn ut_times_set(
             .context("webhookの作成に失敗しました")?
     };
 
-    info!("{:?}", webhook);
+    info!("create now member_webhook_url{:?}", webhook.url()?);
 
     let webhook_url = webhook.url()?;
 

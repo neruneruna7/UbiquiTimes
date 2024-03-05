@@ -8,7 +8,8 @@ use crate::global_data;
 
 use crate::other_server_repository::OtherServerRepository;
 
-use crate::own_server_repository::OwnServerRepository;
+use crate::own_server::OwnTimes;
+use crate::own_server_repository::OwnTimesRepository;
 use crate::sign;
 use crate::sign::Claims;
 
@@ -74,14 +75,20 @@ impl WebhookReqReceiver {
     }
 
     // 必要なデータを取得
-    async fn get_own_server(
+    async fn get_own_times(
         &self,
         framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,
-    ) -> TimesSettingCommunicatorResult<crate::own_server::OwnServer> {
-        let own_server_repository = framework.user_data.own_server_repository.clone();
-        let own_server = own_server_repository.get().await?;
+        member_id: u64,
+    ) -> TimesSettingCommunicatorResult<OwnTimes> {
+        // let own_server_repository = framework.user_data.own_server_repository.clone();
+        // let own_server = own_server_repository.get().await?;
+        let own_times_repository = framework.user_data.own_times_repository.clone();
+        let own_times = own_times_repository
+            .get(member_id)
+            .await?
+            .ok_or(anyhow::anyhow!("OwnTimes not found"))?;
 
-        Ok(own_server.clone())
+        Ok(own_times.clone())
     }
 
     // レスポンスを作成し，シリアライズ
@@ -89,10 +96,12 @@ impl WebhookReqReceiver {
         &self,
         req: &bot_message::RequestMessage,
         claim: &Claims,
-        own_server: &crate::own_server::OwnServer,
+        own_guild_id: u64,
+        own_times: &OwnTimes,
     ) -> TimesSettingCommunicatorResult<String> {
         // レスポンスの作成
-        let setting_res = TimesSettingResponse::from_req(&claim.times_setting_req, own_server);
+        let setting_res =
+            TimesSettingResponse::from_req(&claim.times_setting_req, own_guild_id, own_times);
         let res_message = ResponseMessage::new(req.src_guild_id, req.dst_guild_id, setting_res);
 
         let serialized_message = serde_json::to_string(&res_message)?;
@@ -132,6 +141,8 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
         // リクエストを受け取って，それに対するレスポンスを返すため
         // リクエストを引数にとる
         req: bot_message::RequestMessage,
+        own_guild_id: u64,
+        member_id: u64,
     ) -> TimesSettingCommunicatorResult<()> {
         // リクエストをを検証し，レスポンスを返す
         info!("receive request start");
@@ -148,11 +159,11 @@ impl UbiquitimesReqReceiver for WebhookReqReceiver {
         info!("verify complete. claim: {:?}", claim);
 
         // 必要なデータを取得
-        let own_server = self.get_own_server(framework).await?;
+        let own_times = self.get_own_times(framework, member_id).await?;
 
         // レスポンスの作成とシリアライズ
         let serialized_message = self
-            .create_res_message(&req, &claim, &own_server)
+            .create_res_message(&req, &claim, own_guild_id, &own_times)
             .await
             .context("Failed to create response message")?;
 

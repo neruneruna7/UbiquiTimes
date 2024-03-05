@@ -38,8 +38,8 @@ impl UbiquitimesResReceiver for WebhookResReceiver {
             res.times_setting_response.req_src_member_id,
             &guild_name,
             res.times_setting_response.req_dst_guild_id,
-            res.times_setting_response.req_dst_channel_id,
-            &res.times_setting_response.req_dst_webhook_url,
+            res.times_setting_response.req_dst_member_channel_id,
+            &res.times_setting_response.req_dst_member_webhook_url,
         );
 
         // DBに登録
