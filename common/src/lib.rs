@@ -121,5 +121,6 @@ pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
         member_setting_commands::ut_list(),
         member_setting_commands::ut_times_spread_unset(),
         spreading_commands::ut_times_release(),
+        spreading_commands::hello(),
     ]
 }

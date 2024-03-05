@@ -81,3 +81,11 @@ async fn execute_ubiquitus(
     }
     Ok(())
 }
+
+/// Responds with "world!"
+#[poise::command(slash_command, prefix_command)]
+pub async fn hello(ctx: Context<'_>) -> anyhow::Result<()> {
+    // 動作確認用
+    ctx.say("world!").await?;
+    Ok(())
+}

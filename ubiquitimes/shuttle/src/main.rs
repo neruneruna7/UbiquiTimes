@@ -20,20 +20,13 @@ use tracing::info;
 // type Error = Box<dyn std::error::Error + Send + Sync>;
 // type Context<'a> = poise::Context<'a, Data, Error>;
 
-/// Responds with "world!"
-#[poise::command(slash_command, prefix_command)]
-async fn hello(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("world!").await?;
-    Ok(())
-}
-
 #[shuttle_runtime::main]
 async fn poise(
     #[shuttle_secrets::Secrets] secret_store: SecretStore,
     // #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
 ) -> ShuttleSerenity {
     // Get the discord token set in `Secrets.toml`
-    tracing_subscriber::fmt::init();
+    // tracing_subscriber::fmt::init();
 
     let discord_token = secret_store
         .get("DISCORD_TOKEN")

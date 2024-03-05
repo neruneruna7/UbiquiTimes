@@ -9,6 +9,7 @@ use crate::{global_data::Context, own_server_repository::OwnServerRepository};
 
 use crate::own_server::OwnServer;
 
+#[tracing::instrument]
 pub async fn get_or_init_own_server_data(
     ctx: &Context<'_>,
     _own_server_data: OwnServer,
