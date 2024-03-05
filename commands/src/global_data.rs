@@ -16,6 +16,7 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 
 // Custom user data passed to all command functions
 // すべてのコマンド関数に渡されるカスタム ユーザー データ
+#[derive(Debug)]
 pub struct Data {
     // ここにキャッシュと明示したデータを作るのはおかしいと思ったので，それらを削除
 

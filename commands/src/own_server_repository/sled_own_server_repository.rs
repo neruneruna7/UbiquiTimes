@@ -2,6 +2,7 @@ use super::{OwnServer, OwnServerRepository, OwnServerResult};
 use crate::sled_table::SledTable;
 use anyhow::Result;
 
+#[derive(Debug)]
 pub struct SledOwnServerRepository {
     db: sled::Db,
 }

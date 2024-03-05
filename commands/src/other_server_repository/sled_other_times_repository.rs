@@ -4,6 +4,7 @@ use crate::{other_server::OtherTimes, sled_table::SledTable};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
+#[derive(Debug)]
 pub struct SledOtherTimesRepository {
     db: sled::Db,
 }

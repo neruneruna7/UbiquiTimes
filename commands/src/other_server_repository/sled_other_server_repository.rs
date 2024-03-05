@@ -3,6 +3,7 @@ use super::{OtherServer, OtherServerRepository, OtherServerResult};
 use crate::sled_table::SledTable;
 use tracing::error;
 
+#[derive(Debug)]
 pub struct SledOtherServerRepository {
     db: sled::Db,
 }

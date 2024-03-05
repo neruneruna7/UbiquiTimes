@@ -2,6 +2,7 @@ use super::{OwnTimes, OwnTimesRepository, OwnTimesResult};
 use crate::sled_table::SledTable;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
 pub struct SledOwnTimesRepository {
     db: sled::Db,
 }

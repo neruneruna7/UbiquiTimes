@@ -33,6 +33,8 @@ async fn poise(
     // #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
 ) -> ShuttleSerenity {
     // Get the discord token set in `Secrets.toml`
+    tracing_subscriber::fmt::init();
+
     let discord_token = secret_store
         .get("DISCORD_TOKEN")
         .context("'DISCORD_TOKEN' was not found")?;

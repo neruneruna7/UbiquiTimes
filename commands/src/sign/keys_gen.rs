@@ -17,7 +17,7 @@ pub struct KeyPairPem {
 /// ```
 /// let UbiquitimesKeys { private_key, public_key } = UbiquitimesKeys::generate_keys().unwrap();
 /// ```
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct RsaKeyGenerator;
 
 impl Default for RsaKeyGenerator {
