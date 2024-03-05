@@ -16,7 +16,9 @@ dotenvy = "0.15.7"
 tracing = "*"
 tracing-subscriber = "*"
 
-sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
+# sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
+
+sled = "0.34.7"
 
 commands = { path = "../../commands" }
 common = { path = "../../common" }

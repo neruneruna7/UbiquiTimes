@@ -1,0 +1,5 @@
+name = "ubiquitimes"
+assets = [
+    "./my_database",
+    "./my_database2"
+]

@@ -2,11 +2,12 @@
 members = [
     "commands",
     "common",
-    "ubiquitimes/poise",
-    # "ubiquitimes/shuttle",
+    # "ubiquitimes/poise",
+    "ubiquitimes/shuttle",
     # "sb/commands",
     # "sb/slcommands",
-    "sb/crypt",
+    # "sb/crypt",
+    # "sb/sled",
 ]
 
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none

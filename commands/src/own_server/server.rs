@@ -1,6 +1,7 @@
 use crate::*;
 
-use crate::sign::key_gen::*;
+use crate::own_server::OwnServerData;
+use crate::sign::keys_gen::*;
 
 use anyhow::Context as anyhowContext;
 use anyhow::{anyhow, Result};
@@ -83,20 +84,16 @@ pub async fn ut_set_own_server_data(
 )]
 pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
     // dbから取得
-    let server_data = crate::db_query::own_server_data::select_own_server_data(
-        &ctx.data().connection,
-        ctx.guild_id()
-            .ok_or(anyhow!("guildidを取得できませんでした"))?
-            .0,
-    )
-    .await?;
+
+    let db = ctx.data().connection.clone();
+    let own_server_data = OwnServerData::db_read(db.as_ref())?.context("鍵を取得できません")?;
 
     // テンプレート文字列を作成
     let register_tmplate_str = get_register_tmplate_str(
-        &server_data.server_name,
-        &server_data.master_webhook_url,
-        server_data.guild_id,
-        &server_data.public_key_pem,
+        &own_server_data.server_name,
+        &own_server_data.master_webhook_url,
+        own_server_data.guild_id,
+        &own_server_data.public_key_pem,
     );
 
     // 返信
@@ -106,22 +103,18 @@ pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
 
 /// trueなら鍵を作り直す
 /// falseなら鍵をDBから取得する
-async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPair_pem> {
+async fn get_keys_pem(ctx: Context<'_>, is_new_key: bool) -> Result<KeyPairPem> {
     if is_new_key {
         let (private_key, public_key) = generate_keypair();
         Ok(keypair_to_pem(&private_key, &public_key))
     } else {
-        let server_data = crate::db_query::own_server_data::select_own_server_data(
-            &ctx.data().connection,
-            ctx.guild_id()
-                .ok_or(anyhow!("guildidを取得できませんでした"))?
-                .0,
-        )
-        .await
-        .context("鍵を取得できません. trueを指定してください")?;
-        Ok(KeyPair_pem {
-            private_key_pem: Zeroizing::new(server_data.private_key_pem),
-            public_key_pem: server_data.public_key_pem,
+        let db = ctx.data().connection.clone();
+        let own_server_data = OwnServerData::db_read(db.as_ref())?
+            .context("鍵を取得できません. trueを指定してください")?;
+
+        Ok(KeyPairPem {
+            private_key_pem: Zeroizing::new(own_server_data.private_key_pem),
+            public_key_pem: own_server_data.public_key_pem,
         })
     }
 }

@@ -1,35 +1,17 @@
 use anyhow::Error;
-use commands::bot_communicate::send::{
-    bot_com_msg_recv, times_ubiqui_setting_recv, times_ubiqui_setting_set,
+use commands::bot_message_communicator::req_receiver::WebhookReqReceiver;
+use commands::bot_message_communicator::res_receiver::WebhookResReceiver;
+use commands::poise_commands::setting_commands::{
+    member_setting_commands, server_setting_commands,
 };
-use poise::{serenity_prelude as serenity, Event};
 
-use commands::bot_communicate::CmdKind;
+use commands::bot_message_communicator::MultiReceiver;
+use commands::poise_commands::spreading_commands;
+use poise::serenity_prelude::{self as serenity, FullEvent};
+
 use commands::global_data::Data;
-use commands::register_masterhook_ctx_data;
 
 use tracing::info;
-
-// use commands::member_webhook::auto::{
-//     ut_times_set, ut_times_show, ut_times_ubiqui_setting_send, ut_times_unset,
-// };
-// use commands::member_webhook::manual::{
-//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-// };
-use commands::own_server::times::{ut_times_set, ut_times_show, ut_times_unset};
-// use commands::member_webhook::manual::{
-//     ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-// };
-
-use commands::other_server::times::{
-    ut_delete, ut_list, ut_member_webhook_reg_manual, ut_times_release,
-};
-
-use commands::{
-    bot_communicate::send::ut_times_ubiqui_setting_send,
-    other_server::server::{ut_delete_other_masterhook, ut_serverlist, ut_set_other_server_data},
-    own_server::server::{ut_get_own_server_data, ut_set_own_server_data},
-};
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている
@@ -77,7 +59,7 @@ pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     // そして残りをデフォルトのハンドラーに転送します
     match error {
         poise::FrameworkError::Setup { error, .. } => panic!("Failed to start bot: {:?}", error),
-        poise::FrameworkError::Command { error, ctx } => {
+        poise::FrameworkError::Command { error, ctx, .. } => {
             info!("Error in command `{}`: {:?}", ctx.command().name, error,);
             ctx.say(error.to_string()).await.ok();
         }
@@ -93,33 +75,31 @@ pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 // serenityの，EventHadlerトレイトを実装して実現していたものと同等と推測
 pub async fn event_handler(
     ctx: &serenity::Context,
-    event: &Event<'_>,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
-    data: &Data,
+    event: &FullEvent,
+    framework: poise::FrameworkContext<'_, Data, Error>,
+    _data: &Data,
 ) -> Result<(), Error> {
     match event {
-        Event::Ready { data_about_bot } => {
+        FullEvent::Ready { data_about_bot } => {
             println!("Logged in as {}", data_about_bot.user.name);
-            register_masterhook_ctx_data(&data.connection, data).await?;
         }
-        Event::Message { new_message } => {
-            println!("msg recvd");
+        FullEvent::Message { new_message } => {
+            info!("new message: {:?}", new_message);
 
             // info!("Got a message from a bot: {:?}", new_message);
-            let bot_com_msg = match bot_com_msg_recv(new_message, data).await {
-                Some(t) => t,
-                None => return Ok(()),
-            };
-
-            match &bot_com_msg.cmd_kind {
-                CmdKind::TimesUbiquiSettingSendToken(t) => {
-                    times_ubiqui_setting_recv(ctx, data, t, &bot_com_msg).await?;
-                }
-                CmdKind::TimesUbiquiSettingRecv(t) => {
-                    times_ubiqui_setting_set(ctx, data, t, &bot_com_msg).await?;
-                }
-                CmdKind::None => {}
+            // この辺ややこしいことになってるので要改善
+            let is_bot = WebhookReqReceiver::check(new_message);
+            if !is_bot {
+                info!("Not a bot message");
+                return Ok(());
             }
+            info!("Bot message");
+
+            let webhook_receiver = MultiReceiver::new(WebhookReqReceiver, WebhookResReceiver);
+
+            info!("receiver start");
+            webhook_receiver.receiv(new_message, ctx, framework).await?;
+            info!("receiver done");
 
             // if new_message.content.to_lowercase().contains("poise") {
             //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
@@ -138,19 +118,15 @@ pub async fn event_handler(
 pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
     vec![
         help(),
-        ut_set_own_server_data(),
-        ut_get_own_server_data(),
-        ut_set_other_server_data(),
-        ut_serverlist(),
-        ut_delete_other_masterhook(),
-        // ut_get_master_hook(),
-        ut_member_webhook_reg_manual(),
-        ut_list(),
-        ut_delete(),
-        ut_times_release(),
-        ut_times_set(),
-        ut_times_unset(),
-        ut_times_show(),
-        ut_times_ubiqui_setting_send(),
+        server_setting_commands::ut_initialize(),
+        server_setting_commands::ut_get_own_server_data(),
+        member_setting_commands::ut_times_set(),
+        member_setting_commands::ut_times_show(),
+        member_setting_commands::ut_times_unset(),
+        member_setting_commands::ut_times_spread_setting(),
+        member_setting_commands::ut_list(),
+        member_setting_commands::ut_times_spread_unset(),
+        spreading_commands::ut_times_release(),
+        spreading_commands::hello(),
     ]
 }

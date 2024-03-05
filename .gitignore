@@ -1,5 +1,8 @@
 /target
 /db/*
+/my_database
+/my_database2
+
 .env
 .env.local
 .idea

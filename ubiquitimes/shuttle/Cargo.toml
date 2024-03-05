@@ -6,14 +6,17 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.68"
-poise = "0.5.2"
-shuttle-poise = "0.27.0"
-shuttle-runtime = "0.27.0"
-shuttle-secrets = "0.27.0"
-shuttle-static-folder = "0.26.0"
-tracing = "0.1.37"
+poise = "0.6.1"
+shuttle-serenity = "0.40.0"
+shuttle-runtime = "0.40.0"
+shuttle-secrets = "0.40.0"
+tracing = "*"
+tracing-subscriber = "*"
 tokio = "1.26.0"
 
-sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
+sled = "0.34.7"
+
+# sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
 
 commands = { path = "../../commands" }
+common = { path = "../../common" }

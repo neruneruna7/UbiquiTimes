@@ -1,3 +1,4 @@
+use crate::own_server::OwnTimesData;
 use crate::*;
 
 use anyhow::Context as anyhowContext;
@@ -9,9 +10,6 @@ use poise::serenity_prelude::{Http, Webhook};
 
 use super::*;
 
-use crate::db_query::other_server_times_data::*;
-use crate::db_query::own_server_times_data;
-
 /// 非推奨 手動でメンバーwebhookを登録します
 #[poise::command(
     prefix_command,
@@ -21,33 +19,33 @@ use crate::db_query::own_server_times_data;
 )]
 pub async fn ut_member_webhook_reg_manual(
     ctx: Context<'_>,
-    #[description = "拡散先のサーバ名"] b_server_name: String,
+    #[description = "拡散先のサーバ名"] dst_server_name: String,
     // 17桁整数までしか受け取れないので，仕方なくStringにする
-    #[description = "拡散先のサーバID"] b_guild_id: String,
-    #[description = "拡散先のチャンネルID"] b_channel_id: String,
-    #[description = "拡散先チャンネルのwebhook URL"] b_webhook_url: String,
+    #[description = "拡散先のサーバID"] dst_guild_id: String,
+    #[description = "拡散先のチャンネルID"] dst_channel_id: String,
+    #[description = "拡散先チャンネルのwebhook URL"] dst_webhook_url: String,
 ) -> Result<()> {
-    let a_member_id = ctx.author().id.0;
-    let b_channel_id = b_channel_id
+    let src_member_id = ctx.author().id.0;
+    let dst_channel_id = dst_channel_id
         .parse::<u64>()
         .context("符号なし整数を入力してください")?;
-    let b_guild_id = b_guild_id
+    let dst_guild_id = dst_guild_id
         .parse::<u64>()
         .context("符号なし整数を入力してください")?;
 
-    info!("a_member_id: {}", a_member_id);
+    info!("a_member_id: {}", src_member_id);
 
-    let connection = ctx.data().connection.clone();
-
-    let member_webhook = OtherTimesData::from(
-        a_member_id,
-        &b_server_name,
-        b_guild_id,
-        b_channel_id,
-        &b_webhook_url,
+    let other_times_data = OtherTimesData::new(
+        src_member_id,
+        &dst_server_name,
+        dst_guild_id,
+        dst_channel_id,
+        &dst_webhook_url,
     );
 
-    member_webhook_upsert(connection.as_ref(), member_webhook).await?;
+    let db = ctx.data().connection.clone();
+
+    other_times_data.db_upsert(db.as_ref())?;
 
     let text = "member webhook inserted";
     info!(text);
@@ -62,18 +60,22 @@ pub async fn ut_member_webhook_reg_manual(
 /// あなたのメンバーウェブフックを登録しているサーバー名を，一覧表示します
 #[poise::command(prefix_command, track_edits, aliases("UTlist"), slash_command)]
 pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
-    let connection = ctx.data().connection.clone();
-
     let member_id = ctx.author().id.0;
 
-    let member_webhooks =
-        member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
+    let db = ctx.data().connection.clone();
+    let other_times_data_vec = OtherTimesData::db_read_from_member_id(db.as_ref(), member_id)?;
+
+    // // 自身のmember_idと一致するものを抽出する
+    // let member_webhooks = other_times_data_vec
+    //     .into_iter()
+    //     .filter(|m| m.src_member_id == member_id)
+    //     .collect::<Vec<OtherTimesData>>();
 
     let mut response = String::new();
     response.push_str("拡散先リスト\n --------- \n```");
 
-    for member_webhook in member_webhooks {
-        response.push_str(&format!("{}\n", member_webhook.dst_server_name));
+    for other_times_data in other_times_data_vec {
+        response.push_str(&format!("{}\n", other_times_data.dst_server_name));
     }
     response.push_str("```");
 
@@ -90,12 +92,13 @@ pub async fn ut_delete(
     ctx: Context<'_>,
     #[description = "拡散先のから削除するサーバ名"] server_name: String,
 ) -> Result<()> {
-    let connection = ctx.data().connection.clone();
-    // SqliteのINTEGER型はi64になる都合で，i64に変換する
-    // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
+    // このコマンドを実行したときに，サーバのリストをだして選ばせるようにしてもいいかもしれない
+    // そのほうがUXがよくなりそうだ，要やりかたを検索
     let member_id = ctx.author().id.0;
 
-    member_webhook_delete(connection.as_ref(), &server_name, member_id).await?;
+    let db = ctx.data().connection.clone();
+
+    OtherTimesData::db_delete(db.as_ref(), &server_name, member_id)?;
 
     info!("member webhook deleted");
     ctx.say("member webhook deleted").await?;
@@ -120,26 +123,23 @@ pub async fn ut_times_release(
     #[description = "拡散内容"] content: String,
 ) -> Result<()> {
     let _username = format!("UT-{}", ctx.author().name);
+    let member_id = ctx.author().id.0;
 
-    let connection = ctx.data().connection.clone();
-    // そのユーザのtimesデータを取得する
-    let times_data =
-        own_server_times_data::select_own_times_data(connection.as_ref(), ctx.author().id.0)
-            .await?;
+    let db = ctx.data().connection.clone();
+    let times_data = OwnTimesData::db_read(db.as_ref(), member_id)
+        .context("own_server_times_dataの読み込みに失敗しました")?
+        .context("own_server_times_dataが存在しません")?;
 
     // webhookのusernameを設定する
-
     let username = format!("UT-{}", times_data.member_name);
 
     // DBからそのユーザのwebhookをすべて取得する
 
-    // SqliteのINTEGER型はi64になる都合で，i64に変換する
-    // discordのidは18桁で構成されており，i64に収まるため変換しても問題ないと判断した
-    let member_id = ctx.author().id.0;
-    let member_webhooks =
-        member_webhook_select_from_member_id(connection.as_ref(), member_id).await?;
+    let _member_id = ctx.author().id.0;
 
-    let member_webhooks = member_webhooks
+    let other_times_data_vec = OtherTimesData::db_read_all(db.as_ref())?;
+
+    let member_webhooks = other_times_data_vec
         .iter()
         .map(|m| m.dst_webhook_url.to_owned())
         .collect::<Vec<String>>();

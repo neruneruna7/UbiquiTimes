@@ -1,10 +1,7 @@
+use crate::own_server::OwnTimesData;
 use crate::sign_str_command;
 
 // use crate::{Context, Result};
-
-use anyhow::Context as _;
-
-use crate::db_query::own_server_times_data::*;
 
 use crate::*;
 
@@ -57,16 +54,14 @@ pub async fn ut_times_set(
     info!("{:?}", webhook);
 
     let webhook_url = webhook.url()?;
-    let connection = ctx.data().connection.clone();
 
-    upsert_own_times_data(
-        connection.as_ref(),
-        member_id,
-        &member_name,
-        channel_id,
-        &webhook_url,
-    )
-    .await?;
+    let own_times_data = OwnTimesData::new(member_id, &member_name, channel_id, &webhook_url);
+
+    let db = ctx.data().connection.clone();
+
+    own_times_data
+        .db_upsert(db.as_ref())
+        .context("own_server_times_dataの更新に失敗しました")?;
 
     ctx.say("このチャンネルを，本サーバでのあなたのTimesとして登録しました")
         .await?;
@@ -88,7 +83,9 @@ pub async fn ut_times_unset(
 
     let member_id = ctx.author().id.0;
 
-    delete_own_times_data(ctx.data(), member_id).await?;
+    let db = ctx.data().connection.clone();
+    OwnTimesData::db_delete(db.as_ref(), member_id)
+        .context("own_server_times_dataの削除に失敗しました")?;
 
     ctx.say("本サーバでのあなたのTimes登録を削除しました")
         .await?;
@@ -99,7 +96,9 @@ pub async fn ut_times_unset(
 /// デバッグ用に member_times_data を全て表示する
 #[poise::command(prefix_command, track_edits, aliases("UtTimesShow"), slash_command)]
 pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
-    let own_times_data = select_own_times_data_all(ctx.data()).await?;
+    let db = ctx.data().connection.clone();
+    let own_times_data = OwnTimesData::db_read_all(db.as_ref())
+        .context("own_server_times_dataの取得に失敗しました")?;
 
     let mut response = String::new();
 
