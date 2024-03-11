@@ -1,13 +1,13 @@
-use crate::models::{OtherServer, OtherTimes, OwnServer, OwnTimes};
+use crate::models::{OtherGuild, OtherTimes, OwnGuild, OwnTimes};
 
-pub trait OwnServerRepository {
+pub trait OwnGuildRepository {
     type Error;
     // 結局のところ，複数レコードを扱うことはない
     // つねに1つのレコードしかない
-    async fn upsert(&self, own_server: OwnServer) -> Result<OwnServer, Self::Error>;
+    async fn upsert(&self, own_server: OwnGuild) -> Result<OwnGuild, Self::Error>;
     // レコードがない場合，今回はNoneとせずにエラーとする
-    async fn get(&self) -> Result<OwnServer, Self::Error>;
-    async fn delete(&self) -> Result<OwnServer, Self::Error>;
+    async fn get(&self) -> Result<OwnGuild, Self::Error>;
+    async fn delete(&self) -> Result<OwnGuild, Self::Error>;
 }
 
 pub trait OwnTimesRepository {
@@ -19,15 +19,15 @@ pub trait OwnTimesRepository {
 }
 
 
-pub trait OtherServerRepository {
+pub trait OtherGuildRepository {
     // 正直asyncはいらない
     type Error;
 
-    async fn upsert(&self, other_server: OtherServer) -> Result<OtherServer, Self::Error>;
-    async fn get(&self, server_name: &str) -> Result<Option<OtherServer>, Self::Error>;
-    async fn get_all(&self) -> Result<Vec<OtherServer>, Self::Error>;
-    async fn get_from_guild_id(&self, guild_id: u64) -> Result<Option<OtherServer>, Self::Error>;
-    async fn delete(&self, server_name: &str) -> Result<OtherServer, Self::Error>;
+    async fn upsert(&self, other_server: OtherGuild) -> Result<OtherGuild, Self::Error>;
+    async fn get(&self, server_name: &str) -> Result<Option<OtherGuild>, Self::Error>;
+    async fn get_all(&self) -> Result<Vec<OtherGuild>, Self::Error>;
+    async fn get_from_guild_id(&self, guild_id: u64) -> Result<Option<OtherGuild>, Self::Error>;
+    async fn delete(&self, server_name: &str) -> Result<OtherGuild, Self::Error>;
 }
 
 pub trait OtherTimesRepository {
