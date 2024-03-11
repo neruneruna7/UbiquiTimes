@@ -2265,6 +2265,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "signer_verifier"
+version = "0.1.0"
+
+[[package]]
 name = "simple_asn1"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
