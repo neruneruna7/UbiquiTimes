@@ -12,7 +12,7 @@ use shuttle_secrets::SecretStore;
 use shuttle_serenity::ShuttleSerenity;
 use tokio::sync::RwLock;
 
-use commands::global_data::{Context, Data};
+use commands::global_data::Data;
 
 use tracing::info;
 

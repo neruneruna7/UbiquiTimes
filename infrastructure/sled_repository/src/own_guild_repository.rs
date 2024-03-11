@@ -1,10 +1,5 @@
 use crate::sled_table::{SledTable, SledTableError, SledTableResult};
-use domain::{
-    models::guild_data::OwnGuild,
-    serde::{Deserialize, Serialize},
-    thiserror,
-    traits::repositorys::OwnGuildRepository,
-};
+use domain::{models::guild_data::OwnGuild, thiserror, traits::repositorys::OwnGuildRepository};
 
 #[derive(Debug, thiserror::Error)]
 pub enum SledOwnGuildRepositoryError {

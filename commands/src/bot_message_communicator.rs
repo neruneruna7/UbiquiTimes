@@ -6,10 +6,10 @@ use crate::{
 use anyhow::Error;
 
 use poise::serenity_prelude::{self as serenity, Message};
-use tokio::sync::RwLock;
-use tracing::{info, info_span};
 
-use std::{collections::HashMap, fmt::Debug};
+use tracing::info;
+
+use std::fmt::Debug;
 use thiserror::Error;
 
 pub mod req_receiver;

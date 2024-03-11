@@ -21,7 +21,7 @@ use anyhow::Context as anyhowContext;
 use poise::serenity_prelude::ExecuteWebhook;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
-use rsa::pkcs8::SubjectPublicKeyInfoRef;
+
 use tracing::info;
 
 /// 他サーバからのリクエストを受信する
@@ -57,7 +57,7 @@ impl WebhookReqReceiver {
     ) -> TimesSettingCommunicatorResult<Claims> {
         info!("CA access complete. public_key_pem: {}", public_key_pem);
 
-        let verifier = sign::UbiquitimesPublicKey::from_pem(&public_key_pem)
+        let verifier = sign::UbiquitimesPublicKey::from_pem(public_key_pem)
             .context("Failed to create verifier")?;
 
         info!("verifier created.");

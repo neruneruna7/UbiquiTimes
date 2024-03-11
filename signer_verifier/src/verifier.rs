@@ -1,11 +1,8 @@
 use domain::models::sign::Claims;
 use domain::thiserror;
-use domain::traits::signer_verifier::{UtSigner, UtVerifier};
-use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use rsa::{
-    pkcs1::{DecodeRsaPublicKey, EncodeRsaPublicKey},
-    pkcs8::{DecodePrivateKey, EncodePrivateKey},
-};
+use domain::traits::signer_verifier::UtVerifier;
+use jsonwebtoken::{decode, Algorithm, DecodingKey, Header, Validation};
+use rsa::pkcs1::{DecodeRsaPublicKey, EncodeRsaPublicKey};
 
 #[derive(thiserror::Error, Debug)]
 pub enum VerifyError {
