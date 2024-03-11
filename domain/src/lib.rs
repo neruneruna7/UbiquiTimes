@@ -1,2 +1,2 @@
-pub mod repositorys;
 pub mod models;
+pub mod traits;
