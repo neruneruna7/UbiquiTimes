@@ -1,12 +1,7 @@
 use crate::sled_table::{SledTable, SledTableError};
-use domain::{
-    models::guild_data::OwnTimes,
-    serde::{Deserialize, Serialize},
-    thiserror,
-    traits::repositorys::OwnTimesRepository,
-};
+use domain::{models::guild_data::OwnTimes, thiserror, traits::repositorys::OwnTimesRepository};
+use serde::{Deserialize, Serialize};
 
-// use serde::{Deserialize, Serialize};
 #[derive(Debug)]
 pub struct SledOwnTimesRepository {
     db: sled::Db,
@@ -69,7 +64,7 @@ impl OwnTimesRepository for SledOwnTimesRepository {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Debug, Eq, PartialEq, Clone)]
 pub struct OwnTimesKv {
     own_times_data: OwnTimes,
     key: String,

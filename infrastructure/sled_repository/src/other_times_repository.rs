@@ -1,7 +1,7 @@
+use domain::serde::{Deserialize, Serialize};
 use domain::tracing::error;
 use domain::traits::repositorys::OtherTimesRepository;
 use domain::{models::guild_data::OtherTimes, thiserror};
-use serde::{Deserialize, Serialize};
 
 use super::sled_table::{SledTable, SledTableError};
 

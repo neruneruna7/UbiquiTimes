@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 domain = { path = "../domain" }
+
+poise = "0.6.1"
+serde_json = "1.0"
