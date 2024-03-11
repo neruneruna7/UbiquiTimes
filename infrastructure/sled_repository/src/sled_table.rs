@@ -12,7 +12,6 @@ pub enum SledTableError {
     SerdeError(#[from] serde_json::Error),
     #[error("String error: {0}")]
     StringError(#[from] std::string::FromUtf8Error),
-    
 }
 
 pub type SledTableResult<T> = std::result::Result<T, SledTableError>;
