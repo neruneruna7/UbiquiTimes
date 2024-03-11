@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "commands",
-    "common", "domain",
+    "common", "domain", "infrastructure/sled_repository", 
     # "ubiquitimes/poise",
     "ubiquitimes/shuttle",
     # "sb/commands",
@@ -9,6 +9,7 @@ members = [
     # "sb/crypt",
     # "sb/sled",
 ]
+resolver = "2"
 
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none
 # cargo shuttle init api/shuttle  --name api-shuttle
