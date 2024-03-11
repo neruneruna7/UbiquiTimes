@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "commands",
-    "common", "domain", "infrastructure/sled_repository", 
+    "common", "domain", "infrastructure/sled_repository", "message_communicator", 
     # "ubiquitimes/poise",
     "ubiquitimes/shuttle",
     # "sb/commands",
