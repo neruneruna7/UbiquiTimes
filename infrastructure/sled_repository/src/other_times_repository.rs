@@ -6,7 +6,7 @@ use domain::{models::guild_data::OtherTimes, thiserror};
 use super::sled_table::{SledTable, SledTableError};
 
 #[derive(Debug, thiserror::Error)]
-pub enum SledOtherTimesRepisotoryError {
+pub enum SledOtherTimesRepositoryError {
     #[error("SledError: {0}")]
     SledError(#[from] sled::Error),
     #[error("SerdeError: {0}")]
@@ -17,7 +17,7 @@ pub enum SledOtherTimesRepisotoryError {
     SledTableError(#[from] SledTableError),
 }
 
-pub type SledOtherTimesRepositoryResult<T> = Result<T, SledOtherTimesRepisotoryError>;
+pub type SledOtherTimesRepositoryResult<T> = Result<T, SledOtherTimesRepositoryError>;
 
 #[derive(Debug)]
 pub struct SledOtherTimesRepository {
