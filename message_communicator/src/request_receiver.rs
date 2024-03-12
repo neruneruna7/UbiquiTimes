@@ -63,7 +63,6 @@ where
 {
     ca_driver: Arc<C>,
     own_times_repository: Arc<R>,
-
 }
 
 impl UtReqReceiver for PoiseWebhookReqReceiver<MyCaDriver, SledOwnTimesRepository> {
@@ -124,7 +123,6 @@ impl UtReqReceiver for PoiseWebhookReqReceiver<MyCaDriver, SledOwnTimesRepositor
             .get(member_id)
             .await?
             .ok_or(OwnTimesNotFound)?;
-        
 
         // レスポンスの作成
         let times_setting_response =

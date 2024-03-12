@@ -20,3 +20,9 @@ sled = "0.34.7"
 
 commands = { path = "../../commands" }
 common = { path = "../../common" }
+domain = { path = "../../domain" }
+sled_repository ={ path = "../../infrastructure/sled_repository" }
+message_communicator = { path = "../../message_communicator" }
+signer_verifier = { path = "../../signer_verifier" }
+ca_driver ={ path = "../../ca_driver" }
+

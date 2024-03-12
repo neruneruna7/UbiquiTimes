@@ -1,16 +1,19 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Mutex};
 
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{Context as _, Error};
-use commands::other_server_repository::{SledOtherServerRepository, SledOtherTimesRepository};
-use commands::own_server_repository::{SledOwnServerRepository, SledOwnTimesRepository};
-use commands::sign::keys_gen::RsaKeyGenerator;
+use ca_driver::my_ca_driver::MyCaDriver;
 use poise::serenity_prelude::{ClientBuilder, GatewayIntents};
 use shuttle_secrets::SecretStore;
 use shuttle_serenity::ShuttleSerenity;
-use tokio::sync::RwLock;
+use signer_verifier::key_generator::RsaKeyGenerator;
+use sled_repository::{
+    other_guild_repository::SledOtherGuildRepository,
+    other_times_repository::SledOtherTimesRepository, own_guild_repository::SledOwnGuildRepository,
+    own_times_repository::SledOwnTimesRepository,
+};
 
 use commands::global_data::Data;
 
@@ -50,16 +53,18 @@ async fn poise(
     //     .get("DISCORD_TOKEN2")
     //     .context("'DISCORD_TOKEN' was not found")?;
 
-    let sent_member_and_guild_ids = RwLock::new(HashMap::new());
+    let sent_member_and_guild_ids = Arc::new(Mutex::new(HashMap::new()));
     // DAO作成
     // let db = sled::open("my_database").unwrap();
     // 一旦Cloneしておく
-    let own_server_repository = Arc::new(SledOwnServerRepository::new(db.clone()));
+    let own_server_repository = Arc::new(SledOwnGuildRepository::new(db.clone()));
     let own_times_repository = Arc::new(SledOwnTimesRepository::new(db.clone()));
-    let other_server_repository = Arc::new(SledOtherServerRepository::new(db.clone()));
+    let other_server_repository = Arc::new(SledOtherGuildRepository::new(db.clone()));
     let other_times_repository = Arc::new(SledOtherTimesRepository::new(db.clone()));
 
     let ubiquitimes_keygenerator = Arc::new(RsaKeyGenerator::new());
+
+    let ca_driver = Arc::new(MyCaDriver::new());
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -145,6 +150,7 @@ async fn poise(
                     other_server_repository,
                     other_times_repository,
                     ubiquitimes_keygenerator,
+                    ca_driver,
                 })
             })
         })

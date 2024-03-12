@@ -2967,13 +2967,18 @@ name = "ubiquitimes-shuttle"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ca_driver",
  "commands",
  "common",
+ "domain",
+ "message_communicator",
  "poise",
  "shuttle-runtime",
  "shuttle-secrets",
  "shuttle-serenity",
+ "signer_verifier",
  "sled",
+ "sled_repository",
  "tokio",
  "tracing",
  "tracing-subscriber",
