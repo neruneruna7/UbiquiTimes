@@ -161,8 +161,7 @@ impl PoiseWebhookReqSender {
             member_id,
             dst_guild_id,
             dst_guild_name,
-        )
-        .await;
+        );
 
         let http = Http::new("");
 
