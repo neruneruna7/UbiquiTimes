@@ -334,8 +334,12 @@ name = "common"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ca_driver",
  "commands",
+ "domain",
+ "message_communicator",
  "poise",
+ "sled_repository",
  "tracing",
  "tracing-subscriber",
 ]

@@ -12,3 +12,7 @@ tracing-subscriber = "*"
 anyhow = "1.0"
 
 commands  = { path = "../commands" }
+domain = { path = "../domain" }
+ca_driver = { path = "../ca_driver" }
+sled_repository ={ path = "../infrastructure/sled_repository"}
+message_communicator = { path = "../message_communicator"}

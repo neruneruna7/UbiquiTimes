@@ -45,14 +45,14 @@ pub struct PoiseWebhookResReceiver<R>
 where
     R: OtherTimesRepository,
 {
-    other_times_repository: R,
+    other_times_repository: Arc<R>,
 }
 
 impl<R> PoiseWebhookResReceiver<R>
 where
     R: OtherTimesRepository,
 {
-    pub fn new(other_times_repository: R) -> Self {
+    pub fn new(other_times_repository: Arc<R>) -> Self {
         Self {
             other_times_repository,
         }
@@ -66,7 +66,7 @@ impl UtResReceiver for PoiseWebhookResReceiver<SledOtherTimesRepository> {
 
     async fn times_setting_response_receive(
         &self,
-        new_message: Self::NewMessage,
+        new_message: &Self::NewMessage,
         sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
     ) -> Result<(), PoiseWebhookResReceiverError> {
         // botから以外のメッセージは無視

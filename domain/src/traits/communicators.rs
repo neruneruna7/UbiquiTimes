@@ -54,7 +54,7 @@ pub trait UtReqReceiver {
 
     async fn times_setting_receive_and_response(
         &self,
-        new_message: Self::NewMessage,
+        new_message: &Self::NewMessage,
         own_guild_id: u64,
     ) -> Self::Result<()>;
 }
@@ -68,7 +68,7 @@ pub trait UtResReceiver {
     type NewMessage;
     async fn times_setting_response_receive(
         &self,
-        new_message: Self::NewMessage,
+        new_message: &Self::NewMessage,
         sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
     ) -> Result<(), Self::Error>;
 

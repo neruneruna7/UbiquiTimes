@@ -1,16 +1,17 @@
 use anyhow::Error;
-use commands::bot_message_communicator::req_receiver::WebhookReqReceiver;
-use commands::bot_message_communicator::res_receiver::WebhookResReceiver;
 use commands::poise_commands::setting_commands::{
     member_setting_commands, server_setting_commands,
 };
 
-use commands::bot_message_communicator::MultiReceiver;
 use commands::poise_commands::spreading_commands;
+use domain::traits::communicators::*;
+use message_communicator::request_receiver::PoiseWebhookReqReceiver;
+use message_communicator::response_receiver::PoiseWebhookResReceiver;
 use poise::serenity_prelude::{self as serenity, FullEvent};
 
 use commands::global_data::Data;
 
+use sled_repository::other_times_repository;
 use tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造
@@ -86,20 +87,31 @@ pub async fn event_handler(
         FullEvent::Message { new_message } => {
             info!("new message: {:?}", new_message);
 
-            // info!("Got a message from a bot: {:?}", new_message);
-            // この辺ややこしいことになってるので要改善
-            let is_bot = WebhookReqReceiver::check(new_message);
-            if !is_bot {
-                info!("Not a bot message");
-                return Ok(());
-            }
-            info!("Bot message");
+            // // info!("Got a message from a bot: {:?}", new_message);
+            // // この辺ややこしいことになってるので要改善
+            // let is_bot = WebhookReqReceiver::check(new_message);
+            // if !is_bot {
+            //     info!("Not a bot message");
+            //     return Ok(());
+            // }
+            // info!("Bot message");
 
-            let webhook_receiver = MultiReceiver::new(WebhookReqReceiver, WebhookResReceiver);
+            // let webhook_receiver = MultiReceiver::new(WebhookReqReceiver, WebhookResReceiver);
+            let ca_driver = _data.ca_driver.clone();
+            let own_times_repository = _data.own_times_repository.clone();
+            let own_guild_id = new_message.guild_id.unwrap().get();
 
-            info!("receiver start");
-            webhook_receiver.receiv(new_message, ctx, framework).await?;
-            info!("receiver done");
+            let req_receiver = PoiseWebhookReqReceiver::new(ca_driver, own_times_repository);
+            req_receiver
+                .times_setting_receive_and_response(new_message, own_guild_id)
+                .await?;
+
+            let other_times_repository = _data.other_times_repository.clone();
+            let res_receiver = PoiseWebhookResReceiver::new(other_times_repository);
+
+            // info!("receiver start");
+            // webhook_receiver.receiv(new_message, ctx, framework).await?;
+            // info!("receiver done");
 
             // if new_message.content.to_lowercase().contains("poise") {
             //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;

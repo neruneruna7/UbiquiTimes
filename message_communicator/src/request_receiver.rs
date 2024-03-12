@@ -1,5 +1,6 @@
 use core::panic;
 use std::fmt::Debug;
+use std::sync::Arc;
 
 use ca_driver::my_ca_driver::MyCaDriverError;
 use domain::models::communication::RequestMessage;
@@ -60,8 +61,9 @@ where
     C: CaDriver,
     R: OwnTimesRepository,
 {
-    ca_driver: C,
-    own_times_repository: R,
+    ca_driver: Arc<C>,
+    own_times_repository: Arc<R>,
+
 }
 
 impl UtReqReceiver for PoiseWebhookReqReceiver<MyCaDriver, SledOwnTimesRepository> {
@@ -72,7 +74,7 @@ impl UtReqReceiver for PoiseWebhookReqReceiver<MyCaDriver, SledOwnTimesRepositor
         &self,
         // リクエストを受け取って，それに対するレスポンスを返すため
         // リクエストを引数にとる
-        new_message: Self::NewMessage,
+        new_message: &Self::NewMessage,
         own_guild_id: u64,
     ) -> Self::Result<()> {
         // Botからのリクエスト以外は無視する
@@ -122,6 +124,7 @@ impl UtReqReceiver for PoiseWebhookReqReceiver<MyCaDriver, SledOwnTimesRepositor
             .get(member_id)
             .await?
             .ok_or(OwnTimesNotFound)?;
+        
 
         // レスポンスの作成
         let times_setting_response =
@@ -231,7 +234,7 @@ where
     //     Ok(serialized_message)
     // }
 
-    pub fn new(ca_driver: C, own_times_repository: R) -> Self {
+    pub fn new(ca_driver: Arc<C>, own_times_repository: Arc<R>) -> Self {
         Self {
             ca_driver,
             own_times_repository,
