@@ -14,6 +14,12 @@ pub enum MyCaDriverError {
 
 pub struct MyCaDriver;
 
+impl Default for MyCaDriver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MyCaDriver {
     pub fn new() -> Self {
         MyCaDriver
