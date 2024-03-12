@@ -12,6 +12,7 @@ pub enum MyCaDriverError {
     SerdeJsonError(#[from] serde_json::Error),
 }
 
+#[derive(Debug, Clone)]
 pub struct MyCaDriver;
 
 impl Default for MyCaDriver {

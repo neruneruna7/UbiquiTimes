@@ -170,8 +170,8 @@ pub async fn ut_times_spread_setting(
 
     // リクエストメッセージを組み立てる
     // 自身のサーバ情報が必要なので，それを取得する
-    let own_server_repository = ctx.data().own_server_repository.clone();
-    let own_server = own_server_repository.get().await?;
+    let own_guild_repository = ctx.data().own_server_repository.clone();
+    let own_guild = own_guild_repository.get().await?;
 
     let own_times_repository = ctx.data().own_times_repository.clone();
     let own_times = own_times_repository.get(ctx.author().id.get()).await?;
@@ -184,24 +184,32 @@ pub async fn ut_times_spread_setting(
         }
     };
 
-    // let other_guild = OtherGuild::new(guild_id, guild_name, webhook_url, public_key_pem)
+    // let dst_guild = OtherGuild::new(dst_guild_id, &dst_server_name, webhook_url, public_key_pem);
 
     // リクエストメッセージのもととなるデータを作成
     let times_setting_req = TimesSettingRequest::new(
         ctx.author().id.get(),
-        own_server.manage_webhook_url.clone(),
+        own_guild.manage_webhook_url.clone(),
         ctx.channel_id().get(),
         own_times.times_webhook_url.clone(),
     );
 
     let member_id = ctx.author().id.get();
-    let sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.write().await;
-    let mut sent_member_and_guild_ids = &mut sent_member_and_guild_ids;
+    let sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.clone();
 
+    let ca_driver = ctx.data().ca_driver.clone();
     // 設定リクエストを送信する
-    let req_sender = PoiseWebhookReqSender::new();
+    let req_sender = PoiseWebhookReqSender::new(ca_driver);
+
     req_sender
-        .times_setting_request_send(dst_guild, member_id, req, sent_member_and_guild_ids)
+        .times_setting_request_send(
+            &own_guild,
+            dst_guild_id,
+            &dst_server_name,
+            member_id,
+            times_setting_req,
+            sent_member_and_guild_ids,
+        )
         .await?;
 
     ctx.say("設定リクエストを送信しました").await?;

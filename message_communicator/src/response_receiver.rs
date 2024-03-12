@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 // レスポンスを受け取って，それを処理する
 
@@ -65,7 +67,7 @@ impl UtResReceiver for PoiseWebhookResReceiver<SledOtherTimesRepository> {
     async fn times_setting_response_receive(
         &self,
         new_message: Self::NewMessage,
-        sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
     ) -> Result<(), PoiseWebhookResReceiverError> {
         // botから以外のメッセージは無視
         if !new_message.author.bot {

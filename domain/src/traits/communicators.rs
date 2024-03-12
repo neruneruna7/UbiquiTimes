@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use tracing::info;
 
@@ -13,17 +16,18 @@ pub trait UtReqSender {
     async fn times_setting_request_send(
         &self,
         own_guild: &OwnGuild,
-        dst_guild: &OtherGuild,
+        dst_guild_id: u64,
+        dst_guild_name: &str,
         member_id: u64,
         times_setting_req: TimesSettingRequest,
-        sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
     ) -> Self::Result<()>;
 
     /// どのサーバに対して送信したかを記録する
     /// リクエストコマンド時に入力した識別用サーバー名も記録する必要が出てきた
     /// デフォルト実装があるので，実装しなくてもよい
     fn save_sent_guild_ids(
-        sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
         member_id: u64,
         dst_guild_id: u64,
         dst_guild_name: String,
@@ -37,7 +41,8 @@ pub trait UtReqSender {
 
         // 一定時間後に削除するようにしたい
 
-        sent_member_and_guild_ids.insert(hash_key, dst_guild_name);
+        let mut sent_member_and_guild_ids_lock = sent_member_and_guild_ids.lock().unwrap();
+        sent_member_and_guild_ids_lock.insert(hash_key, dst_guild_name);
     }
 }
 
@@ -64,13 +69,13 @@ pub trait UtResReceiver {
     async fn times_setting_response_receive(
         &self,
         new_message: Self::NewMessage,
-        sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
     ) -> Result<(), Self::Error>;
 
     /// サーバからのレスポンスに対してリクエスト送信記録があるかどうか
     /// 返ってくるStringはサーバ名
     fn is_response_from_sent_guild(
-        sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
         res: &ResponseMessage,
     ) -> Result<Option<String>, Self::Error> {
         let member_id = res.times_setting_response.req_src_member_id;
@@ -78,8 +83,10 @@ pub trait UtResReceiver {
 
         let hash_key = HashKey::new(member_id, guild_id);
 
+        let mut sent_member_and_guild_ids_lock = sent_member_and_guild_ids.lock().unwrap();
+
         // 該当データを取得
-        let sent_guild_name = sent_member_and_guild_ids.remove(&hash_key);
+        let sent_guild_name = sent_member_and_guild_ids_lock.remove(&hash_key);
 
         info!(
             "hash_key: {:?}, server_name: {:?}",

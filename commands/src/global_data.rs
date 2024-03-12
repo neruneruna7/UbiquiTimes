@@ -1,12 +1,14 @@
 use anyhow::Error;
 
+use ca_driver::my_ca_driver::MyCaDriver;
 use domain::traits::communicators::{GuildName, HashKey};
 use signer_verifier::key_generator::RsaKeyGenerator;
 use sled_repository::other_guild_repository::SledOtherGuildRepository;
 use sled_repository::other_times_repository::SledOtherTimesRepository;
 use sled_repository::own_guild_repository::SledOwnGuildRepository;
 use sled_repository::own_times_repository::SledOwnTimesRepository;
-use tokio::sync::RwLock;
+// use tokio::sync::RwLock;
+use std::sync::RwLock;
 
 use std::sync::{Arc, Mutex};
 
@@ -35,4 +37,6 @@ pub struct Data {
     pub other_times_repository: Arc<SledOtherTimesRepository>,
     // 鍵に関わるオブジェクト
     pub ubiquitimes_keygenerator: Arc<RsaKeyGenerator>,
+
+    pub ca_driver: Arc<MyCaDriver>,
 }

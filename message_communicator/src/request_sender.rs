@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 use ca_driver::my_ca_driver::MyCaDriver;
 use ca_driver::my_ca_driver::MyCaDriverError;
@@ -45,7 +47,7 @@ pub struct PoiseWebhookReqSender<C>
 where
     C: CaDriver,
 {
-    ca_driver: C,
+    ca_driver: Arc<C>,
 }
 
 impl UtReqSender for PoiseWebhookReqSender<MyCaDriver> {
@@ -58,13 +60,21 @@ impl UtReqSender for PoiseWebhookReqSender<MyCaDriver> {
         //
         &self,
         own_guild: &OwnGuild,
-        dst_guild: &OtherGuild,
+        dst_guild_id: u64,
+        dst_guild_name: &str,
         member_id: u64,
         times_setting_req: TimesSettingRequest,
-        sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
     ) -> Self::Result<()> {
         // 認証局もどきからリクエスト送信先の公開鍵とmanage_webhookを取得
-        let key_and_webhook = self.ca_driver.get_key_webhook(dst_guild.guild_id).await?;
+        let key_and_webhook = self.ca_driver.get_key_webhook(dst_guild_id).await?;
+
+        let dst_guild = OtherGuild::new(
+            dst_guild_id,
+            dst_guild_name,
+            &key_and_webhook.manage_webhook,
+            &key_and_webhook.public_key_pem,
+        );
         // // 送信につかうWebhookを作成
         let webhook = get_webhook(&dst_guild.webhook_url).await?;
 
@@ -163,7 +173,7 @@ where
     //     Ok(req_message)
     // }
 
-    pub fn new(ca_driver: C) -> Self {
+    pub fn new(ca_driver: Arc<C>) -> Self {
         Self { ca_driver }
     }
 
