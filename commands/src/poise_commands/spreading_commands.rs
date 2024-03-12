@@ -1,6 +1,6 @@
 // - 記述内容を各サーバに拡散するコマンド
 
-use crate::error::{CommandError, CommandResult, OwnTimesNotFound};
+use crate::error::{CommandResult, OwnTimesNotFound};
 use crate::global_data::Context;
 use domain::traits::repositorys::*;
 use poise::serenity_prelude::{ExecuteWebhook, Http, Webhook};

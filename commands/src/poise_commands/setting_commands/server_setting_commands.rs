@@ -1,10 +1,7 @@
 // - サーバー初期化コマンド
 // - サーバー設定情報を取得する
 
-use crate::{
-    error::{CommandError, GuildIdCannotGet},
-    global_data::Context,
-};
+use crate::{error::GuildIdCannotGet, global_data::Context};
 // use crate::own_server::OwnGuild;
 // use crate::own_server_repository::OwnGuildRepository;
 // use crate::sign::UbiquitimesKeyGenerator;
@@ -15,7 +12,6 @@ use domain::{
 };
 use signer_verifier::key_generator::RsaKeyPair;
 
-use crate::error::CommandResult;
 use poise::serenity_prelude::CreateWebhook;
 use tracing::info;
 

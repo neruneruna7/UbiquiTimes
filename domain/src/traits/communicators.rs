@@ -6,8 +6,8 @@ use std::{
 use tracing::info;
 
 use crate::models::{
-    communication::{RequestMessage, ResponseMessage, TimesSettingRequest},
-    guild_data::{OtherGuild, OwnGuild},
+    communication::{ResponseMessage, TimesSettingRequest},
+    guild_data::OwnGuild,
 };
 
 // できればpoiseへの依存がないトレイトを書きたい

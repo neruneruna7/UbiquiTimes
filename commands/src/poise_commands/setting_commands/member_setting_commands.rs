@@ -19,7 +19,7 @@ use anyhow::Context as anyhowContext;
 use anyhow::Result;
 
 use domain::models::communication::TimesSettingRequest;
-use domain::models::guild_data::OtherGuild;
+
 use domain::models::guild_data::OwnTimes;
 use domain::traits::{communicators::*, repositorys::*};
 use message_communicator::request_sender::PoiseWebhookReqSender;

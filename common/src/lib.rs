@@ -11,7 +11,6 @@ use poise::serenity_prelude::{self as serenity, FullEvent};
 
 use commands::global_data::Data;
 
-use sled_repository::other_times_repository;
 use tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造
@@ -75,9 +74,9 @@ pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 // イベントハンドラ
 // serenityの，EventHadlerトレイトを実装して実現していたものと同等と推測
 pub async fn event_handler(
-    ctx: &serenity::Context,
+    _ctx: &serenity::Context,
     event: &FullEvent,
-    framework: poise::FrameworkContext<'_, Data, Error>,
+    _framework: poise::FrameworkContext<'_, Data, Error>,
     _data: &Data,
 ) -> Result<(), Error> {
     match event {
@@ -107,7 +106,7 @@ pub async fn event_handler(
                 .await?;
 
             let other_times_repository = _data.other_times_repository.clone();
-            let res_receiver = PoiseWebhookResReceiver::new(other_times_repository);
+            let _res_receiver = PoiseWebhookResReceiver::new(other_times_repository);
 
             // info!("receiver start");
             // webhook_receiver.receiv(new_message, ctx, framework).await?;

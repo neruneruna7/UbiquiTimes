@@ -15,16 +15,15 @@ use domain::traits::ca_driver::CaDriver;
 use domain::traits::communicators::GuildName;
 use domain::traits::communicators::HashKey;
 use domain::traits::communicators::UtReqSender;
-use domain::traits::repositorys::OwnTimesRepository;
+
 use domain::traits::signer_verifier::UtSigner;
 use poise::serenity_prelude::ExecuteWebhook;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
 
 use domain::thiserror;
-use signer_verifier::signer;
+
 use signer_verifier::signer::RsaSigner;
-use sled_repository::own_times_repository::SledOwnTimesRepository;
 
 use crate::get_webhook::get_webhook;
 
@@ -84,7 +83,7 @@ impl UtReqSender for PoiseWebhookReqSender<MyCaDriver> {
 
         let signer = RsaSigner::from_pem(&key_and_webhook.public_key_pem)?;
 
-        let claim = Claims::from_servers_for_req(&own_guild, &dst_guild, times_setting_req);
+        let claim = Claims::from_servers_for_req(own_guild, &dst_guild, times_setting_req);
 
         let req_message =
             RequestMessage::new(own_guild.guild_id, dst_guild.guild_id, signer.sign(claim)?);
