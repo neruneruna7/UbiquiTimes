@@ -1,6 +1,7 @@
 use anyhow::Error;
 
 use domain::traits::communicators::{GuildName, HashKey};
+use signer_verifier::key_generator::RsaKeyGenerator;
 use sled_repository::other_guild_repository::SledOtherGuildRepository;
 use sled_repository::other_times_repository::SledOtherTimesRepository;
 use sled_repository::own_guild_repository::SledOwnGuildRepository;

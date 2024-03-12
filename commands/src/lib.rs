@@ -7,7 +7,7 @@ use poise::serenity_prelude::{self as serenity, ExecuteWebhook, Webhook};
 // pub mod ca_driver;
 pub mod error;
 pub mod global_data;
-pub mod initializer;
+// pub mod initializer;
 // pub mod other_server;
 // pub mod other_server_repository;
 // pub mod own_server;

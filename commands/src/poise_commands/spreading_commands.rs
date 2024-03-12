@@ -1,9 +1,8 @@
 // - 記述内容を各サーバに拡散するコマンド
 
-use crate::other_server_repository::OtherTimesRepository;
-use crate::{global_data::Context, own_server_repository::OwnTimesRepository};
-use anyhow::Context as anyhowContext;
-use anyhow::Result;
+use crate::error::{CommandError, CommandResult, OwnTimesNotFound};
+use crate::global_data::Context;
+use domain::traits::repositorys::*;
 use poise::serenity_prelude::{ExecuteWebhook, Http, Webhook};
 
 /// 投稿内容を拡散します. `~UT`コマンドの使用を推奨
@@ -20,7 +19,8 @@ use poise::serenity_prelude::{ExecuteWebhook, Http, Webhook};
 pub async fn ut_times_release(
     ctx: Context<'_>,
     #[description = "拡散内容"] content: String,
-) -> Result<()> {
+    // poiseのコマンドはanyhow::Resultじゃないとだめっぽい？
+) -> anyhow::Result<()> {
     let _username = format!("UT-{}", ctx.author().name);
     let member_id = ctx.author().id.get();
 
@@ -31,9 +31,8 @@ pub async fn ut_times_release(
     let own_times_repository = ctx.data().own_times_repository.clone();
     let times_data = own_times_repository
         .get(member_id)
-        .await
-        .context("own_server_times_dataの読み込みに失敗しました")?
-        .context("own_server_times_dataが存在しません")?;
+        .await?
+        .ok_or(OwnTimesNotFound)?;
 
     // webhookのusernameを設定する
     let username = format!("UT-{}", times_data.member_name);
@@ -44,10 +43,7 @@ pub async fn ut_times_release(
     // let other_times_data_vec = OtherTimesData::db_read_all(db.as_ref())?;
     let other_times_repository = ctx.data().other_times_repository.clone();
 
-    let other_times_data_vec = other_times_repository
-        .get_all()
-        .await
-        .context("other_server_times_dataの読み込みに失敗しました")?;
+    let other_times_data_vec = other_times_repository.get_all().await?;
     let member_webhooks = other_times_data_vec
         .iter()
         .map(|m| m.dst_webhook_url.to_owned())
@@ -63,7 +59,7 @@ async fn execute_ubiquitus(
     username: &str,
     content: &str,
     webhooks: Vec<String>,
-) -> anyhow::Result<()> {
+) -> CommandResult<()> {
     // avatar_urlを取得する
     // 要はアイコンの画像
     let avatar_url = ctx.author().avatar_url().unwrap_or_default();

@@ -1,13 +1,21 @@
 // - サーバー初期化コマンド
 // - サーバー設定情報を取得する
 
-use crate::global_data::Context;
-use crate::own_server::OwnServer;
-use crate::own_server_repository::OwnServerRepository;
-use crate::sign::UbiquitimesKeyGenerator;
-use crate::sign::UbiquitimesKeys;
+use crate::{
+    error::{CommandError, GuildIdCannotGet},
+    global_data::Context,
+};
+// use crate::own_server::OwnGuild;
+// use crate::own_server_repository::OwnGuildRepository;
+// use crate::sign::UbiquitimesKeyGenerator;
+// use crate::sign::UbiquitimesKeys;
+use domain::{
+    models::guild_data::OwnGuild,
+    traits::{repositorys::OwnGuildRepository, signer_verifier::UtKeyPairGenerator},
+};
+use signer_verifier::key_generator::RsaKeyPair;
 
-use anyhow::{anyhow, Result};
+use crate::error::CommandResult;
 use poise::serenity_prelude::CreateWebhook;
 use tracing::info;
 
@@ -22,7 +30,7 @@ pub async fn ut_initialize(
     ctx: Context<'_>,
     #[description = "本サーバのサーバ名"] server_name: String,
     #[description = "署名鍵を作り直しますか？（初回はTrueにしてください）"] _is_new_key: bool,
-) -> Result<()> {
+) -> anyhow::Result<()> {
     info!("サーバー初期化開始: {}", server_name);
     // この関数は処理に時間がかかるため，待ち時間を延ばす
     ctx.defer().await?;
@@ -41,10 +49,7 @@ pub async fn ut_initialize(
     info!("manage_webhook_url: {}", manage_webhook_url);
 
     // guild_idを取得
-    let guild_id = ctx
-        .guild_id()
-        .ok_or(anyhow!("guild_idが取得できませんでした"))?
-        .get();
+    let guild_id = ctx.guild_id().ok_or(GuildIdCannotGet)?.get();
 
     info!("guild_id: {}", guild_id);
 
@@ -53,14 +58,14 @@ pub async fn ut_initialize(
 
     // 作成し，作成した鍵をPEM形式に変換
     let keys_pem = {
-        let keys = keys_generator.generate_keys()?;
-        UbiquitimesKeys::to_pem(&keys)
+        let keys = keys_generator.generate_key_pair()?;
+        RsaKeyPair::to_pem(&keys)
     };
 
     info!("公開鍵のPEM: {}", keys_pem.public_key_pem);
 
     // どちらも作成に成功したらDBに保存
-    let own_server = OwnServer::new(
+    let own_server = OwnGuild::new(
         guild_id,
         &server_name,
         manage_channel_id.into(),
@@ -91,10 +96,10 @@ pub async fn ut_initialize(
 #[poise::command(
     prefix_command,
     track_edits,
-    aliases("UtGetOwnServerData"),
+    aliases("UtGetOwnGuildData"),
     slash_command
 )]
-pub async fn ut_get_own_server_data(ctx: Context<'_>) -> Result<()> {
+pub async fn ut_get_own_server_data(ctx: Context<'_>) -> anyhow::Result<()> {
     // この関数は処理に時間がかかるため，待ち時間を延ばす
     ctx.defer().await?;
 

@@ -7,17 +7,22 @@
 //
 
 use super::super::command_check;
-use crate::bot_message::TimesSettingRequest;
-use crate::bot_message_communicator::req_sender::WebhookReqSender;
-use crate::bot_message_communicator::UbiquitimesReqSender;
 use crate::global_data::Context;
-use crate::other_server_repository::OtherTimesRepository;
-use crate::own_server::OwnTimes;
-use crate::own_server_repository::{OwnServerRepository, OwnTimesRepository};
+// use crate::bot_message::TimesSettingRequest;
+// use crate::bot_message_communicator::req_sender::WebhookReqSender;
+// use crate::bot_message_communicator::UbiquitimesReqSender;
+// use crate::other_server_repository::OtherTimesRepository;
+// use crate::own_server::OwnTimes;
+// use crate::own_server_repository::{OwnServerRepository, OwnTimesRepository};
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
 
+use domain::models::communication::TimesSettingRequest;
+use domain::models::guild_data::OtherGuild;
+use domain::models::guild_data::OwnTimes;
+use domain::traits::{communicators::*, repositorys::*};
+use message_communicator::request_sender::PoiseWebhookReqSender;
 use poise::serenity_prelude::CreateWebhook;
 use tracing::info;
 
@@ -179,6 +184,8 @@ pub async fn ut_times_spread_setting(
         }
     };
 
+    // let other_guild = OtherGuild::new(guild_id, guild_name, webhook_url, public_key_pem)
+
     // リクエストメッセージのもととなるデータを作成
     let times_setting_req = TimesSettingRequest::new(
         ctx.author().id.get(),
@@ -187,10 +194,14 @@ pub async fn ut_times_spread_setting(
         own_times.times_webhook_url.clone(),
     );
 
+    let member_id = ctx.author().id.get();
+    let sent_member_and_guild_ids = ctx.data().sent_member_and_guild_ids.write().await;
+    let mut sent_member_and_guild_ids = &mut sent_member_and_guild_ids;
+
     // 設定リクエストを送信する
-    let req_sender = WebhookReqSender::new();
+    let req_sender = PoiseWebhookReqSender::new();
     req_sender
-        .times_setting_request_send(&ctx, dst_guild_id, &dst_server_name, times_setting_req)
+        .times_setting_request_send(dst_guild, member_id, req, sent_member_and_guild_ids)
         .await?;
 
     ctx.say("設定リクエストを送信しました").await?;
@@ -214,7 +225,7 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     response.push_str("拡散先リスト\n --------- \n```");
 
     for other_times_data in other_times_data_vec {
-        response.push_str(&format!("{}\n", other_times_data.dst_server_name));
+        response.push_str(&format!("{}\n", other_times_data.dst_guild_name));
     }
     response.push_str("```");
 
