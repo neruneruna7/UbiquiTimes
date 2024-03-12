@@ -2,19 +2,20 @@ use anyhow::Result;
 
 use poise::serenity_prelude::{self as serenity, ExecuteWebhook, Webhook};
 
-pub mod bot_message;
-pub mod bot_message_communicator;
-pub mod ca_driver;
+// pub mod bot_message;
+// pub mod bot_message_communicator;
+// pub mod ca_driver;
+pub mod error;
 pub mod global_data;
 pub mod initializer;
-pub mod other_server;
-pub mod other_server_repository;
-pub mod own_server;
-pub mod own_server_repository;
+// pub mod other_server;
+// pub mod other_server_repository;
+// pub mod own_server;
+// pub mod own_server_repository;
 pub mod poise_commands;
-pub mod sled_table;
+// pub mod sled_table;
 
-pub mod sign;
+// pub mod sign;
 
 use tracing::info;
 

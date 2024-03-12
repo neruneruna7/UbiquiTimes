@@ -6,6 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+domain = { path = "../domain" }
+sled_repository ={ path = "../infrastructure/sled_repository" }
+message_communicator = { path = "../message_communicator" }
+signer_verifier = { path = "../signer_verifier" }
+ca_driver ={ path = "../ca_driver" }
+
 rand = "*"
 rsa = "*"
 jsonwebtoken = "*"
