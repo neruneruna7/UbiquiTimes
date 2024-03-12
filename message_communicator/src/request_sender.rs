@@ -13,6 +13,8 @@ use poise::serenity_prelude::Webhook;
 
 use domain::thiserror;
 
+use crate::get_webhook::get_webhook;
+
 #[derive(Debug, thiserror::Error)]
 pub enum PoiseWebhookReqSenderError {
     #[error("SelenityError: {0}")]
@@ -43,7 +45,7 @@ impl UtReqSender for PoiseWebhookReqSender {
         // // 認証局もどきから他サーバのデータを取得
         // let other_server = self.get_other_server(dst_guild_id, dst_guild_name).await?;
         // // 送信につかうWebhookを作成
-        let webhook = self.get_webhook(&dst_guild).await?;
+        let webhook = get_webhook(&dst_guild.webhook_url).await?;
 
         // // 送信するメッセージを作成
         // let req_message = self.create_req_message(ctx, other_server, req).await?;
@@ -107,16 +109,6 @@ impl PoiseWebhookReqSender {
 
     //     Ok(other_server)
     // }
-
-    /// webhook_urlから送信につかうWebhookを作成
-    async fn get_webhook(&self, other_guild: &OtherGuild) -> PoiseWebhookReqSenderResult<Webhook> {
-        // 送信だけなら特にトークン無しでもいいらしい
-        // むしろトークン次第で何ができるのか気になるところ
-        let http = Http::new("");
-        let url = &other_guild.webhook_url;
-        let webhook = Webhook::from_url(http, url).await?;
-        Ok(webhook)
-    }
 
     // // 送信するメッセージを作成
     // async fn create_req_message(

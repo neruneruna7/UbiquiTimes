@@ -1122,6 +1122,8 @@ dependencies = [
  "domain",
  "poise",
  "serde_json",
+ "signer_verifier",
+ "sled_repository",
 ]
 
 [[package]]

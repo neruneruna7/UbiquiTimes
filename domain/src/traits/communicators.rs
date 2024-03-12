@@ -41,15 +41,18 @@ pub trait UtReqSender {
 }
 
 pub trait UtReqReceiver {
-    type Error;
+    type Result<T>;
+    // 使うライブラリによって，アプリから受け取ったメッセージの型は違うはず
+    // そのため，それだけは関連型を使って実装時に指定できるようにしておく
+    type NewMessage;
 
     async fn times_setting_receive_and_response(
         &self,
         // リクエストを受け取って，それに対するレスポンスを返すため
         // リクエストを引数にとる
-        req: RequestMessage,
+        new_message: Self::NewMessage,
         own_guild_id: u64,
-    ) -> Result<(), Self::Error>;
+    ) -> Self::Result<()>;
 }
 
 pub trait UtResReceiver {

@@ -18,11 +18,11 @@ pub enum SignError {
 pub type SignResult<T> = Result<T, SignError>;
 
 // たぶんこの構造体たちの場所はモジュール分けした先だな
-pub struct UbiquitimesPrivateKey {
+pub struct RsaSigner {
     pub private_key: rsa::RsaPrivateKey,
 }
 
-impl UbiquitimesPrivateKey {
+impl RsaSigner {
     pub fn new(private_key: rsa::RsaPrivateKey) -> Self {
         Self { private_key }
     }
@@ -33,7 +33,7 @@ impl UbiquitimesPrivateKey {
     }
 }
 
-impl UtSigner for UbiquitimesPrivateKey {
+impl UtSigner for RsaSigner {
     type Result<T> = SignResult<T>;
     fn sign(&self, claims: Claims) -> Self::Result<String> {
         let header = Header::new(Algorithm::RS256);

@@ -15,11 +15,11 @@ pub enum VerifyError {
 pub type VerifyResult<T> = Result<T, VerifyError>;
 
 // たぶんこの構造体たちの場所はモジュール分けした先だな
-pub struct UbiquitimesPublicKey {
+pub struct RsaVerifier {
     pub public_key: rsa::RsaPublicKey,
 }
 
-impl UbiquitimesPublicKey {
+impl RsaVerifier {
     pub fn new(public_key: rsa::RsaPublicKey) -> Self {
         Self { public_key }
     }
@@ -29,7 +29,7 @@ impl UbiquitimesPublicKey {
     }
 }
 
-impl UtVerifier for UbiquitimesPublicKey {
+impl UtVerifier for RsaVerifier {
     type Result<T> = VerifyResult<T>;
     fn verify(&self, signed_token: &str) -> Self::Result<Claims> {
         let _header = Header::new(Algorithm::RS256);
