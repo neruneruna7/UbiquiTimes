@@ -1,10 +1,12 @@
 use core::panic;
 use std::fmt::Debug;
 
+use ca_driver::my_ca_driver::MyCaDriverError;
 use domain::models::communication::RequestMessage;
 use domain::models::communication::ResponseMessage;
 use domain::models::communication::TimesSettingResponse;
 
+use ca_driver::my_ca_driver::MyCaDriver;
 use domain::thiserror;
 use domain::thiserror::Error;
 use domain::tracing;
@@ -29,6 +31,8 @@ pub enum PoiseWebhookReqReceiverError {
     SerdeError(#[from] serde_json::Error),
     #[error("Verifier Error: {0}")]
     VerifierError(#[from] signer_verifier::verifier::VerifyError),
+    #[error("Ca Driver Error: {0}")]
+    CaDriverError(#[from] MyCaDriverError),
     #[error("Own Times Repository Error: {0}")]
     OwnTimesRepositoryError(
         #[from] sled_repository::own_times_repository::SledOwnTimesRepositoryError,
@@ -62,10 +66,7 @@ where
     own_times_repository: R,
 }
 
-impl<C> UtReqReceiver for PoiseWebhookReqReceiver<RsaVerifier, C, SledOwnTimesRepository>
-where
-    C: CaDriver + Debug,
-{
+impl UtReqReceiver for PoiseWebhookReqReceiver<RsaVerifier, MyCaDriver, SledOwnTimesRepository> {
     type Result<T> = PoiseWebhookReqReceiverResult<T>;
     type NewMessage = poise::serenity_prelude::Message;
     #[tracing::instrument(skip(self, new_message))]
@@ -107,13 +108,7 @@ where
         let key_and_webhook = self
             .ca_driver
             .get_key_webhook(req_message.src_guild_id)
-            .await
-            .unwrap_or_else(|_| {
-                panic!(
-                    "Failed to get key and webhook. 異常．本来あるべきではないコードが残っている．"
-                )
-            });
-        // [ERROR] まだCA_Driverの実装がないゆえに，エラーハンドリング不可能．しかるべきときに.unwrap()ではなく?キーワードなどに修正すること．
+            .await?;
 
         // リクエストを検証
         let claim = self

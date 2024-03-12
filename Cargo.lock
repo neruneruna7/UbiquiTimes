@@ -1133,6 +1133,7 @@ checksum = "8f232d6ef707e1956a43342693d2a31e72989554d58299d7a88738cc95b0d35c"
 name = "message_communicator"
 version = "0.1.0"
 dependencies = [
+ "ca_driver",
  "domain",
  "poise",
  "serde_json",
