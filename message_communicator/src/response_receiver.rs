@@ -1,31 +1,20 @@
 use std::collections::HashMap;
 
 // レスポンスを受け取って，それを処理する
-use domain::models::communication::RequestMessage;
+
 use domain::models::communication::ResponseMessage;
-use domain::models::communication::TimesSettingResponse;
+
 use domain::models::guild_data::OtherTimes;
-use domain::models::sign::KeyAndWebhook;
+
 use domain::thiserror;
-use domain::thiserror::Error;
-use domain::tracing;
-use domain::tracing::info;
+
 use domain::traits::communicators::GuildName;
 use domain::traits::communicators::HashKey;
 use domain::traits::communicators::UtResReceiver;
 use domain::traits::repositorys::OtherTimesRepository;
 use domain::traits::repositorys::OwnTimesRepository;
-use domain::traits::{
-    ca_driver::CaDriver, communicators::UtReqReceiver, signer_verifier::UtVerifier,
-};
-use poise::serenity_prelude::ExecuteWebhook;
-use poise::serenity_prelude::Http;
-use poise::serenity_prelude::Webhook;
-use signer_verifier::verifier::RsaVerifier;
-use sled_repository::other_times_repository::SledOtherTimesRepository;
-use sled_repository::own_times_repository::SledOwnTimesRepository;
 
-use crate::get_webhook::get_webhook;
+use sled_repository::other_times_repository::SledOtherTimesRepository;
 
 #[derive(Debug, thiserror::Error)]
 pub enum PoiseWebhookResReceiverError {

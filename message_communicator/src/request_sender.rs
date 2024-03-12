@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use domain::models::communication::RequestMessage;
-use domain::models::communication::TimesSettingRequest;
+
 use domain::models::guild_data::OtherGuild;
-use domain::models::guild_data::OwnGuild;
+
 use domain::traits::communicators::GuildName;
 use domain::traits::communicators::HashKey;
 use domain::traits::communicators::UtReqSender;
@@ -66,6 +66,12 @@ impl UtReqSender for PoiseWebhookReqSender {
         .await?;
 
         Ok(())
+    }
+}
+
+impl Default for PoiseWebhookReqSender {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

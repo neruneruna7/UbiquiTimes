@@ -4,7 +4,7 @@ use tracing::info;
 
 use crate::models::{
     communication::{RequestMessage, ResponseMessage},
-    guild_data::{OtherGuild, OwnGuild},
+    guild_data::OtherGuild,
 };
 
 // できればpoiseへの依存がないトレイトを書きたい

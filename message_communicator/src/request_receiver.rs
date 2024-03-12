@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use domain::models::communication::RequestMessage;
 use domain::models::communication::ResponseMessage;
 use domain::models::communication::TimesSettingResponse;
-use domain::models::sign::KeyAndWebhook;
+
 use domain::thiserror;
 use domain::thiserror::Error;
 use domain::tracing;
@@ -93,7 +93,7 @@ where
                     info!("ok:  new message is receive request");
                     req
                 }
-                Err(e) => {
+                Err(_e) => {
                     info!("no:  new message is not receive request");
                     return Ok(());
                 }
