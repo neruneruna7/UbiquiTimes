@@ -12,3 +12,10 @@ pub trait UtVerifier {
 
     fn verify(&self, signed_token: &str) -> Self::Result<Claims>;
 }
+
+pub trait UtKeyPairGenerator {
+    type Result<T>;
+    type KeyPair;
+
+    fn generate_key_pair(&self) -> Self::Result<Self::KeyPair>;
+}
