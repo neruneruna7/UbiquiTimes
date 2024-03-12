@@ -1,5 +1,5 @@
 [workspace]
-members = [
+members = [ "ca_driver",
     "commands",
     "common", "domain", "infrastructure/sled_repository", "message_communicator", "signer_verifier", 
     # "ubiquitimes/poise",
