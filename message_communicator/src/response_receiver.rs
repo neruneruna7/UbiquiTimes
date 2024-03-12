@@ -46,6 +46,17 @@ where
     other_times_repository: R,
 }
 
+impl<R> PoiseWebhookResReceiver<R>
+where
+    R: OtherTimesRepository,
+{
+    pub fn new(other_times_repository: R) -> Self {
+        Self {
+            other_times_repository,
+        }
+    }
+}
+
 impl UtResReceiver for PoiseWebhookResReceiver<SledOtherTimesRepository> {
     type Error = PoiseWebhookResReceiverError;
 

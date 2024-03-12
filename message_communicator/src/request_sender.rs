@@ -1,17 +1,28 @@
 use std::collections::HashMap;
 
+use ca_driver::my_ca_driver::MyCaDriver;
+use ca_driver::my_ca_driver::MyCaDriverError;
 use domain::models::communication::RequestMessage;
 
+use domain::models::communication::TimesSettingRequest;
 use domain::models::guild_data::OtherGuild;
 
+use domain::models::guild_data::OwnGuild;
+use domain::models::sign::Claims;
+use domain::traits::ca_driver::CaDriver;
 use domain::traits::communicators::GuildName;
 use domain::traits::communicators::HashKey;
 use domain::traits::communicators::UtReqSender;
+use domain::traits::repositorys::OwnTimesRepository;
+use domain::traits::signer_verifier::UtSigner;
 use poise::serenity_prelude::ExecuteWebhook;
 use poise::serenity_prelude::Http;
 use poise::serenity_prelude::Webhook;
 
 use domain::thiserror;
+use signer_verifier::signer;
+use signer_verifier::signer::RsaSigner;
+use sled_repository::own_times_repository::SledOwnTimesRepository;
 
 use crate::get_webhook::get_webhook;
 
@@ -21,14 +32,23 @@ pub enum PoiseWebhookReqSenderError {
     SelenityError(#[from] poise::serenity_prelude::Error),
     #[error("SerdeError: {0}")]
     SerdeError(#[from] serde_json::Error),
+    #[error("Sign Error: {0}")]
+    SignError(#[from] signer_verifier::signer::SignError),
+    #[error("Ca Driver Error: {0}")]
+    CaDriverError(#[from] MyCaDriverError),
 }
 
 pub type PoiseWebhookReqSenderResult<T> = Result<T, PoiseWebhookReqSenderError>;
 
 #[derive(Debug)]
-pub struct PoiseWebhookReqSender;
+pub struct PoiseWebhookReqSender<C>
+where
+    C: CaDriver,
+{
+    ca_driver: C,
+}
 
-impl UtReqSender for PoiseWebhookReqSender {
+impl UtReqSender for PoiseWebhookReqSender<MyCaDriver> {
     type Result<T> = PoiseWebhookReqSenderResult<T>;
     /// 他サーバにリクエストを送信する
     ///
@@ -37,49 +57,51 @@ impl UtReqSender for PoiseWebhookReqSender {
     async fn times_setting_request_send(
         //
         &self,
+        own_guild: &OwnGuild,
         dst_guild: &OtherGuild,
         member_id: u64,
-        req: RequestMessage,
+        times_setting_req: TimesSettingRequest,
         sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
     ) -> Self::Result<()> {
-        // // 認証局もどきから他サーバのデータを取得
-        // let other_server = self.get_other_server(dst_guild_id, dst_guild_name).await?;
+        // 認証局もどきからリクエスト送信先の公開鍵とmanage_webhookを取得
+        let key_and_webhook = self.ca_driver.get_key_webhook(dst_guild.guild_id).await?;
         // // 送信につかうWebhookを作成
         let webhook = get_webhook(&dst_guild.webhook_url).await?;
 
         // // 送信するメッセージを作成
         // let req_message = self.create_req_message(ctx, other_server, req).await?;
+        // let own_guild_id = ctx.guild_id().unwrap().get();
+
+        let signer = RsaSigner::from_pem(&key_and_webhook.public_key_pem)?;
+
+        let claim = Claims::from_servers_for_req(&own_guild, &dst_guild, times_setting_req);
+
+        let req_message =
+            RequestMessage::new(own_guild.guild_id, dst_guild.guild_id, signer.sign(claim)?);
 
         // メッセージをシリアライズ
-        let req_message = self.serialize_req_message(req)?;
+        let req_message = self.serialize_req_message(req_message)?;
 
         let dst_guild_name = dst_guild.guild_name.to_string();
-        // 送信し，どのサーバに送信したかを記録する
-        self.send_and_record_message(
-            webhook,
-            req_message,
+        // 送信する
+        self.send_message(webhook, req_message).await?;
+
+        // どのサーバに送信したかを記録する
+        Self::save_sent_guild_ids(
+            sent_member_and_guild_ids,
+            member_id,
             dst_guild.guild_id,
             dst_guild_name,
-            member_id,
-            sent_member_and_guild_ids,
-        )
-        .await?;
+        );
 
         Ok(())
     }
 }
 
-impl Default for PoiseWebhookReqSender {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl PoiseWebhookReqSender {
-    pub fn new() -> Self {
-        Self
-    }
-
+impl<C> PoiseWebhookReqSender<C>
+where
+    C: CaDriver,
+{
     // // dbから他サーバのデータを取得
     // async fn get_other_server(
     //     &self,
@@ -119,10 +141,9 @@ impl PoiseWebhookReqSender {
     // // 送信するメッセージを作成
     // async fn create_req_message(
     //     &self,
-    //     ctx: &Context<'_>,
-    //     dst_server: OtherServer,
+    //     dst_guild: OtherGuild,
     //     req: TimesSettingRequest,
-    // ) -> TimesSettingCommunicatorResult<bot_message::RequestMessage> {
+    // ) -> PoiseWebhookReqSenderResult<RequestMessage> {
     //     let own_guild_id = ctx.guild_id().unwrap().get();
 
     //     let own_server_repository = ctx.data().own_server_repository.clone();
@@ -142,6 +163,10 @@ impl PoiseWebhookReqSender {
     //     Ok(req_message)
     // }
 
+    pub fn new(ca_driver: C) -> Self {
+        Self { ca_driver }
+    }
+
     // メッセージをシリアライズ
     fn serialize_req_message(
         &self,
@@ -151,30 +176,16 @@ impl PoiseWebhookReqSender {
         Ok(req_message)
     }
 
-    // 送信して送信を記録する
-    async fn send_and_record_message(
+    // 送信する
+    async fn send_message(
         &self,
         webhook: Webhook,
         req_message: String,
-        dst_guild_id: u64,
-        dst_guild_name: String,
-        member_id: u64,
-        sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
     ) -> PoiseWebhookReqSenderResult<()> {
-        // どのサーバに対して送信したかを記録する
-        Self::save_sent_guild_ids(
-            sent_member_and_guild_ids,
-            member_id,
-            dst_guild_id,
-            dst_guild_name,
-        );
-
         let http = Http::new("");
-
         // 送信
         let builder = ExecuteWebhook::new().content(req_message);
         webhook.execute(&http, false, builder).await?;
-
         Ok(())
     }
 }

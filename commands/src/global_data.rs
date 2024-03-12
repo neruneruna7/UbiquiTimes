@@ -8,7 +8,7 @@ use sled_repository::own_guild_repository::SledOwnGuildRepository;
 use sled_repository::own_times_repository::SledOwnTimesRepository;
 use tokio::sync::RwLock;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use std::collections::HashMap;
 
@@ -23,7 +23,7 @@ pub struct Data {
     // ここにキャッシュと明示したデータを作るのはおかしいと思ったので，それらを削除
 
     // ユーザidと送信先ギルドid
-    pub sent_member_and_guild_ids: RwLock<HashMap<HashKey, GuildName>>,
+    pub sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
     // トレイトを受け取るようにしたいけど，うまくいかないから
     // 具体的な型を指定する
     // ていうか，sledは排他制御してるんだっけ

@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use tracing::info;
 
 use crate::models::{
-    communication::{RequestMessage, ResponseMessage},
-    guild_data::OtherGuild,
+    communication::{RequestMessage, ResponseMessage, TimesSettingRequest},
+    guild_data::{OtherGuild, OwnGuild},
 };
 
 // できればpoiseへの依存がないトレイトを書きたい
@@ -12,9 +12,10 @@ pub trait UtReqSender {
     type Result<T>;
     async fn times_setting_request_send(
         &self,
+        own_guild: &OwnGuild,
         dst_guild: &OtherGuild,
         member_id: u64,
-        req: RequestMessage,
+        times_setting_req: TimesSettingRequest,
         sent_member_and_guild_ids: &mut HashMap<HashKey, GuildName>,
     ) -> Self::Result<()>;
 

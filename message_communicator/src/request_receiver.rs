@@ -55,18 +55,16 @@ pub type PoiseWebhookReqReceiverResult<T> = Result<T, PoiseWebhookReqReceiverErr
 /// 他サーバからのリクエストを受信する
 ///
 #[derive(Debug)]
-pub struct PoiseWebhookReqReceiver<V, C, R>
+pub struct PoiseWebhookReqReceiver<C, R>
 where
-    V: UtVerifier,
     C: CaDriver,
     R: OwnTimesRepository,
 {
-    verifier: V,
     ca_driver: C,
     own_times_repository: R,
 }
 
-impl UtReqReceiver for PoiseWebhookReqReceiver<RsaVerifier, MyCaDriver, SledOwnTimesRepository> {
+impl UtReqReceiver for PoiseWebhookReqReceiver<MyCaDriver, SledOwnTimesRepository> {
     type Result<T> = PoiseWebhookReqReceiverResult<T>;
     type NewMessage = poise::serenity_prelude::Message;
     #[tracing::instrument(skip(self, new_message))]
@@ -111,9 +109,8 @@ impl UtReqReceiver for PoiseWebhookReqReceiver<RsaVerifier, MyCaDriver, SledOwnT
             .await?;
 
         // リクエストを検証
-        let claim = self
-            .verifier
-            .verify(&req_message.jws_times_setting_request)?;
+        let verifier = RsaVerifier::from_pem(&key_and_webhook.public_key_pem)?;
+        let claim = verifier.verify(&req_message.jws_times_setting_request)?;
 
         info!("verify complete. claim: {:?}", claim);
 
@@ -151,9 +148,8 @@ impl UtReqReceiver for PoiseWebhookReqReceiver<RsaVerifier, MyCaDriver, SledOwnT
     }
 }
 
-impl<V, C, R> PoiseWebhookReqReceiver<V, C, R>
+impl<C, R> PoiseWebhookReqReceiver<C, R>
 where
-    V: UtVerifier,
     C: CaDriver,
     R: OwnTimesRepository,
 {
@@ -234,6 +230,13 @@ where
     //     let serialized_message = serde_json::to_string(&res_message)?;
     //     Ok(serialized_message)
     // }
+
+    pub fn new(ca_driver: C, own_times_repository: R) -> Self {
+        Self {
+            ca_driver,
+            own_times_repository,
+        }
+    }
 
     // レスポンスを送信
     async fn send_res_message(
