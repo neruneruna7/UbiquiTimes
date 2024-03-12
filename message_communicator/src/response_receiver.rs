@@ -26,7 +26,7 @@ pub enum PoiseWebhookResReceiverError {
     VerifierError(#[from] signer_verifier::verifier::VerifyError),
     #[error("Other Times Repository Error: {0}")]
     OtherTimesRepositoryError(
-        #[from] sled_repository::other_times_repository::SledOtherTimesRepisotoryError,
+        #[from] sled_repository::other_times_repository::SledOtherTimesRepositoryError,
     ),
     #[error("Response Receiver Error: {0}")]
     ResponseReceiverError(#[from] ResponseReceiverError),
