@@ -2,10 +2,10 @@
 resolver = "2"
 members = [
     "commands",
-    "./domain",
-    "./ca_driver",
-    "./signer_verifier",
-    "./infrastructure/sled_repository",
+    # "./domain",
+    # "./ca_driver",
+    # "./signer_verifier",
+    # "./infrastructure/sled_repository",
     "common",
     # "ubiquitimes/poise",
     "ubiquitimes/shuttle",

@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-anyhow = "1.0.68"
+anyhow = "1.0.*"
 poise = "0.6.1"
 shuttle-serenity = "0.40.0"
 shuttle-runtime = "0.40.0"

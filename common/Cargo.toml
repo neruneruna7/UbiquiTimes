@@ -7,8 +7,6 @@ edition = "2021"
 
 [dependencies]
 poise = "0.6.1"
-tracing = "*"
-tracing-subscriber = "*"
 anyhow = "1.0"
 
 commands  = { path = "../commands" }

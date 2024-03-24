@@ -11,7 +11,7 @@ use poise::serenity_prelude::{self as serenity, FullEvent};
 
 use commands::global_data::Data;
 
-use tracing::info;
+use domain::tracing::info;
 
 /// poise公式リポジトリのサンプルコードの改造
 /// コメントをグーグル翻訳にかけている

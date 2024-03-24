@@ -24,7 +24,7 @@ use domain::models::guild_data::OwnTimes;
 use domain::traits::{communicators::*, repositorys::*};
 use message_communicator::request_sender::PoiseWebhookReqSender;
 use poise::serenity_prelude::CreateWebhook;
-use tracing::info;
+use domain::tracing::info;
 
 fn create_member_webhook_name(member_id: u64) -> String {
     format!("UT-{}", member_id)

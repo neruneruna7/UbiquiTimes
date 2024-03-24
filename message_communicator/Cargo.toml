@@ -11,5 +11,5 @@ signer_verifier = { path = "../signer_verifier" }
 sled_repository ={ path = "../infrastructure/sled_repository"}
 ca_driver ={ path = "../ca_driver"}
 
-poise = "0.6.1"
+poise = "*"
 serde_json = "*"

@@ -12,15 +12,8 @@ message_communicator = { path = "../message_communicator" }
 signer_verifier = { path = "../signer_verifier" }
 ca_driver ={ path = "../ca_driver" }
 
-
 poise = "0.6.1"
 anyhow = "1.0"
-thiserror = "1.0"
-
-tracing = "0.1"
-tracing-subscriber = "0.3"
-
-tokio = "*"
 
 
 
