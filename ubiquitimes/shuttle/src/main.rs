@@ -6,7 +6,7 @@ use std::time::Duration;
 use anyhow::{Context as _, Error};
 use ca_driver::my_ca_driver::MyCaDriver;
 use poise::serenity_prelude::{ClientBuilder, GatewayIntents};
-use shuttle_secrets::SecretStore;
+use shuttle_runtime::SecretStore;
 use shuttle_serenity::ShuttleSerenity;
 use signer_verifier::key_generator::RsaKeyGenerator;
 use sled_repository::{
@@ -17,7 +17,7 @@ use sled_repository::{
 
 use commands::global_data::Data;
 
-use tracing::info;
+use domain::tracing::info;
 
 // struct Data {} // User data, which is stored and accessible in all command invocations
 // type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -27,7 +27,7 @@ const MODE: &str = "debug1";
 
 #[shuttle_runtime::main]
 async fn poise(
-    #[shuttle_secrets::Secrets] secret_store: SecretStore,
+    #[shuttle_runtime::Secrets] secret_store: SecretStore,
     // #[shuttle_static_folder::StaticFolder(folder = "db")] static_folder: PathBuf,
 ) -> ShuttleSerenity {
     // Get the discord token set in `Secrets.toml`

@@ -7,12 +7,9 @@ publish = false
 [dependencies]
 anyhow = "1.0.*"
 poise = "0.6.1"
-shuttle-serenity = "0.40.0"
-shuttle-runtime = "0.40.0"
-shuttle-secrets = "0.40.0"
-tracing = "*"
-tracing-subscriber = "*"
-tokio = "1.26.0"
+shuttle-serenity = "0.42.0"
+shuttle-runtime = "0.42.0"
+tokio = "1.36.0"
 
 sled = "0.34.7"
 
