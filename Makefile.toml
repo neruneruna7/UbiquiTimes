@@ -6,3 +6,15 @@ description = "Format all workspace packages"
 command = "cargo"
 args = ["watch", "-x","fmt"]
 
+
+[tasks.debug1]
+description = "Run debug2"
+env = { "MODE"= "debug1" }
+command = "cargo"
+args = ["shuttle", "run"]
+
+[tasks.debug2]
+description = "Run debug2"
+env = { "MODE"= "debug2" }
+command = "cargo"
+args = ["shuttle", "run"]

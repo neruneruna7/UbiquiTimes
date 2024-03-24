@@ -1,3 +1,4 @@
+use std::env;
 use std::{collections::HashMap, sync::Mutex};
 
 use std::sync::Arc;
@@ -23,8 +24,6 @@ use domain::tracing::info;
 // type Error = Box<dyn std::error::Error + Send + Sync>;
 // type Context<'a> = poise::Context<'a, Data, Error>;
 
-const MODE: &str = "debug1";
-
 #[shuttle_runtime::main]
 async fn poise(
     #[shuttle_runtime::Secrets] secret_store: SecretStore,
@@ -33,25 +32,11 @@ async fn poise(
     // Get the discord token set in `Secrets.toml`
     // tracing_subscriber::fmt::init();
 
-    let (discord_token, db) = if MODE == "debug1" {
-        let discord_token = secret_store
-            .get("DISCORD_TOKEN")
-            .context("'DISCORD_TOKEN' was not found")?;
-        let db = sled::open("my_database").unwrap();
-        (discord_token, db)
-    } else if MODE == "debug2" {
-        let discord_token = secret_store
-            .get("DISCORD_TOKEN2")
-            .context("'DISCORD_TOKEN' was not found")?;
-        let db = sled::open("my_database2").unwrap();
-        (discord_token, db)
-    } else {
-        return Err(Error::msg("MODEが不正です").into());
-    };
-
     // let discord_token = secret_store
     //     .get("DISCORD_TOKEN2")
     //     .context("'DISCORD_TOKEN' was not found")?;
+
+    let (discord_token, db) = run_mode(&secret_store);
 
     let sent_member_and_guild_ids = Arc::new(Mutex::new(HashMap::new()));
     // DAO作成
@@ -167,4 +152,29 @@ async fn poise(
     .map_err(shuttle_runtime::CustomError::new)?;
 
     Ok(client.into())
+}
+
+// 起動モード
+fn run_mode(secret_store: &SecretStore) -> (String, sled::Db) {
+    let mode = env::var("MODE").unwrap();
+
+    let r = if mode == "debug1" {
+        let discord_token = secret_store
+            .get("DISCORD_TOKEN")
+            .context("'DISCORD_TOKEN' was not found")
+            .unwrap();
+        let db = sled::open("my_database").unwrap();
+        (discord_token, db)
+    } else if mode == "debug2" {
+        let discord_token = secret_store
+            .get("DISCORD_TOKEN2")
+            .context("'DISCORD_TOKEN' was not found")
+            .unwrap();
+        let db = sled::open("my_database2").unwrap();
+        (discord_token, db)
+    } else {
+        panic!("invalid MODE");
+    };
+
+    r
 }
