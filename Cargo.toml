@@ -15,6 +15,9 @@ members = [
     # "sb/sled",
 ]
 
+[profile.dev]
+debug = 0
+
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none
 # cargo shuttle init api/shuttle  --name api-shuttle
 # cargo new sb/slcommands --name sb-slcommands --vcs none
