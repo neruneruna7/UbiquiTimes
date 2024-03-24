@@ -1,0 +1,8 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[tasks.w-fmt]
+description = "Format all workspace packages"
+command = "cargo"
+args = ["watch", "-x","fmt"]
+
