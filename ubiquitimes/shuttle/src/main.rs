@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::Mutex};
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{Context as _, Error};
+use anyhow::Context as _;
 use ca_driver::my_ca_driver::MyCaDriver;
 use poise::serenity_prelude::{ClientBuilder, GatewayIntents};
 use shuttle_runtime::SecretStore;
@@ -130,7 +130,7 @@ async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> Shuttle
 fn select_run_mode(secret_store: &SecretStore) -> (String, sled::Db) {
     let mode = env::var("MODE").unwrap();
 
-    let r = if mode == "debug1" {
+    if mode == "debug1" {
         let discord_token = secret_store
             .get("DISCORD_TOKEN")
             .context("'DISCORD_TOKEN' was not found")
@@ -146,9 +146,7 @@ fn select_run_mode(secret_store: &SecretStore) -> (String, sled::Db) {
         (discord_token, db)
     } else {
         panic!("invalid MODE");
-    };
-
-    r
+    }
 }
 
 fn create_app_state(db: Db) -> Data {
