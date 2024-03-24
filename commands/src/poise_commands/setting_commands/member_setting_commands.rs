@@ -21,10 +21,10 @@ use anyhow::Result;
 use domain::models::communication::TimesSettingRequest;
 
 use domain::models::guild_data::OwnTimes;
+use domain::tracing::info;
 use domain::traits::{communicators::*, repositorys::*};
 use message_communicator::request_sender::PoiseWebhookReqSender;
 use poise::serenity_prelude::CreateWebhook;
-use domain::tracing::info;
 
 fn create_member_webhook_name(member_id: u64) -> String {
     format!("UT-{}", member_id)

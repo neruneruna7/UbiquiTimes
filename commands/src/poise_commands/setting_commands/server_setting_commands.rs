@@ -12,8 +12,8 @@ use domain::{
 };
 use signer_verifier::key_generator::RsaKeyPair;
 
-use poise::serenity_prelude::CreateWebhook;
 use domain::tracing::info;
+use poise::serenity_prelude::CreateWebhook;
 
 /// Botのセットアップを行います 導入後最初に実行してください
 ///
