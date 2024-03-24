@@ -1,7 +1,12 @@
 [workspace]
-members = [ "ca_driver",
+resolver = "2"
+members = [
     "commands",
-    "common", "domain", "infrastructure/sled_repository", "message_communicator", "signer_verifier", 
+    "./domain",
+    "./ca_driver",
+    "./signer_verifier",
+    "./infrastructure/sled_repository",
+    "common",
     # "ubiquitimes/poise",
     "ubiquitimes/shuttle",
     # "sb/commands",
@@ -9,7 +14,6 @@ members = [ "ca_driver",
     # "sb/crypt",
     # "sb/sled",
 ]
-resolver = "2"
 
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none
 # cargo shuttle init api/shuttle  --name api-shuttle
