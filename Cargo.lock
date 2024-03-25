@@ -270,12 +270,10 @@ name = "common"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "ca_driver",
  "commands",
  "domain",
  "message_communicator",
  "poise",
- "sled_repository",
 ]
 
 [[package]]
@@ -1961,7 +1959,6 @@ dependencies = [
 name = "sled_repository"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "domain",
  "serde",
  "serde_json",
@@ -2486,14 +2483,12 @@ dependencies = [
  "commands",
  "common",
  "domain",
- "message_communicator",
  "poise",
  "shuttle-runtime",
  "shuttle-serenity",
  "signer_verifier",
  "sled",
  "sled_repository",
- "tokio",
 ]
 
 [[package]]

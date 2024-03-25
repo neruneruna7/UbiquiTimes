@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 sled = { version = "0.34.7", default-features = false }
-chrono = { version = "0.4", default-features = false }
+# chrono = { version = "0.4", default-features = false }
 serde_json = { version = "1.0", default-features = false }
 serde = { version = "1.0", default-features = false }
 tokio = "*"
