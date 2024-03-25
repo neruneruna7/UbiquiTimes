@@ -1,4 +1,5 @@
 use anyhow::Error;
+use commands::help_command::help;
 use commands::poise_commands::setting_commands::{
     member_setting_commands, server_setting_commands,
 };
@@ -28,27 +29,6 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 //     poise_mentions: AtomicU32,
 //     connection: Arc<SqlitePool>,
 // }
-
-// ヘルプコマンドだけメインに記述してしまうことにした
-/// ヘルプを表示します
-#[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn help(
-    ctx: Context<'_>,
-    #[description = "Specific command to show help about"]
-    #[autocomplete = "poise::builtins::autocomplete_command"]
-    command: Option<String>,
-) -> anyhow::Result<()> {
-    poise::builtins::help(
-        ctx,
-        command.as_deref(),
-        poise::builtins::HelpConfiguration {
-            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
-            ..Default::default()
-        },
-    )
-    .await?;
-    Ok(())
-}
 
 pub async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     // This is our custom error handler

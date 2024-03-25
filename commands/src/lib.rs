@@ -1,62 +1,42 @@
-use anyhow::Result;
-
 use poise::serenity_prelude::{self as serenity, ExecuteWebhook, Webhook};
 pub mod error;
 pub mod global_data;
+pub mod help_command;
 pub mod poise_commands;
 
 use domain::tracing::info;
 
 use global_data::Context;
 
-/// 現在エラー発生中 master_webhook_urlがdataに無いと予測
-// 一旦コメントアウト
-async fn logged(_ctx: &Context<'_>, _msg: &str) -> Result<()> {
-    // let master_webhook_url = ctx.data().master_webhook_url.read().await;
+// /// 現在エラー発生中 master_webhook_urlがdataに無いと予測
+// // 一旦コメントアウト
+// // discordにもログを流したい
+// async fn logged(_ctx: &Context<'_>, _msg: &str) -> Result<()> {
+//     // let master_webhook_url = ctx.data().master_webhook_url.read().await;
 
-    // let webhook = Webhook::from_url(ctx, &master_webhook_url)
-    //     .await
-    //     .context(format!(
-    //         "globaldataのmaster_webhook_urlに異常があるか，登録されていません． url: {}",
-    //         &master_webhook_url
-    //     ))?;
+//     // let webhook = Webhook::from_url(ctx, &master_webhook_url)
+//     //     .await
+//     //     .context(format!(
+//     //         "globaldataのmaster_webhook_urlに異常があるか，登録されていません． url: {}",
+//     //         &master_webhook_url
+//     //     ))?;
 
-    // info!(msg);
-    // webhook.execute(&ctx, false, |w| w.content(msg)).await?;
+//     // info!(msg);
+//     // webhook.execute(&ctx, false, |w| w.content(msg)).await?;
 
-    Ok(())
-}
+//     Ok(())
+// }
 
-/// serenityのctxだとctx.sayが使えないので
-async fn logged_serenity_ctx(
-    ctx: &serenity::Context,
-    master_webhook_url: &str,
-    msg: &str,
-) -> Result<()> {
-    let my_webhook = Webhook::from_url(&ctx, master_webhook_url).await?;
+// /// serenityのctxだとctx.sayが使えないので
+// async fn logged_serenity_ctx(
+//     ctx: &serenity::Context,
+//     master_webhook_url: &str,
+//     msg: &str,
+// ) -> Result<()> {
+//     let my_webhook = Webhook::from_url(&ctx, master_webhook_url).await?;
 
-    info!(msg);
-    let builder = ExecuteWebhook::new().content(msg);
-    my_webhook.execute(ctx, false, builder).await?;
-    Ok(())
-}
-
-/// Show this help menu
-#[poise::command(prefix_command, track_edits, slash_command)]
-pub async fn help(
-    ctx: Context<'_>,
-    #[description = "Specific command to show help about"]
-    #[autocomplete = "poise::builtins::autocomplete_command"]
-    command: Option<String>,
-) -> Result<()> {
-    poise::builtins::help(
-        ctx,
-        command.as_deref(),
-        poise::builtins::HelpConfiguration {
-            extra_text_at_bottom: "This is an example bot made to showcase features of my custom Discord bot framework",
-            ..Default::default()
-        },
-    )
-    .await?;
-    Ok(())
-}
+//     info!(msg);
+//     let builder = ExecuteWebhook::new().content(msg);
+//     my_webhook.execute(ctx, false, builder).await?;
+//     Ok(())
+// }
