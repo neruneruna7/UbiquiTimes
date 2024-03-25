@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-poise = "0.6.1"
-anyhow = "1.0"
+poise = { version = "0.6.1", default-features = false }
+anyhow = { version = "1.0", default-features = false }
 
 commands  = { path = "../commands" }
 domain = { path = "../domain" }

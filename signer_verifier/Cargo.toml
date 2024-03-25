@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 domain ={ path = "../domain"}
-
-rand = "0.8"
-rsa = "*"
+rand = { version = "0.8", default-features = false }
+rsa = { version = "*", features = ["pem", "std"], default-features = false }
 jsonwebtoken = "*"

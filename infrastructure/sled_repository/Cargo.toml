@@ -6,12 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-sled = "0.34.7"
-chrono = "0.4"
-serde_json = "1.0"
-# domainでreexportしているはずなのに，なぜかserdeも必要
-serde = { version = "1.0", features = ["derive"] }
+sled = { version = "0.34.7", default-features = false }
+chrono = { version = "0.4", default-features = false }
+serde_json = { version = "1.0", default-features = false }
+serde = { version = "1.0", default-features = false }
 tokio = "*"
 
 domain = { path = "../../domain" }

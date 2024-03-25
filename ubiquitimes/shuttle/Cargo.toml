@@ -5,13 +5,12 @@ edition = "2021"
 publish = false
 
 [dependencies]
-anyhow = "1.0.*"
-poise = "0.6.1"
+anyhow = { version = "1.0.*", default-features = false }
+poise = { version = "0.6.1", default-features = false }
 shuttle-serenity = "0.42.0"
-shuttle-runtime = "0.42.0"
+shuttle-runtime = { version = "0.42.0", default-features = false }
 tokio = "1.36.0"
-
-sled = "0.34.7"
+sled = { version = "0.34.7", default-features = false }
 
 # sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
 

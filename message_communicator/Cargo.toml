@@ -10,6 +10,5 @@ domain = { path = "../domain" }
 signer_verifier = { path = "../signer_verifier" }
 sled_repository ={ path = "../infrastructure/sled_repository"}
 ca_driver ={ path = "../ca_driver"}
-
-poise = "*"
-serde_json = "*"
+poise = { version = "*", default-features = false }
+serde_json = { version = "*", default-features = false }
