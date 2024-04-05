@@ -70,6 +70,7 @@ pub type ReqReceiverResult<T> = Result<T, PoiseWebhookReqReceiverError>;
 #[derive(Debug)]
 pub struct PoiseWebhookReqReceiver
 // 試しにジェネリクスでコネコネしてみたけど，つらい
+// 現状複数のリポジトリ等を使うことはないので，ジェネリクスは使わない
 // where
 //     C: CaDriver,
 //     R: OwnTimesRepository,
@@ -95,6 +96,11 @@ impl PoiseWebhookReqReceiver {
         webhook: Webhook,
         serialized_message: String,
     ) -> ReqReceiverResult<()> {
+        // 手順に意味がある？
+        // httpとbuilderの間にはこの手順である必要がない
+        // タプルにして返す関数に切り出せば，この関数の中では逐次的凝集か？
+        // だがわざわざ切り出すメリットがあるとは思えない．
+        // 判断しきれない
         let http = Http::new("");
         let builder = ExecuteWebhook::new().content(serialized_message);
         webhook.execute(http, false, builder).await?;
@@ -106,6 +112,9 @@ impl PoiseWebhookReqReceiver {
 
     /// メッセージの送信者がbotであるかどうかを確認
     fn is_bot_message(new_message: poise::serenity_prelude::Message) -> BotMessageState {
+        // Botからのメッセージかどうかを判断し，それに合わせたデータ型を返す
+        // 単一の機能であるとみてよさそうだ
+        // 機能的凝集であると考える
         if !new_message.author.bot {
             return BotMessageState::NoBot;
         }
@@ -114,36 +123,50 @@ impl PoiseWebhookReqReceiver {
 
     /// new_messageをRequestMessageにデシリアライズ
     fn deserialize_message(new_message: poise::serenity_prelude::Message) -> RequestMessageState {
+        // デシリアライズし，リクエストメッセージかどうかを判断する
+        // デシリアライズと，リクエストメッセージかどうかの判断という2つの機能がある
+        // 手順に意味はあり，この手順でなければならない
+        // 逐次的凝集とみなせるかも？
+        // 内部関数として切り出してみた
+        // 内部関数であることの是非はともかく，デシリアライズ以後の処理だけ見れば逐次的凝集とみなせるだろう
+        fn is_response_message(
+            req: Result<RequestMessage, serde_json::Error>,
+        ) -> RequestMessageState {
+            match req {
+                Ok(req) => {
+                    info!("ok:  new message is receive request");
+                    return RequestMessageState::RequestMessage(req);
+                }
+                Err(_e) => {
+                    info!("no:  new message is not receive request");
+                    return RequestMessageState::NotRequestMessage;
+                }
+            }
+        }
+
         // デシリアライズ
         let req: Result<RequestMessage, serde_json::Error> =
             serde_json::from_str(&new_message.content);
+        let req = is_response_message(req);
 
-        match req {
-            Ok(req) => {
-                info!("ok:  new message is receive request");
-                return RequestMessageState::RequestMessage(req);
-            }
-            Err(_e) => {
-                info!("no:  new message is not receive request");
-                return RequestMessageState::NotRequestMessage;
-            }
-        }
+        req
     }
 
     /// newmessageがRequestMessageかどうか調べる
     fn is_newmessage(new_message: poise::serenity_prelude::Message) -> RequestMessageState {
+        // こちらも内部関数を使って（内部関数の是非は置いておいて）切り分けてみる
+        // ようと思ったが，returnを使う必要があり，切り分けられない
+        // 特定の手順で，手順間で値の受け渡しを行っている
+        // ひとまず，逐次的凝集とみないしてもよいだろうか？
+
         let message = Self::is_bot_message(new_message);
         let message = match message {
             BotMessageState::NoBot => return RequestMessageState::NotRequestMessage,
             BotMessageState::BotMessage(message) => message,
         };
         let message = Self::deserialize_message(message);
-        match message {
-            RequestMessageState::NotRequestMessage => RequestMessageState::NotRequestMessage,
-            RequestMessageState::RequestMessage(req_message) => {
-                RequestMessageState::RequestMessage(req_message)
-            }
-        }
+
+        message
     }
 
     /// リクエストを検証する
@@ -151,6 +174,8 @@ impl PoiseWebhookReqReceiver {
         req_message: &RequestMessage,
         key_and_webhook: &KeyAndWebhook,
     ) -> ReqReceiverResult<Claims> {
+        // 特定の手順で，手順間で値の受け渡しを行っている
+        // 逐次的凝集とみていいだろう
         let verifier = RsaVerifier::from_pem(&key_and_webhook.public_key_pem)?;
         let claim = verifier.verify(&req_message.jws_times_setting_request)?;
         info!("verify complete. claim: {:?}", claim);
@@ -164,14 +189,27 @@ impl PoiseWebhookReqReceiver {
         own_guild_id: u64,
         own_times: &OwnTimes,
     ) -> ResponseMessage {
+        // 内部関数でもっと整理してみよう
+        // (内部関数の是非はおいておく)
+        fn create_res_message(
+            req_message: RequestMessage,
+            times_setting_response: TimesSettingResponse,
+        ) -> ResponseMessage {
+            let response_message = ResponseMessage::new(
+                req_message.src_guild_id,
+                req_message.dst_guild_id,
+                times_setting_response,
+            );
+
+            response_message
+        }
+        // 特定の手順で，手順間で値の受け渡しをする
+        // 逐次的凝集とみなしてよいだろう
+
         let times_setting_response =
             TimesSettingResponse::from_req(&claim.times_setting_req, own_guild_id, &own_times);
+        let response_message = create_res_message(req_message, times_setting_response);
 
-        let response_message = ResponseMessage::new(
-            req_message.src_guild_id,
-            req_message.dst_guild_id,
-            times_setting_response,
-        );
         response_message
     }
 }
@@ -196,6 +234,7 @@ impl UtReqReceiver for PoiseWebhookReqReceiver {
         };
 
         // リクエストをを検証し，レスポンスを返す
+        
 
         // // 送信元のサーバのwebhookと公開鍵を取得
         // // オレオレ認証局もどきにアクセスする
