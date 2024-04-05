@@ -10,6 +10,7 @@ use domain::models::communication::TimesSettingRequest;
 use domain::models::guild_data::OtherGuild;
 
 use domain::models::guild_data::OwnGuild;
+use domain::models::sign;
 use domain::models::sign::Claims;
 use domain::traits::ca_driver::CaDriver;
 use domain::traits::communicators::GuildName;
@@ -39,78 +40,14 @@ pub enum PoiseWebhookReqSenderError {
     CaDriverError(#[from] MyCaDriverError),
 }
 
-pub type PoiseWebhookReqSenderResult<T> = Result<T, PoiseWebhookReqSenderError>;
+pub type ReqSenderResult<T> = Result<T, PoiseWebhookReqSenderError>;
 
 #[derive(Debug)]
-pub struct PoiseWebhookReqSender<C>
-where
-    C: CaDriver,
-{
-    ca_driver: Arc<C>,
+pub struct PoiseWebhookReqSender {
+    ca_driver: Arc<MyCaDriver>,
 }
 
-impl UtReqSender for PoiseWebhookReqSender<MyCaDriver> {
-    type Result<T> = PoiseWebhookReqSenderResult<T>;
-    /// 他サーバにリクエストを送信する
-    ///
-    /// dst_guild_idは送信先のサーバのID かならず機械的にどのサーバか特定できるもの
-    /// dst_guild_nameは送信先のサーバの名前 人間が識別可能であればなんでもよい
-    async fn times_setting_request_send(
-        //
-        &self,
-        own_guild: &OwnGuild,
-        dst_guild_id: u64,
-        dst_guild_name: &str,
-        member_id: u64,
-        times_setting_req: TimesSettingRequest,
-        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
-    ) -> Self::Result<()> {
-        // 認証局もどきからリクエスト送信先の公開鍵とmanage_webhookを取得
-        let key_and_webhook = self.ca_driver.get_key_webhook(dst_guild_id).await?;
-
-        let dst_guild = OtherGuild::new(
-            dst_guild_id,
-            dst_guild_name,
-            &key_and_webhook.manage_webhook,
-            &key_and_webhook.public_key_pem,
-        );
-        // // 送信につかうWebhookを作成
-        let webhook = get_webhook(&dst_guild.webhook_url).await?;
-
-        // // 送信するメッセージを作成
-        // let req_message = self.create_req_message(ctx, other_server, req).await?;
-        // let own_guild_id = ctx.guild_id().unwrap().get();
-
-        let signer = RsaSigner::from_pem(&key_and_webhook.public_key_pem)?;
-
-        let claim = Claims::from_servers_for_req(own_guild, &dst_guild, times_setting_req);
-
-        let req_message =
-            RequestMessage::new(own_guild.guild_id, dst_guild.guild_id, signer.sign(claim)?);
-
-        // メッセージをシリアライズ
-        let req_message = self.serialize_req_message(req_message)?;
-
-        let dst_guild_name = dst_guild.guild_name.to_string();
-        // 送信する
-        self.send_message(webhook, req_message).await?;
-
-        // どのサーバに送信したかを記録する
-        Self::save_sent_guild_ids(
-            sent_member_and_guild_ids,
-            member_id,
-            dst_guild.guild_id,
-            dst_guild_name,
-        );
-
-        Ok(())
-    }
-}
-
-impl<C> PoiseWebhookReqSender<C>
-where
-    C: CaDriver,
-{
+impl PoiseWebhookReqSender {
     // // dbから他サーバのデータを取得
     // async fn get_other_server(
     //     &self,
@@ -172,29 +109,110 @@ where
     //     Ok(req_message)
     // }
 
-    pub fn new(ca_driver: Arc<C>) -> Self {
+    pub fn new(ca_driver: Arc<MyCaDriver>) -> Self {
         Self { ca_driver }
     }
 
     // メッセージをシリアライズ
-    fn serialize_req_message(
-        &self,
-        req_message: RequestMessage,
-    ) -> PoiseWebhookReqSenderResult<String> {
+    fn serialize_req_message(req_message: RequestMessage) -> ReqSenderResult<String> {
+        // そもそも単一の機能 ラッパーのような関数を作る意味はあるだろうか？
         let req_message = serde_json::to_string(&req_message)?;
         Ok(req_message)
     }
 
-    // 送信する
-    async fn send_message(
-        &self,
-        webhook: Webhook,
-        req_message: String,
-    ) -> PoiseWebhookReqSenderResult<()> {
+    // 送信するメッセージを作成
+    fn sign_craim(own_guild: &OwnGuild, claim: Claims) -> ReqSenderResult<String> {
+        // 特定の手順であり，手順間で値の受け渡しをする
+        // 逐次的凝集とみなせるだろう
+        let signer = RsaSigner::from_pem(&own_guild.private_key_pem)?;
+        let signed_claim = signer.sign(claim)?;
+        Ok(signed_claim)
+    }
+
+    fn create_req_message(
+        own_guild: &OwnGuild,
+        dst_guild: &OtherGuild,
+        req: TimesSettingRequest,
+    ) -> ReqSenderResult<RequestMessage> {
+        // 手順間で同じ値を使う部分がある？（own_guild）
+        // 通信的凝集...?
+        // 違う気もする
+        // わからない
+        let claim = Claims::from_servers_for_req(own_guild, &dst_guild, req);
+        let signed_claim = Self::sign_craim(own_guild, claim)?;
+        let req_message = RequestMessage::new(own_guild.guild_id, dst_guild.guild_id, signed_claim);
+        Ok(req_message)
+    }
+
+    /// 指定したギルドに送信する
+    /// どこに(dst_guild)，何を(req_message)
+    async fn send_message(dst_guild: &OtherGuild, req_message: String) -> ReqSenderResult<()> {
+        // 逐次的凝集...か？
+        // 送信につかうWebhookを作成
+        let webhook = get_webhook(&dst_guild.webhook_url).await?;
         let http = Http::new("");
         // 送信
         let builder = ExecuteWebhook::new().content(req_message);
         webhook.execute(&http, false, builder).await?;
+        Ok(())
+    }
+
+    fn save_sent_guild(
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
+        member_id: u64,
+        dst_guild: OtherGuild,
+    ) {
+        // 凝集がわからなくなってきた
+        // 逐次的凝集だろうか？
+        let dst_guild_id = dst_guild.guild_id;
+        let dst_guild_name = dst_guild.guild_name.to_string();
+        Self::save_sent_guild_ids(
+            sent_member_and_guild_ids,
+            member_id,
+            dst_guild_id,
+            dst_guild_name,
+        );
+    }
+}
+
+impl UtReqSender for PoiseWebhookReqSender {
+    type Result<T> = ReqSenderResult<T>;
+    /// 他サーバにリクエストを送信する
+    ///
+    /// dst_guild_idは送信先のサーバのID かならず機械的にどのサーバか特定できるもの
+    /// dst_guild_nameは送信先のサーバの名前 人間が識別可能であればなんでもよい
+    async fn times_setting_request_send(
+        //
+        &self,
+        own_guild: &OwnGuild,
+        dst_guild_id: u64,
+        dst_guild_name: &str,
+        member_id: u64,
+        times_setting_req: TimesSettingRequest,
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
+    ) -> Self::Result<()> {
+        // 認証局もどきからリクエスト送信先の公開鍵とmanage_webhookを取得
+        let key_and_webhook = self.ca_driver.get_key_webhook(dst_guild_id).await?;
+
+        let dst_guild = OtherGuild::new(
+            dst_guild_id,
+            dst_guild_name,
+            &key_and_webhook.manage_webhook,
+            &key_and_webhook.public_key_pem,
+        );
+
+        // リクエストをメッセージを作成
+        let req_message = Self::create_req_message(own_guild, &dst_guild, times_setting_req)?;
+
+        // メッセージをシリアライズ
+        let req_message = Self::serialize_req_message(req_message)?;
+
+        // 送信する
+        Self::send_message(&dst_guild, req_message).await?;
+
+        // どのサーバに送信したかを記録する
+        Self::save_sent_guild(sent_member_and_guild_ids, member_id, dst_guild);
+
         Ok(())
     }
 }
