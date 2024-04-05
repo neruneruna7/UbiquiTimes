@@ -63,7 +63,7 @@ impl UtSigner for RsaSigner {
 //     use super::*;
 
 //     #[test]
-//     fn test_create_verifer() {
+//     fn test_create_verifier() {
 //         // verifierを作れるかどうかのテスト
 //         let public_key_pem = r"-----BEGIN RSA PUBLIC KEY-----
 // MIIBCgKCAQEAvXmv+r7dVCuoJEHrDpeIczhH10jjFVibnL0AfX1TTJlOWPQvfwyh

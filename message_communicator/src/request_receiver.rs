@@ -108,7 +108,7 @@ impl PoiseWebhookReqReceiver {
         Ok(())
     }
 
-    // Self::ってやるとサジェストが効いて楽だからimplimentのところに書く
+    // Self::ってやるとサジェストが効いて楽だからimplementのところに書く
     // どうせここ以外で使わない非公開関数だしね
 
     /// メッセージの送信者がbotであるかどうかを確認

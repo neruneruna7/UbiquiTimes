@@ -14,12 +14,12 @@ pub struct WebhookResReceiver;
 impl UbiquitimesResReceiver for WebhookResReceiver {
     async fn times_setting_response_receive(
         &self,
-        framwework: poise::FrameworkContext<'_, crate::global_data::Data, anyhow::Error>,
+        framework: poise::FrameworkContext<'_, crate::global_data::Data, anyhow::Error>,
         res: ResponseMessage,
     ) -> TimesSettingCommunicatorResult<()> {
         // 送信記録にあるサーバからのレスポンスかどうかを判定する
         // ない場合はエラーを返す
-        let is_response_from_sent_guild = is_response_from_sent_guild(framwework, &res).await?;
+        let is_response_from_sent_guild = is_response_from_sent_guild(framework, &res).await?;
         let guild_name = match is_response_from_sent_guild {
             Some(guild_name) => guild_name,
             None => {
@@ -43,7 +43,7 @@ impl UbiquitimesResReceiver for WebhookResReceiver {
         );
 
         // DBに登録
-        let other_times_repository = framwework.user_data.other_times_repository.clone();
+        let other_times_repository = framework.user_data.other_times_repository.clone();
         other_times_repository.upsert(other_times).await?;
 
         Ok(())
