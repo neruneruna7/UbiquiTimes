@@ -1,12 +1,12 @@
-use poise::serenity_prelude::{self as serenity, ExecuteWebhook, Webhook};
+
 pub mod error;
 pub mod global_data;
 pub mod help_command;
 pub mod poise_commands;
 
-use domain::tracing::info;
 
-use global_data::Context;
+
+
 
 // /// 現在エラー発生中 master_webhook_urlがdataに無いと予測
 // // 一旦コメントアウト

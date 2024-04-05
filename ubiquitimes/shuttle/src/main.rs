@@ -55,9 +55,9 @@ async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> Shuttle
             // 発生する可能性のあるすべてのエラーケースに対応するグローバルエラーハンドラー
             on_error: |error| Box::pin(common::on_error(error)),
 
-            /// This code is run before every command
-            /// このコードはすべてのコマンドの前に実行されます
-            /// serenityでフレームワークに.before()を登録するみたいな感じと推測
+            // This code is run before every command
+            // このコードはすべてのコマンドの前に実行されます
+            // serenityでフレームワークに.before()を登録するみたいな感じと推測
             pre_command: |ctx| {
                 Box::pin(async move {
                     info!("Executing command {}...", ctx.command().qualified_name);

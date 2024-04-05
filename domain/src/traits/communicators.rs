@@ -13,7 +13,7 @@ use crate::models::{
 // できればpoiseへの依存がないトレイトを書きたい
 pub trait UtReqSender {
     type Result<T>;
-    async fn times_setting_request_send(
+    fn times_setting_request_send(
         &self,
         own_guild: &OwnGuild,
         dst_guild_id: u64,
@@ -21,7 +21,7 @@ pub trait UtReqSender {
         member_id: u64,
         times_setting_req: TimesSettingRequest,
         sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
-    ) -> Self::Result<()>;
+    ) -> impl std::future::Future<Output = Self::Result<()>> + Send;
 
     /// どのサーバに対して送信したかを記録する
     /// リクエストコマンド時に入力した識別用サーバー名も記録する必要が出てきた
@@ -52,11 +52,11 @@ pub trait UtReqReceiver {
     // そのため，それだけは関連型を使って実装時に指定できるようにしておく
     type NewMessage;
 
-    async fn times_setting_receive_and_response(
+    fn times_setting_receive_and_response(
         &self,
         new_message: &Self::NewMessage,
         own_guild_id: u64,
-    ) -> Self::Result<()>;
+    ) -> impl std::future::Future<Output = Self::Result<()>> + Send;
 }
 
 pub trait UtResReceiver {
@@ -66,11 +66,11 @@ pub trait UtResReceiver {
     // 使うライブラリによって，アプリから受け取ったメッセージの型は違うはず
     // そのため，それだけは関連型を使って実装時に指定できるようにしておく
     type NewMessage;
-    async fn times_setting_response_receive(
+    fn times_setting_response_receive(
         &self,
         new_message: &Self::NewMessage,
         sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
-    ) -> Result<(), Self::Error>;
+    ) -> impl std::future::Future<Output = Result<(), Self::Error>> + Send;
 
     /// サーバからのレスポンスに対してリクエスト送信記録があるかどうか
     /// 返ってくるStringはサーバ名

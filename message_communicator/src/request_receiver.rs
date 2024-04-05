@@ -141,7 +141,7 @@ impl UtReqReceiver for PoiseWebhookReqReceiver<MyCaDriver, SledOwnTimesRepositor
 
         info!("send response message start");
         // レスポンスを送信
-        self.send_res_message(webhook, serialized_message).await;
+        self.send_res_message(webhook, serialized_message).await?;
         info!("send response message complete");
 
         Ok(())
@@ -153,84 +153,6 @@ where
     C: CaDriver,
     R: OwnTimesRepository,
 {
-    // pub fn check(new_message: &poise::serenity_prelude::Message) -> bool {
-    //     // ここでリクエストのチェックを行う
-    //     // botから以外のメッセージは無視する
-    //     if !new_message.author.bot {
-    //         return false;
-    //     }
-    //     true
-    // }
-
-    // // 認証局もどきからリクエスト送信元サーバのデータを取得
-    // async fn get_src_key_and_webhook(
-    //     guild_id: u64,
-    // ) -> TimesSettingCommunicatorResult<KeyAndWebhook> {
-    //     let ca_driver = MyCaDriver::new();
-    //     let key_and_webhook = ca_driver.get_key_webhook(guild_id).await?;
-    //     Ok(key_and_webhook)
-    // }
-
-    // // リクエストを検証して，Claimsを取得する
-    // async fn verify(
-    //     &self,
-    //     req: &RequestMessage,
-    //     public_key_pem: &str,
-    // ) -> TimesSettingCommunicatorResult<Claims> {
-    //     info!("CA access complete. public_key_pem: {}", public_key_pem);
-
-    //     let verifier = sign::UbiquitimesPublicKey::from_pem(public_key_pem)
-    //         .context("Failed to create verifier")?;
-
-    //     info!("verifier created.");
-
-    //     // リクエストを検証
-    //     let claim = verifier
-    //         .verify(&req.jws_times_setting_request)
-    //         .context(format!(
-    //             // "Failed to Verifey, src_guild_id is {} ,検証に失敗しました",
-    //             req.src_guild_id,
-    //         ))?;
-
-    //     info!("verify complete. claim: {:?}", claim);
-    //     Ok(claim)
-    // }
-
-    // // 必要なデータを取得
-    // #[tracing::instrument(skip(self, framework))]
-    // async fn get_own_times(
-    //     &self,
-    //     framework: poise::FrameworkContext<'_, global_data::Data, anyhow::Error>,
-    //     member_id: u64,
-    // ) -> TimesSettingCommunicatorResult<OwnTimes> {
-    //     // let own_server_repository = framework.user_data.own_server_repository.clone();
-    //     // let own_server = own_server_repository.get().await?;
-    //     let own_times_repository = framework.user_data.own_times_repository.clone();
-    //     let own_times = own_times_repository
-    //         .get(member_id)
-    //         .await?
-    //         .ok_or(anyhow::anyhow!("OwnTimes not found"))?;
-
-    //     Ok(own_times.clone())
-    // }
-
-    // // レスポンスを作成し，シリアライズ
-    // async fn create_res_message(
-    //     &self,
-    //     req: &bot_message::RequestMessage,
-    //     claim: &Claims,
-    //     own_guild_id: u64,
-    //     own_times: &OwnTimes,
-    // ) -> TimesSettingCommunicatorResult<String> {
-    //     // レスポンスの作成
-    //     let setting_res =
-    //         TimesSettingResponse::from_req(&claim.times_setting_req, own_guild_id, own_times);
-    //     let res_message = ResponseMessage::new(req.src_guild_id, req.dst_guild_id, setting_res);
-
-    //     let serialized_message = serde_json::to_string(&res_message)?;
-    //     Ok(serialized_message)
-    // }
-
     pub fn new(ca_driver: Arc<C>, own_times_repository: Arc<R>) -> Self {
         Self {
             ca_driver,
