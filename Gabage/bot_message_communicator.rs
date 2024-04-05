@@ -6,10 +6,10 @@ use crate::{
 use anyhow::Error;
 
 use poise::serenity_prelude::{self as serenity, Message};
-use tokio::sync::RwLock;
-use tracing::{info, info_span};
 
-use std::{collections::HashMap, fmt::Debug};
+use tracing::info;
+
+use std::fmt::Debug;
 use thiserror::Error;
 
 pub mod req_receiver;
@@ -64,7 +64,7 @@ pub trait UbiquitimesReqReceiver {
 pub trait UbiquitimesResReceiver {
     async fn times_setting_response_receive(
         &self,
-        framwework: poise::FrameworkContext<'_, Data, anyhow::Error>,
+        framework: poise::FrameworkContext<'_, Data, anyhow::Error>,
         res: ResponseMessage,
     ) -> TimesSettingCommunicatorResult<()>;
 }
@@ -113,7 +113,7 @@ async fn save_sent_guild_ids(
 /// サーバからのレスポンスに対してリクエスト送信記録があるかどうか
 /// 返ってくるStringはサーバ名
 async fn is_response_from_sent_guild(
-    framwework: poise::FrameworkContext<'_, crate::global_data::Data, anyhow::Error>,
+    framework: poise::FrameworkContext<'_, crate::global_data::Data, anyhow::Error>,
     res: &ResponseMessage,
 ) -> TimesSettingCommunicatorResult<Option<String>> {
     let member_id = res.times_setting_response.req_src_member_id;
@@ -123,7 +123,7 @@ async fn is_response_from_sent_guild(
 
     // 該当データを取得
     let mut sent_member_and_guild_ids =
-        framwework.user_data.sent_member_and_guild_ids.write().await;
+        framework.user_data.sent_member_and_guild_ids.write().await;
     let sent_guild_name = sent_member_and_guild_ids.remove(&hash_key);
 
     info!(
@@ -162,7 +162,7 @@ where
     }
 
     #[tracing::instrument(skip(ctx, framework, new_message))]
-    pub async fn receiv(
+    pub async fn receive(
         &self,
         new_message: &Message,
         ctx: &serenity::Context,

@@ -9,8 +9,6 @@ edition = "2021"
 poise = "*"
 tokio = { version = "1", features = ["full"] }
 
-anyhow = "1.0"
-
 dotenvy = "0.15.7"
 
 tracing = "*"

@@ -116,7 +116,7 @@ async fn UTregisterM(ctx: &Context, msg: &Message) -> CommandResult {
     member_webhook_insert(db.as_ref(), member_webhook).await?;
 
     info!("member webhook inserted");
-    msg.reply(ctx, "member webhook registed").await?;
+    msg.reply(ctx, "member webhook registered").await?;
 
     Ok(())
 }

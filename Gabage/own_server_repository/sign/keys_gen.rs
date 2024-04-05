@@ -1,6 +1,6 @@
 use rsa::pkcs1::EncodeRsaPublicKey;
 use rsa::pkcs8::der::zeroize::Zeroizing;
-use rsa::pkcs8::{EncodePrivateKey, EncodePublicKey, LineEnding};
+use rsa::pkcs8::{EncodePrivateKey, LineEnding};
 use rsa::{RsaPrivateKey, RsaPublicKey};
 
 use super::keys::{UbiquitimesPrivateKey, UbiquitimesPublicKey};

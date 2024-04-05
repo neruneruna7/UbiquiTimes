@@ -32,3 +32,7 @@ Timesを複数サーバで共有するDiscord Botである．
   - `cargo shuttle project start`
   - `cargo shuttle deploy`
   - を実行
+
+# アーキテクチャ
+特定のアーキテクチャを目指したものではない．現時点で自分ができる範囲でやっている．
+俗にいう，クリーンアーキテクチャ（を謳う情報）からいくらか参考にしている．

@@ -75,7 +75,6 @@ impl UbiquitimesVerifier for UbiquitimesPublicKey {
 // テスト
 #[cfg(test)]
 mod tests {
-    use rsa::RsaPrivateKey;
 
     use crate::{
         bot_message::TimesSettingRequest,
@@ -85,7 +84,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_create_verifer() {
+    fn test_create_verifier() {
         // verifierを作れるかどうかのテスト
         let public_key_pem = r"-----BEGIN RSA PUBLIC KEY-----
 MIIBCgKCAQEAvXmv+r7dVCuoJEHrDpeIczhH10jjFVibnL0AfX1TTJlOWPQvfwyh
@@ -103,8 +102,8 @@ AAXQVhGIbJdfPNYx/jiyjod6PrYHNFPrQwIDAQAB
         // 署名と検証のテスト
         let key_pair = keys_gen::RsaKeyGenerator::new().generate_keys().unwrap();
         let pems = key_pair.to_pem();
-        let private_key = UbiquitimesPrivateKey::from_pem(&pems.private_key_pem.as_str()).unwrap();
-        let public_key = UbiquitimesPublicKey::from_pem(&pems.public_key_pem.as_str()).unwrap();
+        let private_key = UbiquitimesPrivateKey::from_pem(pems.private_key_pem.as_str()).unwrap();
+        let public_key = UbiquitimesPublicKey::from_pem(pems.public_key_pem.as_str()).unwrap();
 
         let test_times_setting_req =
             TimesSettingRequest::new(0, "0".to_string(), 0, "0".to_string());

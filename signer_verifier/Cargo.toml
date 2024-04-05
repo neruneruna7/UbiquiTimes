@@ -1,0 +1,12 @@
+[package]
+name = "signer_verifier"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+domain ={ path = "../domain"}
+rand = { version = "0.8", default-features = false }
+rsa = { version = "*", features = ["pem", "std"], default-features = false }
+jsonwebtoken = "*"

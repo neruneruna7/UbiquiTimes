@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::own_server::{OwnServer, OwnTimes};
+use super::guild_data::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RequestMessage {

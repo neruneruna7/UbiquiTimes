@@ -103,10 +103,10 @@ pub async fn ut_member_webhook_reg_manual(
 
     let connection = ctx.data().connection.clone();
 
-    let menber_webhook =
+    let member_webhook =
         MemberWebhook::from(None, &server_name, member_id, channel_id, &webhook_url);
 
-    member_webhook_insert(connection.as_ref(), menber_webhook).await?;
+    member_webhook_insert(connection.as_ref(), member_webhook).await?;
 
     let text = "member webhook inserted";
     info!(text);

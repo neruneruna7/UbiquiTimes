@@ -1,0 +1,11 @@
+[package]
+name = "ca_driver"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+domain = {path = "../domain"}
+reqwest = { version = "0.11", default-features = false }
+serde_json = { version = "1.0", default-features = false }
