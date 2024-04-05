@@ -15,6 +15,11 @@ members = [
     # "sb/sled",
 ]
 
+[workspace.package]
+authors = ["neruneruna7"]
+license-file = "LICENSE"
+edition = "2021"
+
 [profile.dev]
 debug = 0
 
