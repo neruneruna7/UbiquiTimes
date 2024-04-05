@@ -10,7 +10,7 @@ use domain::models::communication::TimesSettingRequest;
 use domain::models::guild_data::OtherGuild;
 
 use domain::models::guild_data::OwnGuild;
-use domain::models::sign;
+
 use domain::models::sign::Claims;
 use domain::traits::ca_driver::CaDriver;
 use domain::traits::communicators::GuildName;
@@ -20,7 +20,6 @@ use domain::traits::communicators::UtReqSender;
 use domain::traits::signer_verifier::UtSigner;
 use poise::serenity_prelude::ExecuteWebhook;
 use poise::serenity_prelude::Http;
-use poise::serenity_prelude::Webhook;
 
 use domain::thiserror;
 
@@ -138,7 +137,7 @@ impl PoiseWebhookReqSender {
         // 通信的凝集...?
         // 違う気もする
         // わからない
-        let claim = Claims::from_servers_for_req(own_guild, &dst_guild, req);
+        let claim = Claims::from_servers_for_req(own_guild, dst_guild, req);
         let signed_claim = Self::sign_craim(own_guild, claim)?;
         let req_message = RequestMessage::new(own_guild.guild_id, dst_guild.guild_id, signed_claim);
         Ok(req_message)

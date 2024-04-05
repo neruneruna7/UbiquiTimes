@@ -16,7 +16,6 @@ use domain::traits::communicators::UtResReceiver;
 use domain::traits::repositorys::OtherTimesRepository;
 // use domain::traits::repositorys::OwnTimesRepository;
 
-use poise::serenity_prelude::model::guild;
 use sled_repository::other_times_repository::SledOtherTimesRepository;
 
 #[derive(Debug, thiserror::Error)]
