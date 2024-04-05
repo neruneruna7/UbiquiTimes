@@ -2,7 +2,6 @@ pub mod error;
 pub mod request_receiver;
 pub mod request_sender;
 pub mod response_receiver;
-pub mod traits;
 
 pub(crate) mod get_webhook {
     use poise::serenity_prelude::{Http, Webhook};

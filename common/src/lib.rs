@@ -66,39 +66,22 @@ pub async fn event_handler(
         FullEvent::Message { new_message } => {
             info!("new message: {:?}", new_message);
 
-            // // info!("Got a message from a bot: {:?}", new_message);
-            // // この辺ややこしいことになってるので要改善
-            // let is_bot = WebhookReqReceiver::check(new_message);
-            // if !is_bot {
-            //     info!("Not a bot message");
-            //     return Ok(());
-            // }
-            // info!("Bot message");
-
-            // let webhook_receiver = MultiReceiver::new(WebhookReqReceiver, WebhookResReceiver);
             let ca_driver = _data.ca_driver.clone();
             let own_times_repository = _data.own_times_repository.clone();
             let own_guild_id = new_message.guild_id.unwrap().get();
 
             let req_receiver = PoiseWebhookReqReceiver::new(ca_driver, own_times_repository);
             req_receiver
-                .times_setting_receive_and_response(new_message, own_guild_id)
+                .times_setting_receive_and_response(&new_message, own_guild_id)
                 .await?;
 
             let other_times_repository = _data.other_times_repository.clone();
-            let _res_receiver = PoiseWebhookResReceiver::new(other_times_repository);
+            let sent_member_and_guild_ids = _data.sent_member_and_guild_ids.clone();
 
-            // info!("receiver start");
-            // webhook_receiver.receiv(new_message, ctx, framework).await?;
-            // info!("receiver done");
-
-            // if new_message.content.to_lowercase().contains("poise") {
-            //     let mentions = data.poise_mentions.load(Ordering::SeqCst) + 1;
-            //     data.poise_mentions.store(mentions, Ordering::SeqCst);
-            //     new_message
-            //         .reply(ctx, format!("Poise has been mentioned {} times", mentions))
-            //         .await?;
-            // }
+            let res_receiver = PoiseWebhookResReceiver::new(other_times_repository);
+            res_receiver
+                .times_setting_response_receive(&new_message, sent_member_and_guild_ids)
+                .await?;
         }
         _ => {}
     }
