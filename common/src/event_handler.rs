@@ -21,7 +21,7 @@ pub async fn event_handler(
 
             let req_receiver = PoiseWebhookReqReceiver::new(ca_driver, own_times_repository);
             req_receiver
-                .times_setting_receive_and_response(&new_message, own_guild_id)
+                .times_setting_receive_and_response(new_message, own_guild_id)
                 .await?;
 
             let other_times_repository = _data.other_times_repository.clone();
@@ -29,7 +29,7 @@ pub async fn event_handler(
 
             let res_receiver = PoiseWebhookResReceiver::new(other_times_repository);
             res_receiver
-                .times_setting_response_receive(&new_message, sent_member_and_guild_ids)
+                .times_setting_response_receive(new_message, sent_member_and_guild_ids)
                 .await?;
         }
         _ => {}
