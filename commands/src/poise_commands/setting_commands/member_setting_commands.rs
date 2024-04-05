@@ -8,12 +8,6 @@
 
 use super::super::command_check;
 use crate::global_data::Context;
-// use crate::bot_message::TimesSettingRequest;
-// use crate::bot_message_communicator::req_sender::WebhookReqSender;
-// use crate::bot_message_communicator::UbiquitimesReqSender;
-// use crate::other_server_repository::OtherTimesRepository;
-// use crate::own_server::OwnTimes;
-// use crate::own_server_repository::{OwnServerRepository, OwnTimesRepository};
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;

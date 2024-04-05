@@ -2,10 +2,6 @@
 // - サーバー設定情報を取得する
 
 use crate::{error::GuildIdCannotGet, global_data::Context};
-// use crate::own_server::OwnGuild;
-// use crate::own_server_repository::OwnGuildRepository;
-// use crate::sign::UbiquitimesKeyGenerator;
-// use crate::sign::UbiquitimesKeys;
 use domain::{
     models::guild_data::OwnGuild,
     traits::{repositorys::OwnGuildRepository, signer_verifier::UtKeyPairGenerator},

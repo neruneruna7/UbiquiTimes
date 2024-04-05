@@ -14,7 +14,6 @@ use domain::traits::communicators::GuildName;
 use domain::traits::communicators::HashKey;
 use domain::traits::communicators::UtResReceiver;
 use domain::traits::repositorys::OtherTimesRepository;
-// use domain::traits::repositorys::OwnTimesRepository;
 
 use sled_repository::other_times_repository::SledOtherTimesRepository;
 

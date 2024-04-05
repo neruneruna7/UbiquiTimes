@@ -47,67 +47,6 @@ pub struct PoiseWebhookReqSender {
 }
 
 impl PoiseWebhookReqSender {
-    // // dbから他サーバのデータを取得
-    // async fn get_other_server(
-    //     &self,
-    //     ctx: &Context<'_>,
-    //     dst_guild_id: u64,
-    // ) -> TimesSettingCommunicatorResult<crate::other_server::OtherServer> {
-    //     let other_server = ctx
-    //         .data()
-    //         .other_server_repository
-    //         .clone()
-    //         .get_from_guild_id(dst_guild_id)
-    //         .await?
-    //         .ok_or_else(|| anyhow::anyhow!("OtherServer not found"))?;
-    //     Ok(other_server)
-    // }
-
-    // // 認証局もどきから他サーバのデータを取得
-    // async fn get_other_server(
-    //     &self,
-    //     dst_guild_id: u64,
-    //     dst_guild_name: &str,
-    // ) -> TimesSettingCommunicatorResult<OtherServer> {
-    //     let ca_driver = MyCaDriver::new();
-
-    //     let key_and_webhook = ca_driver.get_key_webhook(dst_guild_id).await?;
-
-    //     let other_server = OtherServer::new(
-    //         dst_guild_id,
-    //         dst_guild_name,
-    //         &key_and_webhook.manage_webhook,
-    //         &key_and_webhook.public_key_pem,
-    //     );
-
-    //     Ok(other_server)
-    // }
-
-    // // 送信するメッセージを作成
-    // async fn create_req_message(
-    //     &self,
-    //     dst_guild: OtherGuild,
-    //     req: TimesSettingRequest,
-    // ) -> PoiseWebhookReqSenderResult<RequestMessage> {
-    //     let own_guild_id = ctx.guild_id().unwrap().get();
-
-    //     let own_server_repository = ctx.data().own_server_repository.clone();
-    //     let own_server = own_server_repository.get().await?;
-
-    //     let signer = sign::UbiquitimesPrivateKey::from_pem(&own_server.private_key_pem)
-    //         .context("Failed to create private key")?;
-
-    //     let claim = Claims::from_servers_for_req(&own_server, &dst_server, req);
-
-    //     let req_message = bot_message::RequestMessage::new(
-    //         own_guild_id,
-    //         dst_server.guild_id,
-    //         signer.sign(claim).context("Failed to sign")?,
-    //     );
-
-    //     Ok(req_message)
-    // }
-
     pub fn new(ca_driver: Arc<MyCaDriver>) -> Self {
         Self { ca_driver }
     }
