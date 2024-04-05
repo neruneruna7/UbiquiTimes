@@ -54,6 +54,7 @@ enum RequestMessageState {
     NotRequestMessage,
     RequestMessage(RequestMessage),
 }
+
 #[derive(Debug, Error)]
 pub struct OwnTimesNotFound;
 

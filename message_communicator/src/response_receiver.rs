@@ -16,6 +16,7 @@ use domain::traits::communicators::UtResReceiver;
 use domain::traits::repositorys::OtherTimesRepository;
 // use domain::traits::repositorys::OwnTimesRepository;
 
+use poise::serenity_prelude::model::guild;
 use sled_repository::other_times_repository::SledOtherTimesRepository;
 
 #[derive(Debug, thiserror::Error)]
@@ -34,34 +35,73 @@ pub enum PoiseWebhookResReceiverError {
     ResponseReceiverError(#[from] ResponseReceiverError),
 }
 
+type ResReceiverResult<T> = Result<T, PoiseWebhookResReceiverError>;
+
 #[derive(Debug, thiserror::Error)]
 pub enum ResponseReceiverError {
     #[error("The server that received the response is not in the transmission record")]
     ServerNotInRecord,
 }
 
-#[derive(Debug)]
-pub struct PoiseWebhookResReceiver<R>
-where
-    R: OtherTimesRepository,
-{
-    other_times_repository: Arc<R>,
+enum ResMessageState {
+    NotResMessage,
+    ResMessage(ResponseMessage),
 }
 
-impl<R> PoiseWebhookResReceiver<R>
-where
-    R: OtherTimesRepository,
-{
-    pub fn new(other_times_repository: Arc<R>) -> Self {
+#[derive(Debug)]
+pub struct PoiseWebhookResReceiver {
+    other_times_repository: Arc<SledOtherTimesRepository>,
+}
+
+impl PoiseWebhookResReceiver {
+    pub fn new(other_times_repository: Arc<SledOtherTimesRepository>) -> Self {
         Self {
             other_times_repository,
         }
     }
+
+    fn is_bot_message(new_message: &poise::serenity_prelude::model::prelude::Message) -> bool {
+        new_message.author.bot
+    }
+
+    fn deserialize_message(content: &str) -> ResMessageState {
+        // デシリアライズし，メッセージがリクエストメッセージかどうかを判定
+        match serde_json::from_str(content) {
+            Ok(res) => ResMessageState::ResMessage(res),
+            Err(_) => ResMessageState::NotResMessage,
+        }
+    }
+
+    fn is_response_message(
+        new_message: &poise::serenity_prelude::model::prelude::Message,
+    ) -> ResMessageState {
+        if !Self::is_bot_message(new_message) {
+            return ResMessageState::NotResMessage;
+        }
+        Self::deserialize_message(&new_message.content)
+    }
+
+    fn is_sent_guild(
+        sent_member_and_guild_ids: Arc<Mutex<HashMap<HashKey, GuildName>>>,
+        res: &ResponseMessage,
+    ) -> ResReceiverResult<String> {
+        let is_response_from_sent_guild =
+            Self::is_response_from_sent_guild(sent_member_and_guild_ids, res)?;
+
+        // guild_nameを取得
+        let guild_name = match is_response_from_sent_guild {
+            Some(guild_name) => guild_name,
+            None => {
+                return Err(ResponseReceiverError::ServerNotInRecord.into());
+            }
+        };
+
+        Ok(guild_name)
+    }
 }
 
-impl UtResReceiver for PoiseWebhookResReceiver<SledOtherTimesRepository> {
+impl UtResReceiver for PoiseWebhookResReceiver {
     type Error = PoiseWebhookResReceiverError;
-
     type NewMessage = poise::serenity_prelude::Message;
 
     async fn times_setting_response_receive(
@@ -75,23 +115,18 @@ impl UtResReceiver for PoiseWebhookResReceiver<SledOtherTimesRepository> {
         }
 
         // メッセージがリクエストメッセージかどうかを判定
-        let res: ResponseMessage = match serde_json::from_str(&new_message.content) {
-            Ok(res) => res,
-            Err(_) => {
+        let res = Self::is_response_message(new_message);
+        let res = match res {
+            ResMessageState::NotResMessage => {
                 return Ok(());
             }
+            ResMessageState::ResMessage(res) => res,
         };
 
         // 送信記録にあるサーバからのレスポンスかどうかを判定する
         // ない場合はエラーを返す
-        let is_response_from_sent_guild =
-            Self::is_response_from_sent_guild(sent_member_and_guild_ids, &res)?;
-        let guild_name = match is_response_from_sent_guild {
-            Some(guild_name) => guild_name,
-            None => {
-                return Err(ResponseReceiverError::ServerNotInRecord.into());
-            }
-        };
+        // guild_nameを取得
+        let guild_name = Self::is_sent_guild(sent_member_and_guild_ids, &res)?;
 
         // レスポンスを処理
         // 相手のサーバを拡散先サーバとして登録
@@ -107,7 +142,6 @@ impl UtResReceiver for PoiseWebhookResReceiver<SledOtherTimesRepository> {
         );
 
         // DBに登録
-
         self.other_times_repository.upsert(other_times).await?;
 
         Ok(())
