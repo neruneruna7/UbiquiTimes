@@ -135,11 +135,11 @@ impl PoiseWebhookReqReceiver {
             match req {
                 Ok(req) => {
                     info!("ok:  new message is receive request");
-                    return RequestMessageState::RequestMessage(req);
+                    RequestMessageState::RequestMessage(req)
                 }
                 Err(_e) => {
                     info!("no:  new message is not receive request");
-                    return RequestMessageState::NotRequestMessage;
+                    RequestMessageState::NotRequestMessage
                 }
             }
         }
@@ -147,9 +147,8 @@ impl PoiseWebhookReqReceiver {
         // デシリアライズ
         let req: Result<RequestMessage, serde_json::Error> =
             serde_json::from_str(&new_message.content);
-        let req = is_response_message(req);
 
-        req
+        is_response_message(req)
     }
 
     /// newmessageがRequestMessageかどうか調べる
@@ -164,9 +163,8 @@ impl PoiseWebhookReqReceiver {
             BotMessageState::NoBot => return RequestMessageState::NotRequestMessage,
             BotMessageState::BotMessage(message) => message,
         };
-        let message = Self::deserialize_message(message);
 
-        message
+        Self::deserialize_message(message)
     }
 
     /// リクエストを検証する
@@ -195,22 +193,19 @@ impl PoiseWebhookReqReceiver {
             req_message: RequestMessage,
             times_setting_response: TimesSettingResponse,
         ) -> ResponseMessage {
-            let response_message = ResponseMessage::new(
+            ResponseMessage::new(
                 req_message.src_guild_id,
                 req_message.dst_guild_id,
                 times_setting_response,
-            );
-
-            response_message
+            )
         }
         // 特定の手順で，手順間で値の受け渡しをする
         // 逐次的凝集とみなしてよいだろう
 
         let times_setting_response =
-            TimesSettingResponse::from_req(&claim.times_setting_req, own_guild_id, &own_times);
-        let response_message = create_res_message(req_message, times_setting_response);
+            TimesSettingResponse::from_req(&claim.times_setting_req, own_guild_id, own_times);
 
-        response_message
+        create_res_message(req_message, times_setting_response)
     }
 }
 
@@ -234,7 +229,6 @@ impl UtReqReceiver for PoiseWebhookReqReceiver {
         };
 
         // リクエストをを検証し，レスポンスを返す
-        
 
         // // 送信元のサーバのwebhookと公開鍵を取得
         // // オレオレ認証局もどきにアクセスする
