@@ -2,6 +2,7 @@
 
 use crate::error::{CommandResult, OwnTimesNotFound};
 use crate::global_data::Context;
+use domain::functions::add_prefix_username;
 use domain::traits::repositorys::*;
 use poise::serenity_prelude::{ExecuteWebhook, Http, Webhook};
 
@@ -10,7 +11,7 @@ use poise::serenity_prelude::{ExecuteWebhook, Http, Webhook};
 /// contentに記述した内容を拡散します
 /// このスラッシュコマンドではなく，`~UT`のプレフィックスコマンドを推奨
 /// スラッシュコマンドの場合，拡散元のサーバでは内容が表示されません
-/// ### `~UT`の場合
+/// ### `~UT`の場合の例
 ///
 /// ~UT
 /// 一度生まれたものは，そう簡単には死なない
@@ -21,13 +22,9 @@ pub async fn ut_times_release(
     #[description = "拡散内容"] content: String,
     // poiseのコマンドはanyhow::Resultじゃないとだめっぽい？
 ) -> anyhow::Result<()> {
-    let _username = format!("UT-{}", ctx.author().name);
+    // let username = add_prefix_username(ctx.author().name.as_str());
     let member_id = ctx.author().id.get();
 
-    // let db = ctx.data().connection.clone();
-    // let times_data = OwnTimesData::db_read(db.as_ref(), member_id)
-    //     .context("own_server_times_dataの読み込みに失敗しました")?
-    //     .context("own_server_times_dataが存在しません")?;
     let own_times_repository = ctx.data().own_times_repository.clone();
     let times_data = own_times_repository
         .get(member_id)
@@ -35,12 +32,9 @@ pub async fn ut_times_release(
         .ok_or(OwnTimesNotFound)?;
 
     // webhookのusernameを設定する
-    let username = format!("UT-{}", times_data.member_name);
+    let username = add_prefix_username(times_data.member_name.as_str());
 
     // DBからそのユーザのwebhookをすべて取得する
-    // let _member_id = ctx.author().id.0;
-
-    // let other_times_data_vec = OtherTimesData::db_read_all(db.as_ref())?;
     let other_times_repository = ctx.data().other_times_repository.clone();
 
     let other_times_data_vec = other_times_repository.get_all().await?;
