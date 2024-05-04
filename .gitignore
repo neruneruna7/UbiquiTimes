@@ -9,3 +9,4 @@
 .cargo
 private.pem
 public.pem
+Secrets.toml
