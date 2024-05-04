@@ -1,6 +1,5 @@
 use anyhow::Error;
 
-use commands::poise_commands::spreading_commands;
 use domain::traits::communicators::*;
 use message_communicator::request_receiver::PoiseWebhookReqReceiver;
 use message_communicator::response_receiver::PoiseWebhookResReceiver;
@@ -10,11 +9,9 @@ use commands::global_data::Data;
 
 use domain::tracing::info;
 
-pub mod commands_vec;
 pub mod error_handler;
 pub mod event_handler;
 
-pub use commands_vec::commands_vec;
 pub use error_handler::on_error;
 pub use event_handler::event_handler;
 
