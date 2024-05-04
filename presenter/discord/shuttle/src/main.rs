@@ -36,7 +36,7 @@ async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> Shuttle
             // ここでコマンドを登録する
             // コマンド名は1~32文字じゃないとダメみたい
             // どうやらスネークケースじゃないとだめのようだ
-            commands: common::commands_vec(),
+            commands: commands::commands_vec(),
 
             // ここでprefixを設定する
             prefix_options: poise::PrefixFrameworkOptions {
@@ -53,7 +53,7 @@ async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> Shuttle
 
             // The global error handler for all error cases that may occur
             // 発生する可能性のあるすべてのエラーケースに対応するグローバルエラーハンドラー
-            on_error: |error| Box::pin(common::on_error(error)),
+            on_error: |error| Box::pin(handler::on_error(error)),
 
             // This code is run before every command
             // このコードはすべてのコマンドの前に実行されます
@@ -98,7 +98,7 @@ async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> Shuttle
                         "Got an event in event handler: {:?}",
                         event.snake_case_name()
                     );
-                    common::event_handler(_ctx, event, _framework, _data).await
+                    handler::event_handler(_ctx, event, _framework, _data).await
                 })
             },
             ..Default::default()

@@ -1,19 +1,23 @@
 [workspace]
 resolver = "2"
 members = [
-    "commands",
-    # "./domain",
-    # "./ca_driver",
-    # "./signer_verifier",
-    # "./infrastructure/sled_repository",
-    "common",
-    # "ubiquitimes/poise",
-    "ubiquitimes/shuttle",
+    "./domain",
+    "./ca_driver",
+    "./signer_verifier",
+    "./infrastructure/sled_repository",
+    "./presenter/discord/commands",
+    "./presenter/discord/handler",
+    "./presenter/discord/shuttle",
     # "sb/commands",
     # "sb/slcommands",
     # "sb/crypt",
     # "sb/sled",
 ]
+
+[workspace.package]
+authors = ["neruneruna7"]
+license-file = "LICENSE"
+edition = "2021"
 
 [profile.dev]
 debug = 0

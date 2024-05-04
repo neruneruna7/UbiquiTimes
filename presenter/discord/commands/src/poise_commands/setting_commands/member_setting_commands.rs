@@ -8,16 +8,11 @@
 
 use super::super::command_check;
 use crate::global_data::Context;
-// use crate::bot_message::TimesSettingRequest;
-// use crate::bot_message_communicator::req_sender::WebhookReqSender;
-// use crate::bot_message_communicator::UbiquitimesReqSender;
-// use crate::other_server_repository::OtherTimesRepository;
-// use crate::own_server::OwnTimes;
-// use crate::own_server_repository::{OwnServerRepository, OwnTimesRepository};
 
 use anyhow::Context as anyhowContext;
 use anyhow::Result;
 
+use domain::functions::add_prefix_memberid;
 use domain::models::communication::TimesSettingRequest;
 
 use domain::models::guild_data::OwnTimes;
@@ -25,10 +20,6 @@ use domain::tracing::info;
 use domain::traits::{communicators::*, repositorys::*};
 use message_communicator::request_sender::PoiseWebhookReqSender;
 use poise::serenity_prelude::CreateWebhook;
-
-fn create_member_webhook_name(member_id: u64) -> String {
-    format!("UT-{}", member_id)
-}
 
 /// そのサーバーでの自分のtimesであることをセットする
 ///
@@ -43,7 +34,7 @@ pub async fn ut_times_set(
     let member_name = name;
     let channel_id = ctx.channel_id().get();
 
-    let webhook_name = create_member_webhook_name(member_id);
+    let webhook_name = add_prefix_memberid(member_id);
 
     // チャンネルに"UT-{メンバーid}"のwebhookがあるか確認
     let webhooks = ctx.channel_id().webhooks(&ctx).await?;
@@ -133,7 +124,7 @@ pub async fn ut_times_unset(
     // webhookを削除
     // 想定通りに動くのか未検証
     let webhooks = ctx.channel_id().webhooks(&ctx).await?;
-    let webhook_name = Some(create_member_webhook_name(member_id));
+    let webhook_name = Some(add_prefix_memberid(member_id));
     let webhook = webhooks
         .iter()
         .find(|webhook| webhook.name == webhook_name)

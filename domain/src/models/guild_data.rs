@@ -77,7 +77,8 @@ impl OtherGuild {
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
-// 他サーバのtimesデータ
+/// 他サーバのtimesデータ
+// 主にTimesに書き込んだ内容の送信処理で使う
 pub struct OtherTimes {
     pub src_member_id: u64,
     pub dst_guild_name: String,

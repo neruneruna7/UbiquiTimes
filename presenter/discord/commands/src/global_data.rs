@@ -7,7 +7,6 @@ use sled_repository::other_guild_repository::SledOtherGuildRepository;
 use sled_repository::other_times_repository::SledOtherTimesRepository;
 use sled_repository::own_guild_repository::SledOwnGuildRepository;
 use sled_repository::own_times_repository::SledOwnTimesRepository;
-// use tokio::sync::RwLock;
 
 use std::sync::{Arc, Mutex};
 

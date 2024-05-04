@@ -6,6 +6,7 @@
 .env
 .env.local
 .idea
+.cargo
 private.pem
 public.pem
 Secrets.toml

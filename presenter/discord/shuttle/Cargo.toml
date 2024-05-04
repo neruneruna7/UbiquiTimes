@@ -1,0 +1,23 @@
+[package]
+name = "ubiquitimes-shuttle"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = { version = "1.0.*", default-features = false }
+poise = { version = "0.6.1", default-features = false }
+shuttle-serenity = "0.44.0"
+shuttle-runtime = { version = "0.44.0", default-features = false }
+# tokio = "1.36.0"
+sled = { version = "0.34.7", default-features = false }
+
+# sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
+
+commands = { path = "../commands" }
+handler = { path = "../handler" }
+domain = { path = "../../../domain" }
+sled_repository ={ path = "../../../infrastructure/sled_repository" }
+signer_verifier = { path = "../../../signer_verifier" }
+ca_driver ={ path = "../../../ca_driver" }
+

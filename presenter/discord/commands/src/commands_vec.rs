@@ -1,9 +1,21 @@
+use anyhow::Error;
+
+use crate::{
+    help_command::help,
+    poise_commands::{
+        setting_commands::{member_setting_commands, server_setting_commands},
+        spreading_commands,
+    },
+};
+
+use self::global_data::Data;
+
 use super::*;
 
-use commands::help_command::help;
-use commands::poise_commands::setting_commands::{
-    member_setting_commands, server_setting_commands,
-};
+// use commands::help_command::help;
+// use commands::poise_commands::setting_commands::{
+//     member_setting_commands, server_setting_commands,
+// };
 
 // Shuttleとセルフホストの両方で使えるようにするため，切り出している
 pub fn commands_vec() -> Vec<poise::Command<Data, Error>> {
