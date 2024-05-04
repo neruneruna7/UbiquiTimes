@@ -1,12 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-    "commands",
-    # "./domain",
-    # "./ca_driver",
-    # "./signer_verifier",
-    # "./infrastructure/sled_repository",
-    "./presenter/common",
+    "./presenter/commands",
+    "./domain",
+    "./ca_driver",
+    "./signer_verifier",
+    "./infrastructure/sled_repository",
+    "./presenter/handler",
     # "ubiquitimes/poise",
     "./presenter/shuttle",
     # "sb/commands",

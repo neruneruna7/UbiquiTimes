@@ -21,7 +21,6 @@ use domain::traits::{communicators::*, repositorys::*};
 use message_communicator::request_sender::PoiseWebhookReqSender;
 use poise::serenity_prelude::CreateWebhook;
 
-
 /// そのサーバーでの自分のtimesであることをセットする
 ///
 /// 本サーバにおいて，このコマンドを実行したチャンネルがあなたのTimesであるとbotに登録します．

@@ -1,7 +1,10 @@
+pub mod commands_vec;
 pub mod error;
 pub mod global_data;
 pub mod help_command;
 pub mod poise_commands;
+
+pub use commands_vec::commands_vec;
 
 // /// 現在エラー発生中 master_webhook_urlがdataに無いと予測
 // // 一旦コメントアウト

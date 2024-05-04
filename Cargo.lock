@@ -266,17 +266,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "commands",
- "domain",
- "message_communicator",
- "poise",
-]
-
-[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -689,6 +678,17 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+]
+
+[[package]]
+name = "handler"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "commands",
+ "domain",
+ "message_communicator",
+ "poise",
 ]
 
 [[package]]
@@ -2478,8 +2478,8 @@ dependencies = [
  "anyhow",
  "ca_driver",
  "commands",
- "common",
  "domain",
+ "handler",
  "poise",
  "shuttle-runtime",
  "shuttle-serenity",

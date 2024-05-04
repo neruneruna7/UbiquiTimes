@@ -14,8 +14,8 @@ sled = { version = "0.34.7", default-features = false }
 
 # sqlx = { version = "0.7.1", features = ["sqlite", "migrate", "runtime-tokio"] }
 
-commands = { path = "../../commands" }
-common = { path = "../common" }
+commands = { path = "../commands" }
+handler = { path = "../handler" }
 domain = { path = "../../domain" }
 sled_repository ={ path = "../../infrastructure/sled_repository" }
 signer_verifier = { path = "../../signer_verifier" }
