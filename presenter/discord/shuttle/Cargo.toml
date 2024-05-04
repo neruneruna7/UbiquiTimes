@@ -16,8 +16,8 @@ sled = { version = "0.34.7", default-features = false }
 
 commands = { path = "../commands" }
 handler = { path = "../handler" }
-domain = { path = "../../domain" }
-sled_repository ={ path = "../../infrastructure/sled_repository" }
-signer_verifier = { path = "../../signer_verifier" }
-ca_driver ={ path = "../../ca_driver" }
+domain = { path = "../../../domain" }
+sled_repository ={ path = "../../../infrastructure/sled_repository" }
+signer_verifier = { path = "../../../signer_verifier" }
+ca_driver ={ path = "../../../ca_driver" }
 
