@@ -7,7 +7,7 @@ members = [
     "./infrastructure/sled_repository",
     "./presenter/discord/commands",
     "./presenter/discord/handler",
-    "./presenter/discord/shuttle",
+    "./presenter/discord/shuttle", "infrastructure/shuttle_pershist_repository",
     # "sb/commands",
     # "sb/slcommands",
     # "sb/crypt",
@@ -19,8 +19,11 @@ authors = ["neruneruna7"]
 license-file = "LICENSE"
 edition = "2021"
 
-[profile.dev]
-debug = 0
+[workspace.dependencies]
+serde_json = { version = "1.0", default-features = false }
+serde = { version = "1.0", default-features = false }
+tokio = "*"
+
 
 # cargo new ubiquitimes/serenity --name ubiquitimes-serenity --vcs none
 # cargo shuttle init api/shuttle  --name api-shuttle
