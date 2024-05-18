@@ -140,7 +140,7 @@ impl UtResReceiver for PoiseWebhookResReceiver {
         );
 
         // DBに登録
-        self.other_times_repository.upsert(other_times).await?;
+        self.other_times_repository.upsert(other_times)?;
 
         Ok(())
     }

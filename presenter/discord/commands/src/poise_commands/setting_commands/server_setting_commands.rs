@@ -66,7 +66,7 @@ pub async fn ut_initialize(
         &keys_pem.public_key_pem,
     );
     let own_server_repository = ctx.data().own_server_repository.clone();
-    own_server_repository.upsert(own_server).await?;
+    own_server_repository.upsert(own_server)?;
 
     info!("サーバー初期化完了: {}", server_name);
 
@@ -97,7 +97,7 @@ pub async fn ut_get_own_server_data(ctx: Context<'_>) -> anyhow::Result<()> {
 
     // dbから取得
     let own_server_repository = ctx.data().own_server_repository.clone();
-    let own_server = own_server_repository.get().await?;
+    let own_server = own_server_repository.get()?;
 
     // manage_webhookのURLと公開鍵のpemを返信
     let reply = format!(

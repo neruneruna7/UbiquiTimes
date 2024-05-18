@@ -246,8 +246,7 @@ impl UtReqReceiver for PoiseWebhookReqReceiver {
         // use sled_repository::own_times_repository::SledOwnTimesRepositoryError::SledError.
         let own_times = self
             .own_times_repository
-            .get(member_id)
-            .await?
+            .get(member_id)?
             .ok_or(OwnTimesNotFound)?;
 
         // レスポンスの作成

@@ -27,8 +27,7 @@ pub async fn ut_times_release(
 
     let own_times_repository = ctx.data().own_times_repository.clone();
     let times_data = own_times_repository
-        .get(member_id)
-        .await?
+        .get(member_id)?
         .ok_or(OwnTimesNotFound)?;
 
     // webhookのusernameを設定する
@@ -37,7 +36,7 @@ pub async fn ut_times_release(
     // DBからそのユーザのwebhookをすべて取得する
     let other_times_repository = ctx.data().other_times_repository.clone();
 
-    let other_times_data_vec = other_times_repository.get_all().await?;
+    let other_times_data_vec = other_times_repository.get_all()?;
     let member_webhooks = other_times_data_vec
         .iter()
         .map(|m| m.dst_webhook_url.to_owned())

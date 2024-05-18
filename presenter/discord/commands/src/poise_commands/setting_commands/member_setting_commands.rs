@@ -68,7 +68,7 @@ pub async fn ut_times_set(
     // 自身のTimes情報を保存
     let own_times = OwnTimes::new(member_id, &member_name, channel_id, &webhook_url);
     let own_times_repository = ctx.data().own_times_repository.clone();
-    own_times_repository.upsert(own_times).await?;
+    own_times_repository.upsert(own_times)?;
 
     ctx.say("このチャンネルを，本サーバでのあなたのTimesとして登録しました")
         .await?;
@@ -85,7 +85,7 @@ pub async fn ut_times_show(ctx: Context<'_>) -> Result<()> {
     let member_id = ctx.author().id.get();
 
     let own_times_repository = ctx.data().own_times_repository.clone();
-    let own_times = own_times_repository.get(member_id).await?;
+    let own_times = own_times_repository.get(member_id)?;
 
     let own_times = match own_times {
         Some(own_times) => own_times,
@@ -133,7 +133,7 @@ pub async fn ut_times_unset(
 
     // 自身のTimes情報を削除
     let own_times_repository = ctx.data().own_times_repository.clone();
-    own_times_repository.delete(member_id).await?;
+    own_times_repository.delete(member_id)?;
 
     ctx.say("本サーバでのあなたのTimes登録を削除しました")
         .await?;
@@ -162,10 +162,10 @@ pub async fn ut_times_spread_setting(
     // リクエストメッセージを組み立てる
     // 自身のサーバ情報が必要なので，それを取得する
     let own_guild_repository = ctx.data().own_server_repository.clone();
-    let own_guild = own_guild_repository.get().await?;
+    let own_guild = own_guild_repository.get()?;
 
     let own_times_repository = ctx.data().own_times_repository.clone();
-    let own_times = own_times_repository.get(ctx.author().id.get()).await?;
+    let own_times = own_times_repository.get(ctx.author().id.get())?;
 
     let own_times = match own_times {
         Some(own_times) => own_times,
@@ -218,7 +218,7 @@ pub async fn ut_list(ctx: Context<'_>) -> Result<()> {
     // let db = ctx.data().connection.clone();
     // let other_times_data_vec = OtherTimesData::db_read_from_member_id(db.as_ref(), member_id)?;
     let other_times_repository = ctx.data().other_times_repository.clone();
-    let other_times_data_vec = other_times_repository.get_from_member_id(member_id).await?;
+    let other_times_data_vec = other_times_repository.get_from_member_id(member_id)?;
 
     let mut response = String::new();
     response.push_str("拡散先リスト\n --------- \n```");
@@ -247,9 +247,7 @@ pub async fn ut_times_spread_unset(
     let member_id = ctx.author().id.get();
 
     let other_times_repository = ctx.data().other_times_repository.clone();
-    other_times_repository
-        .delete(&server_name, member_id)
-        .await?;
+    other_times_repository.delete(&server_name, member_id)?;
 
     ctx.say("拡散先サーバを削除しました").await?;
 
