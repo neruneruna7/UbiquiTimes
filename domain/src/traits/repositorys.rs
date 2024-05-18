@@ -9,10 +9,10 @@ pub trait OwnGuildRepository {
     fn upsert(
         &self,
         own_server: OwnGuild,
-    ) -> impl std::future::Future<Output = Self::Result<OwnGuild>> + Send;
+    ) -> Self::Result<OwnGuild>;
     // レコードがない場合，今回はNoneとせずにエラーとする
-    fn get(&self) -> impl std::future::Future<Output = Self::Result<OwnGuild>> + Send;
-    fn delete(&self) -> impl std::future::Future<Output = Self::Result<OwnGuild>> + Send;
+    fn get(&self) -> Self::Result<OwnGuild>;
+    fn delete(&self) -> Self::Result<OwnGuild>;
 }
 
 pub trait OwnTimesRepository {
@@ -20,16 +20,16 @@ pub trait OwnTimesRepository {
     fn upsert(
         &self,
         own_times: OwnTimes,
-    ) -> impl std::future::Future<Output = Self::Result<OwnTimes>> + Send;
+    ) -> Self::Result<OwnTimes>;
     fn get(
         &self,
         member_id: u64,
-    ) -> impl std::future::Future<Output = Self::Result<Option<OwnTimes>>> + Send;
-    fn get_all(&self) -> impl std::future::Future<Output = Self::Result<Vec<OwnTimes>>> + Send;
+    ) -> Self::Result<Option<OwnTimes>>;
+    fn get_all(&self) -> Self::Result<Vec<OwnTimes>>;
     fn delete(
         &self,
         member_id: u64,
-    ) -> impl std::future::Future<Output = Self::Result<Option<OwnTimes>>> + Send;
+    ) -> Self::Result<Option<OwnTimes>>;
 }
 
 pub trait OtherGuildRepository {
@@ -39,20 +39,20 @@ pub trait OtherGuildRepository {
     fn upsert(
         &self,
         other_server: OtherGuild,
-    ) -> impl std::future::Future<Output = Self::Result<OtherGuild>> + Send;
+    ) -> Self::Result<OtherGuild>;
     fn get(
         &self,
         server_name: &str,
-    ) -> impl std::future::Future<Output = Self::Result<Option<OtherGuild>>> + Send;
-    fn get_all(&self) -> impl std::future::Future<Output = Self::Result<Vec<OtherGuild>>> + Send;
+    ) -> Self::Result<Option<OtherGuild>>;
+    fn get_all(&self) -> Self::Result<Vec<OtherGuild>>;
     fn get_from_guild_id(
         &self,
         guild_id: u64,
-    ) -> impl std::future::Future<Output = Self::Result<Option<OtherGuild>>> + Send;
+    ) -> Self::Result<Option<OtherGuild>>;
     fn delete(
         &self,
         server_name: &str,
-    ) -> impl std::future::Future<Output = Self::Result<OtherGuild>> + Send;
+    ) -> Self::Result<OtherGuild>;
 }
 
 pub trait OtherTimesRepository {
@@ -61,20 +61,20 @@ pub trait OtherTimesRepository {
     fn upsert(
         &self,
         other_times: OtherTimes,
-    ) -> impl std::future::Future<Output = Self::Result<OtherTimes>> + Send;
+    ) -> Self::Result<OtherTimes>;
     fn get(
         &self,
         server_name: &str,
         member_id: u64,
-    ) -> impl std::future::Future<Output = Self::Result<Option<OtherTimes>>> + Send;
-    fn get_all(&self) -> impl std::future::Future<Output = Self::Result<Vec<OtherTimes>>> + Send;
+    ) -> Self::Result<Option<OtherTimes>>;
+    fn get_all(&self) -> Self::Result<Vec<OtherTimes>>;
     fn get_from_member_id(
         &self,
         member_id: u64,
-    ) -> impl std::future::Future<Output = Self::Result<Vec<OtherTimes>>> + Send;
+    ) -> Self::Result<Vec<OtherTimes>>;
     fn delete(
         &self,
         server_name: &str,
         member_id: u64,
-    ) -> impl std::future::Future<Output = Self::Result<Option<OtherTimes>>> + Send;
+    ) -> Self::Result<Option<OtherTimes>>;
 }

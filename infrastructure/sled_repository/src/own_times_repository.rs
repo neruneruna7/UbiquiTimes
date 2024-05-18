@@ -29,14 +29,14 @@ pub type SledOwnTimesRepositoryResult<T> = Result<T, SledOwnTimesRepositoryError
 
 impl OwnTimesRepository for SledOwnTimesRepository {
     type Result<T> = SledOwnTimesRepositoryResult<T>;
-    async fn upsert(&self, own_times: OwnTimes) -> Self::Result<OwnTimes> {
+    fn upsert(&self, own_times: OwnTimes) -> Self::Result<OwnTimes> {
         let own_times_table = OwnTimesTable::new(&self.db);
         let kv = Into::<OwnTimesKv>::into(own_times.clone());
         own_times_table.upsert(&kv.key, &kv)?;
         Ok(own_times)
     }
 
-    async fn get(&self, member_id: u64) -> Self::Result<Option<OwnTimes>> {
+    fn get(&self, member_id: u64) -> Self::Result<Option<OwnTimes>> {
         let own_times_table = OwnTimesTable::new(&self.db);
         let key = format!("{}", member_id);
         let data = own_times_table.read(&key)?;
@@ -46,14 +46,14 @@ impl OwnTimesRepository for SledOwnTimesRepository {
         Ok(data)
     }
 
-    async fn get_all(&self) -> Self::Result<Vec<OwnTimes>> {
+    fn get_all(&self) -> Self::Result<Vec<OwnTimes>> {
         let own_times_table = OwnTimesTable::new(&self.db);
         let data = own_times_table.read_all()?;
         let data = data.into_iter().map(|x| x.own_times_data).collect();
         Ok(data)
     }
 
-    async fn delete(&self, member_id: u64) -> Self::Result<Option<OwnTimes>> {
+    fn delete(&self, member_id: u64) -> Self::Result<Option<OwnTimes>> {
         let own_times_table = OwnTimesTable::new(&self.db);
         let key = format!("{}", member_id);
         let data = own_times_table.read(&key)?;

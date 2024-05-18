@@ -44,13 +44,13 @@ impl OwnGuildRepository for SledOwnGuildRepository {
     // keyを引数にとる必要はない
     // 内部で読んでるseldtableトレイトの都合で引数を取る関数を使っているが，
     // それは適当に空の文字列をわたしておく
-    async fn upsert(&self, own_server: OwnGuild) -> Self::Result<OwnGuild> {
+    fn upsert(&self, own_server: OwnGuild) -> Self::Result<OwnGuild> {
         let own_server_table = OwnGuildTable::new(&self.db);
         own_server_table.upsert(&own_server.guild_name, &own_server)?;
         Ok(own_server)
     }
 
-    async fn get(&self) -> Self::Result<OwnGuild> {
+    fn get(&self) -> Self::Result<OwnGuild> {
         let own_server_table = OwnGuildTable::new(&self.db);
         let data = own_server_table.read(&String::new())?;
         // NoneのときはErrを返す
@@ -62,7 +62,7 @@ impl OwnGuildRepository for SledOwnGuildRepository {
         }
     }
 
-    async fn delete(&self) -> Self::Result<OwnGuild> {
+    fn delete(&self) -> Self::Result<OwnGuild> {
         let own_server_table = OwnGuildTable::new(&self.db);
         let data = own_server_table.read(&String::new())?;
         own_server_table.delete(&String::new())?;

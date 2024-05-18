@@ -64,14 +64,14 @@ impl SledOtherTimesRepository {
 
 impl OtherTimesRepository for SledOtherTimesRepository {
     type Result<T> = SledOtherTimesRepositoryResult<T>;
-    async fn upsert(&self, other_times: OtherTimes) -> Self::Result<OtherTimes> {
+    fn upsert(&self, other_times: OtherTimes) -> Self::Result<OtherTimes> {
         let other_times_table = OtherTimesTable::new(&self.db);
         let kv = Into::<OtherTimesKv>::into(other_times.clone());
         other_times_table.upsert(&kv.key, &kv)?;
         Ok(other_times)
     }
 
-    async fn get(&self, server_name: &str, member_id: u64) -> Self::Result<Option<OtherTimes>> {
+    fn get(&self, server_name: &str, member_id: u64) -> Self::Result<Option<OtherTimes>> {
         let mut fillter_data = self.fillted_data(server_name, member_id)?;
 
         // 一意に定まるはずなので，要素数が2以上はおかしい
@@ -86,20 +86,20 @@ impl OtherTimesRepository for SledOtherTimesRepository {
         Ok(Some(data))
     }
 
-    async fn get_all(&self) -> Self::Result<Vec<OtherTimes>> {
+    fn get_all(&self) -> Self::Result<Vec<OtherTimes>> {
         let other_times_table = OtherTimesTable::new(&self.db);
         let data = other_times_table.read_all()?;
         let data = data.into_iter().map(|x| x.other_times_data).collect();
         Ok(data)
     }
 
-    async fn get_from_member_id(&self, member_id: u64) -> Self::Result<Vec<OtherTimes>> {
+    fn get_from_member_id(&self, member_id: u64) -> Self::Result<Vec<OtherTimes>> {
         let fillter_data = self.fillter_member_id(member_id)?;
 
         Ok(fillter_data)
     }
 
-    async fn delete(&self, server_name: &str, member_id: u64) -> Self::Result<Option<OtherTimes>> {
+    fn delete(&self, server_name: &str, member_id: u64) -> Self::Result<Option<OtherTimes>> {
         let other_times_table = OtherTimesTable::new(&self.db);
 
         let mut data = self.fillted_data(server_name, member_id)?;
@@ -166,40 +166,34 @@ impl<'a> SledTable for OtherTimesTable<'a> {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn sled_other_times_repository_upsert_get() {
+    fn sled_other_times_repository_upsert_get() {
         let db = sled::Config::new().temporary(true).open().unwrap();
         let other_times_repository = SledOtherTimesRepository::new(db);
         let other_times = OtherTimes::new(1, "server_name", 2, 3, "webhook_url");
         let _result = other_times_repository
             .upsert(other_times.clone())
-            .await
             .unwrap();
 
         let get = other_times_repository
             .get("server_name", 1)
-            .await
             .unwrap()
             .unwrap();
         assert_eq!(other_times, get);
     }
 
-    #[tokio::test]
-    async fn sled_other_times_repository_upsert_get_all() {
+    fn sled_other_times_repository_upsert_get_all() {
         let db = sled::Config::new().temporary(true).open().unwrap();
         let other_times_repository = SledOtherTimesRepository::new(db);
         let other_times1 = OtherTimes::new(1, "server_name", 2, 3, "webhook_url");
         let other_times2 = OtherTimes::new(4, "server_name2", 5, 6, "webhook_url2");
         let _result1 = other_times_repository
             .upsert(other_times1.clone())
-            .await
             .unwrap();
         let _result2 = other_times_repository
             .upsert(other_times2.clone())
-            .await
             .unwrap();
 
-        let get = other_times_repository.get_all().await.unwrap();
+        let get = other_times_repository.get_all().unwrap();
         assert_eq!(vec![other_times1, other_times2], get);
     }
 }
