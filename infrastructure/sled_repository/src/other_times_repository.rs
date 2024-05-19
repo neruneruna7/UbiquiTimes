@@ -170,9 +170,7 @@ mod tests {
         let db = sled::Config::new().temporary(true).open().unwrap();
         let other_times_repository = SledOtherTimesRepository::new(db);
         let other_times = OtherTimes::new(1, "server_name", 2, 3, "webhook_url");
-        let _result = other_times_repository
-            .upsert(other_times.clone())
-            .unwrap();
+        let _result = other_times_repository.upsert(other_times.clone()).unwrap();
 
         let get = other_times_repository
             .get("server_name", 1)
@@ -186,12 +184,8 @@ mod tests {
         let other_times_repository = SledOtherTimesRepository::new(db);
         let other_times1 = OtherTimes::new(1, "server_name", 2, 3, "webhook_url");
         let other_times2 = OtherTimes::new(4, "server_name2", 5, 6, "webhook_url2");
-        let _result1 = other_times_repository
-            .upsert(other_times1.clone())
-            .unwrap();
-        let _result2 = other_times_repository
-            .upsert(other_times2.clone())
-            .unwrap();
+        let _result1 = other_times_repository.upsert(other_times1.clone()).unwrap();
+        let _result2 = other_times_repository.upsert(other_times2.clone()).unwrap();
 
         let get = other_times_repository.get_all().unwrap();
         assert_eq!(vec![other_times1, other_times2], get);

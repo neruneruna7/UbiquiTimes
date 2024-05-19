@@ -31,25 +31,25 @@ impl SledOtherGuildRepository {
 
 impl OtherGuildRepository for SledOtherGuildRepository {
     type Result<T> = SledOtherGuildRepositoryResult<T>;
-    async fn upsert(&self, other_server: OtherGuild) -> Self::Result<OtherGuild> {
+    fn upsert(&self, other_server: OtherGuild) -> Self::Result<OtherGuild> {
         let other_server_table = OtherGuildTable::new(&self.db);
         other_server_table.upsert(&other_server.guild_name, &other_server)?;
         Ok(other_server)
     }
 
-    async fn get(&self, server_name: &str) -> Self::Result<Option<OtherGuild>> {
+    fn get(&self, server_name: &str) -> Self::Result<Option<OtherGuild>> {
         let other_server_table = OtherGuildTable::new(&self.db);
         let data = other_server_table.read(&server_name.to_owned())?;
         Ok(data)
     }
 
-    async fn get_all(&self) -> Self::Result<Vec<OtherGuild>> {
+    fn get_all(&self) -> Self::Result<Vec<OtherGuild>> {
         let other_server_table = OtherGuildTable::new(&self.db);
         let data = other_server_table.read_all()?;
         Ok(data)
     }
 
-    async fn get_from_guild_id(&self, guild_id: u64) -> Self::Result<Option<OtherGuild>> {
+    fn get_from_guild_id(&self, guild_id: u64) -> Self::Result<Option<OtherGuild>> {
         let other_server_table = OtherGuildTable::new(&self.db);
         let data = other_server_table.read_all()?;
         // guild_idが一致するものを抽出する
@@ -70,7 +70,7 @@ impl OtherGuildRepository for SledOtherGuildRepository {
         Ok(Some(filtered_data))
     }
 
-    async fn delete(&self, server_name: &str) -> Self::Result<OtherGuild> {
+    fn delete(&self, server_name: &str) -> Self::Result<OtherGuild> {
         // 雑実装なのでリファクタする方法があるはず
         let other_server_table = OtherGuildTable::new(&self.db);
         // 一度取得するのは絶対に無駄 sledtableトレイトを修正するべきだろう

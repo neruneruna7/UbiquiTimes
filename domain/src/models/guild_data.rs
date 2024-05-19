@@ -57,7 +57,7 @@ impl OwnTimes {
 }
 
 // 相手サーバーのデータ
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 pub struct OtherGuild {
     pub guild_id: u64,
     pub guild_name: String,
