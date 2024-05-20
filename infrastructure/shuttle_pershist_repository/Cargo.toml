@@ -11,6 +11,8 @@ serde_json.workspace = true
 serde.workspace = true
 tokio.workspace = true
 
+shuttle-runtime = { version = "0.45.0", default-features = false }
+
 
 domain = { path = "../../domain" }
 
