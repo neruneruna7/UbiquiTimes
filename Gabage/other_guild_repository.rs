@@ -1,3 +1,33 @@
+// 使用されなくなっていたため，整理のためGabageへ移動
+
+mod domain {
+    // もともとdomainのtralts内にトレイトがあったが，こちらも整理のため移動
+    // 区別のためにmodを使用
+    // 実際今のような配置だったわけではない
+    pub trait OtherGuildRepository {
+        // 正直asyncはいらない
+        type Result<T>;
+
+        fn upsert(
+            &self,
+            other_server: OtherGuild,
+        ) -> impl std::future::Future<Output = Self::Result<OtherGuild>> + Send;
+        fn get(
+            &self,
+            guild_id: u64,
+        ) -> impl std::future::Future<Output = Self::Result<Option<OtherGuild>>> + Send;
+        fn get_from_guildname(
+            &self,
+            server_name: &str,
+        ) -> impl std::future::Future<Output = Self::Result<Option<OtherGuild>>> + Send;
+        fn get_all(&self) -> impl std::future::Future<Output = Self::Result<Vec<OtherGuild>>> + Send;
+        fn delete(
+            &self,
+            server_name: &str,
+        ) -> impl std::future::Future<Output = Self::Result<OtherGuild>> + Send;
+    }
+}
+
 use crate::sled_table::{SledTable, SledTableError};
 use domain::models::guild_data::OtherGuild;
 use domain::traits::repositorys::OtherGuildRepository;
