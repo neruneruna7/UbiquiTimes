@@ -1,6 +1,5 @@
 use domain::thiserror;
 use sled_repository::{
-    other_guild_repository::SledOtherGuildRepositoryError,
     other_times_repository::SledOtherTimesRepositoryError,
     own_guild_repository::SledOwnGuildRepositoryError,
     own_times_repository::SledOwnTimesRepositoryError,
@@ -15,8 +14,6 @@ pub enum CommandError {
     OwnGuildRepositoryError(#[from] SledOwnGuildRepositoryError),
     #[error("OwnTiemsRepositoryError: {0}")]
     OwnTimesRepositoryError(#[from] SledOwnTimesRepositoryError),
-    #[error("OtherGuildRepositoryError: {0}")]
-    OtherGuildRepositoryError(#[from] SledOtherGuildRepositoryError),
     #[error("OtherTimesRepositoryError: {0}")]
     OtherTimesRepositoryError(#[from] SledOtherTimesRepositoryError),
 

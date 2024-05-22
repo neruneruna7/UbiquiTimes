@@ -12,7 +12,6 @@ use shuttle_serenity::ShuttleSerenity;
 use signer_verifier::key_generator::RsaKeyGenerator;
 use sled::Db;
 use sled_repository::{
-    other_guild_repository::SledOtherGuildRepository,
     other_times_repository::SledOtherTimesRepository, own_guild_repository::SledOwnGuildRepository,
     own_times_repository::SledOwnTimesRepository,
 };
@@ -156,7 +155,6 @@ fn create_app_state(db: Db) -> Data {
     // 一旦Cloneしておく
     let own_server_repository = Arc::new(SledOwnGuildRepository::new(db.clone()));
     let own_times_repository = Arc::new(SledOwnTimesRepository::new(db.clone()));
-    let other_server_repository = Arc::new(SledOtherGuildRepository::new(db.clone()));
     let other_times_repository = Arc::new(SledOtherTimesRepository::new(db.clone()));
 
     let ubiquitimes_keygenerator = Arc::new(RsaKeyGenerator::new());
@@ -167,7 +165,6 @@ fn create_app_state(db: Db) -> Data {
         sent_member_and_guild_ids,
         own_server_repository,
         own_times_repository,
-        other_server_repository,
         other_times_repository,
         ubiquitimes_keygenerator,
         ca_driver,
