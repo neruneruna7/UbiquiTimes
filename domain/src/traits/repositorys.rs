@@ -1,4 +1,4 @@
-use crate::models::guild_data::{OtherGuild, OtherTimes, OwnGuild, OwnTimes};
+use crate::models::guild_data::{OtherTimes, OwnGuild, OwnTimes};
 
 // type Result<T>;
 // で関連型を使うのがうまくいくのかどうか調べるため，ここだけそうしている
@@ -18,17 +18,6 @@ pub trait OwnTimesRepository {
     fn get(&self, member_id: u64) -> Self::Result<Option<OwnTimes>>;
     fn get_all(&self) -> Self::Result<Vec<OwnTimes>>;
     fn delete(&self, member_id: u64) -> Self::Result<Option<OwnTimes>>;
-}
-
-pub trait OtherGuildRepository {
-    // 正直asyncはいらない
-    type Result<T>;
-
-    fn upsert(&self, other_server: OtherGuild) -> Self::Result<OtherGuild>;
-    fn get(&self, server_name: &str) -> Self::Result<Option<OtherGuild>>;
-    fn get_all(&self) -> Self::Result<Vec<OtherGuild>>;
-    fn get_from_guild_id(&self, guild_id: u64) -> Self::Result<Option<OtherGuild>>;
-    fn delete(&self, server_name: &str) -> Self::Result<OtherGuild>;
 }
 
 pub trait OtherTimesRepository {

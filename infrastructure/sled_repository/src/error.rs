@@ -1,4 +1,3 @@
-use super::other_guild_repository::SledOtherGuildRepositoryError;
 use super::other_times_repository::SledOtherTimesRepositoryError;
 use super::own_guild_repository::SledOwnGuildRepositoryError;
 use super::own_times_repository::SledOwnTimesRepositoryError;
@@ -12,6 +11,4 @@ pub enum RepositoryError {
     OtherTimesRepositoryError(#[from] SledOtherTimesRepositoryError),
     #[error("OwnTimesRepositoryError: {0}")]
     OwnTimesRepositoryError(#[from] SledOwnTimesRepositoryError),
-    #[error("OtherGuildRepositoryError: {0}")]
-    OtherGuildRepositoryError(#[from] SledOtherGuildRepositoryError),
 }
