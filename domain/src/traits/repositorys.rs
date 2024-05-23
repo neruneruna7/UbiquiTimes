@@ -24,8 +24,8 @@ pub trait OtherTimesRepository {
     type Result<T>;
 
     fn upsert(&self, other_times: OtherTimes) -> Self::Result<OtherTimes>;
-    fn get(&self, server_name: &str, member_id: u64) -> Self::Result<Option<OtherTimes>>;
+    fn get(&self, guild_id: u64, member_id: u64) -> Self::Result<Option<OtherTimes>>;
     fn get_all(&self) -> Self::Result<Vec<OtherTimes>>;
     fn get_from_member_id(&self, member_id: u64) -> Self::Result<Vec<OtherTimes>>;
-    fn delete(&self, server_name: &str, member_id: u64) -> Self::Result<Option<OtherTimes>>;
+    fn delete(&self, guild_id: u64, member_id: u64) -> Self::Result<Option<OtherTimes>>;
 }
